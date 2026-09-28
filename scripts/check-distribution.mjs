@@ -51,6 +51,13 @@ try {
   await npm("install", tarball, "--no-audit", "--no-fund");
   await hypit(["--version"]);
   await hypit(["studio", "--help"]);
+  await hypit(["short-drama", "--help"]);
+  const dramaProject = join(project, "short-drama-smoke");
+  await hypit(["short-drama", "init", "distribution-drama", "--profile", "viral-recreation", "--workspace", dramaProject]);
+  const dramaState = JSON.parse(await hypit(["short-drama", "status", "--workspace", dramaProject], true));
+  assert.equal(dramaState.stage, "analysis");
+  const dramaModules = JSON.parse(await hypit(["short-drama", "modules", "required", "analysis", "--workspace", dramaProject], true));
+  assert.ok(dramaModules.includes("use-hypit-video"));
 
   const example = join(distribution, "examples", "semantic-composition");
   for (const name of ["chat.svml", "chat.svrun", "chat.svs", "hypit.runtime.json"]) {

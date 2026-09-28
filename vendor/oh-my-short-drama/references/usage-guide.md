@@ -1,0 +1,109 @@
+# 本地标准短剧使用手册
+
+原项目能力的保留、转换、排除和当前边界见 [能力审计](feature-completeness.md)。
+
+## 制作顺序
+
+### 参考视频复刻入口
+
+短视频复刻使用 `workflow.type=viral-recreation`，但仍复用下方十步主流程。参考视频可从本地 mp4、mov、webm、mkv 导入，也可先用 `reference-video-import.mjs inspect` 检查受支持的平台链接，再以 `import ... --rights-basis owned|licensed|authorized-reference` 显式确认权利并导入。所有平台默认先使用 PATH 中的 `yt-dlp`；只有用户显式指定 `--provider dtk` 时，抖音/TikTok 才使用已配置的 DTK v5。当 `yt-dlp` 明确收到 HTTP 403，或要求登录、注册用户、`--cookies-from-browser`、fresh cookies 时，先返回 `YTDLP_USER_LOGIN_REQUIRED`（退出码 42），引导用户在自己的 Chrome 登录并让作品可播放；随后用 `--after-browser-login` 重试，插件会追加 `--cookies-from-browser chrome --impersonate chrome`，但不会导出或持久化 Cookie。只有该重试仍遇到明确挑战时，才返回 `YTDLP_HTTP_403_BROWSER_SESSION_REQUIRED` 或 `YTDLP_LOGIN_BROWSER_SESSION_REQUIRED`，并读取用户现有 Chrome 播放会话。禁止创建 Codex 临时浏览器、隐藏浏览器、新 Chrome 会话或直接导出 Cookie；普通网络、解析、磁盘错误不能误切。取得当次媒体流并下载到本地暂存文件后，用 `import-browser-file ... --browser-session existing-user-chrome` 完成容器、大小、视频流、时长、帧率、分辨率和 SHA-256 校验，之后才登记并选中；失败不会写入来源账本，成功收据保存在 `.short-drama/reference-imports/<source>/<version>.json`，且不记录 Cookie、签名媒体 URL、请求头、令牌或 API key。
+
+复刻项目初始化或恢复后先用 `studio.mjs open-project <项目目录>` 打开精确 Dashboard 路由；在页面内配置图片、视频、音频 Provider，再运行 `provider-setup.mjs <项目目录>` 完成非付费连接探测。来源选定后运行 `reference-video.mjs prepare` 生成技术信息、镜头候选、固定间隔兜底关键帧、音轨和失败记录；随后必须用 Hypit 做中间理解并登记 `.short-drama/hypit/handoff.json`，再由 `analyze-reference-video` 形成带时间码证据与权利边界的正式分析，最后由 `design-video-recreation` 形成 Script、Media、Caption、Speech、Film 五层工作流。选版时自动生成带工作流与分析哈希的 `recreation-compiled/<episode>/<version>.json` 供后续生产 Skill 消费。媒体以 segment/word 语义锚点绑定，不用裸秒数写死作者层时间线。默认只迁移结构，近似复刻必须有用户明确的权利依据，并校验具体 scope 不超出允许范围或命中 restrictions。
+
+1. **初始化项目**：`manage-drama-projects` 按项目规范 v1 创建固定配置、目录与状态，并归档 `src-xxx@v001` 原始资料。
+2. **Codex 分析**：`analyze-drama-source` 直接分析已选本地小说与要求；再形成简报、故事圣经和分集目录，不调用文本模型。
+3. **剧本落盘**：`short-drama` 提供开场、节奏、爽点、钩子和合规方法，`write-drama-episode` 由 Codex 写作或转换初稿，`humanizer` 产生自然化新版本，`review-drama-script` 对当前版本形成批准报告。
+4. **导演本落盘**：`write-drama-director-book` 形成场次级导演执行意图。
+5. **资产分析与画风**：`plan-drama-assets`、`generate-character-profiles` 确认资产范围，`generate-drama-art-style` 确认或生成项目统一画风。
+6. **资产生成落盘**：人物完整原画设定板、场景多视角设定板、道具设定板通过 `drama-generation-service` 调用用户选择的 Provider；结果全部进入本地资产账本。
+7. **声音证据与合同**：对原声或外部音频先执行 `analyze_speech_timing`，人工复核后用当前 timing 写逐句表演合同；`compile_dubbing_request` 只预检，不产生费用。
+8. **三轮生成与审核**：最多生成三轮，最终 alignment 达到一帧容差后执行八维完整听看审核；通过候选才能 selected。
+9. **字幕与口型**：调用 `build_subtitles_from_audio` 从最终 selected 音频生成绑定字幕；换版后重建字幕、口型和剪辑引用。
+7. **制作规划**：构建/修订结构化分镜，`plan-drama-production` 逐镜判断单图/故事版/分镜板及实际格数，并锁定模型、`prompt_profile`、输入模式、参考顺序和预算。
+8. **分镜与素材制作**：按制作计划逐镜执行。图片分镜生成、选版并做八维审计；白模分镜先编导，再生成、完整观看并达到 85 分。对应镜头通过后先由 `plan-shot-continuity` 建立空间连续性，只有同场景同机位且状态连续时才使用上一镜尾帧作为下一镜首帧；然后由 `write-drama-video-prompts` 按 Seedance 2.0、MiniMax H3 或已确认的通用协议编译并保存提示词版本。声音按 native-first 执行：原生声七维复听，失败仅替换有证据的区间；可见独立对白才按需对口型。任务和文件全部本地对账。
+9. **授权音乐、修复与超分**：许可证用途验证通过后才把目录音乐放入时间线；局部修复保留来源、范围和专项审核。只对当前 selected 视频按需超分，RunningHub SeedVR2.5 保留 Provider 原始输出，成品完整复看后才替换选版。
+10. **剪辑**：`remotion-best-practices` 约束 Remotion 工程与帧确定实现，`edit-drama-timeline` 按本地剪辑方案完成粗剪、字幕、转场、声音和渲染。
+11. **成片**：`edit-deliver-drama` 逐集完整审片并输出 `delivery/<episode-key>/`。
+
+文本资产默认由 Codex 直接生成，不使用外部文本模型。图片、视频、音频才进入生成 Provider 路由。
+
+付费确认只授权费用，不改变阶段。生成 MCP 会在请求落盘前检查当前阶段和全部上游门禁；直接编辑 `selected.json`、项目配置或占位文档不能使越级调用通过。
+
+全流程只调用 `short-drama` 主 Skill。进入阶段后运行 `node scripts/module-runs.mjs required <项目目录> <阶段>`，主 Skill 完整读取并执行返回的 reference 模块，再用 `record` 关联实际项目产物。`workflow.mjs advance` 会拒绝没有模块执行凭证的结果。
+
+## Reference 模块
+
+| 模块 | 用途与使用场景 | 上下游/顺序 | 必须由用户确认 |
+|---|---|---|---|
+| `manage-drama-projects` | 按规范 v1 初始化和校验本地项目、来源、分集、剧本、导演本、制作计划与分镜版本 | 全流程控制面；第一步 | 项目目录、名称、语言、画幅、集数；旧配置迁移、覆盖/重命名 |
+| `analyze-drama-source` | Codex 全量分析小说、资料和制作要求 | 初始化后；先于简报/剧本 | 原文范围、改编边界、冲突要求 |
+| `analyze-reference-video` | 导入或准备并逐时分析 selected 参考视频 | viral-recreation 的 analysis 首步 | 下载与分析权利、允许用途、身份/声音/音乐限制 |
+| `design-video-recreation` | 把参考分析编译为五层声明式复刻工作流 | 参考分析后、简报与剧本前 | structure-only 或授权近似复刻、变量槽位与禁复制项 |
+| `define-drama-brief` | 固化题材、受众、平台和交付边界 | source analysis 后 | 平台、语言、画幅、集数、目标时长、分级、禁区；目标时长默认允许约 ±15% 自然浮动 |
+| `design-drama-bible` | 建立世界观、人物弧、冲突和结局 | brief 后 | 结局类型、人物关系、重大改编 |
+| `outline-drama-series` | 拆分分集冲突、兑现和钩子 | bible 后 | 总集数、单集时长、分集结构 |
+| `short-drama` | 用开场、节奏、爽点、钩子、反派、付费卡点和合规方法指导剧本 | script 阶段首个方法层 | 改编事实、集数、结局和付费策略变化 |
+| `write-drama-episode` | Codex 编写或忠实转换单集剧本 | outline 后 | 原创/忠实转换、目标集、剧情改动、台词定稿 |
+| `humanizer` | 减少模板腔、说明腔和角色同声，保持剧情事实与制作约束 | 剧本初稿后、复核前 | 用户语言样本；任何会改变台词含义或剧情事实的修改 |
+| `review-drama-script` | 复核开场、节奏、兑现、对白、连续性、合规和可制作性 | 自然化后、导演本前 | 接受 P2；P0/P1 必须修改后重审 |
+| `write-drama-director-book` | 生成场次级表演、调度、摄影、光线和声音导演本 | 已选剧本后 | 改变剧情含义、表演基调或声音策略的决定 |
+| `plan-drama-assets` | 识别本集人物、场景、关键道具及叙事版本 | 导演本后 | 资产范围、合并/拆分、版本需求 |
+| `generate-character-profiles` | 建立人物事实、别名、关系、长期表演与声音特征 | 资产分析阶段 | 人物身份、关系、是否出镜、持续造型 |
+| `generate-drama-art-style` | Codex 生成项目画风、色板、光线和运动语言 | 资产生成前；默认真人风格可直接确认 | 画风名称/描述、参考图、预览模型和费用 |
+| `manage-drama-art-styles` | 选择、绑定或变更已有画风并计算 stale 范围 | 画风生成后或变更时 | 入选画风和重新生成范围 |
+| `generate-character-images` | 生成含脸部特写、正侧背全身和辅助设定的角色原画板 | 人物档案确认后 | Provider、模型/工作流、候选数、尺寸、参考图、费用、选版 |
+| `generate-scene-assets` | 提取并生成无人场景候选 | 资产分析后 | 场景层级、锚点、Provider、候选数、尺寸、费用、选版 |
+| `generate-prop-assets` | 提取并生成关键道具候选 | 资产分析后 | 是否值得独立资产、Provider、候选数、尺寸、费用、选版 |
+| `manage-drama-assets` | 将文件、URL、base64 结果归档本地，登记哈希和选版 | 每次媒体生成后立即执行 | 导入目标、文件名、选版、回退或覆盖影响 |
+| `build-drama-storyboard` | 将剧本、导演本和已选资产拆成结构化镜头 | 资产选版完成后 | 镜头数量/时长、剧情覆盖、台词和镜头策略 |
+| `revise-drama-storyboards` | 插镜、变体、修改、重排并保留分镜版本 | 已有分镜后按需 | 修改镜头、剧情影响、批量范围、选定版本 |
+| `write-drama-video-prompts` | Codex 把分镜编译成 Seedance 2.0、MiniMax H3 或通用逐镜提示词，并本地版本化 | 制作计划锁定模型与参考顺序后 | prompt_profile、input_mode、时长、参考用途/顺序、声音方式、台词、转场意图 |
+| `plan-drama-production` | 汇总逐镜生成方式、Provider、参考素材、依赖与预算 | 媒体生成前最后门禁 | Provider、模型/工作流、尺寸、时长、候选数、参考文件、预算和批量付费范围 |
+| `drama-generation-service` | 路由 StarRouter、RunningHub、Comfly 等图片/视频/音频 Provider | 所有付费媒体生成入口 | Provider、模型/工作流、参数、参考文件用途、费用；切换或重试 |
+| `publish-drama-references` | 查询或用 Litterbox 临时托管把本地选版图转为公网 HTTPS URL | Comfly 等 Provider 不接受本地文件时 | 先查有效收据；素材权利、公开暴露、用途许可、逐项资产版本和 1h/12h/24h/72h 时效；强制重传需再次确认 |
+| `configure-generation-providers` | 配置和探活 Provider，不生成 | 首次使用或凭据/目录变化时 | 各模态 Provider 选择；密钥由用户自行配置 |
+| `generate-storyboard-images` | 为选择图片媒介的镜头生成单图、故事版或分镜板 | 制作计划批准后、图片分镜镜头的视频生成前 | Provider、AI 已判断的类型/格数、尺寸、候选数、参考图、费用、选版 |
+| `direct-blender-previz` / `generate-blender-previz` | 为选择白模媒介的镜头编导、生成并评分 | 制作计划批准后、白模分镜镜头的视频生成前 | 剧情节拍、调度、轴线、运镜、评分与选版 |
+| `generate-drama-videos` | 生成并下载逐镜视频 | 对应图片/白模分镜与视频提示词确认后 | Provider、模型/工作流、时长、分辨率、参考素材、声音、费用、重试 |
+| `design-drama-audio` | 原生音频优先；做七维复听、局部 TTS/外部音频兜底和符合条件的对口型；合格原声不重复调用 | 制作计划或逐镜视频阶段 | 音频 Provider、声音权利、voice_id、文本、失败区间、MuseTalk 本地配置、费用、选版 |
+| `transform-drama-media` | 改图、二维转真人、宫格拆分、裁剪、抽帧、对口型和超分等版本化媒体操作 | 媒体生产中按需 | 生成式变换的 Provider/费用；来源资产、裁剪或替换范围；口型唯一人脸与专项审核 |
+| `monitor-drama-tasks` | 本地登记、去重、查询异步任务并校验完成文件 | 媒体生产贯穿执行 | 取消任务、扩大重试或重新付费 |
+| `recover-drama-pipeline` | 恢复中断任务、缺失下载和 stale 下游 | 失败或续作时 | 重提、换 Provider/模型、重新付费、回退阶段 |
+| `review-drama-shots` | 审计图片分镜八维逻辑、按导演合同评分白模，并验收正式视频 | 分镜选版后、视频生成前必做；视频落盘后再次执行 | 接受 P2 缺陷、重生成或选用替代版本 |
+| `remotion-best-practices` | 约束 Remotion 工程、React 时间线、字幕、音频、预览与渲染 | editing 阶段首个实现层 | 工程初始化、外部包安装和输出规格 |
+| `edit-drama-timeline` | 用本地 Remotion 工程完成剪辑、字幕、转场、声音和渲染 | 全部选镜验收通过后 | 入选版本、剪辑结构、字幕样式、转场、声音目标、输出规格 |
+| `edit-deliver-drama` | 完整审片、技术检查和本地交付打包 | 最后一步 | 批准版、文件名、交付目录和发布规格 |
+| `orchestrate-short-drama` | 按状态机编排完整流程，不替代原子工作 | 新建、继续、查看项目时 | 阶段回退、批量范围和任何付费动作 |
+| `short-drama-skill-index` | 按产物类型查找对应模块 | 不确定该加载哪个 reference 时 | 无；只路由 |
+| `use-short-drama-studio` | 使用者入口，解释全流程、依赖、顺序和确认门禁 | 开始制作或询问怎么使用时 | 汇总当前缺失决策，不自行代选 |
+
+## 市场调研流程
+
+显式执行 `node scripts/market-research.mjs refresh /absolute/workspace` 才会联网刷新公开榜单。`list` 查看快照与报告历史，`report` 读取最新报告，`analyze /absolute/workspace <snapshot-id>` 重算指定历史快照；Studio 使用全局 `#/market`。报告持续标注公开 Top 30 样本边界，不作为收益承诺。
+
+市场数据按四层使用，不能混写：
+
+1. **事实**：`market-report.v2` 中可回链快照、榜单和作品证据的观测值；缺失值保持 `null`。
+2. **推断**：机会分、供需象限、共现和平台偏好等分析结论，必须保留置信度、覆盖率和限制。
+3. **创作假设**：`ideate-drama-from-market` 或 Studio 灵感板从信号提出的原创切口，仍需验证，不能复制榜单作品标题、人物关系或具体情节。
+4. **用户决定**：用户明确选择候选并登记后，才写入 `market-inspiration.v1` 和 Brief 的 `market_inspiration_ref`。
+
+推荐使用路径：
+
+1. 可选执行 `refresh`；不刷新时只读已有 `.short-drama-market/reports/*.json`。
+2. 在 Studio `#/market` 选择报告周期和筛选范围，查看题材 × 榜单热度、证据和限制。
+3. 在灵感板选择 1–3 个题材并生成本地候选，逐项核对事实、推断、假设和低置信风险。
+4. 选择一个候选和目标项目，点击“登记已选候选”。该动作只登记 `.short-drama/market-inspiration.json` 并更新 `.short-drama/brief.json` 的引用，不改变项目题材或 Brief 平台。
+5. 继续执行 `define-drama-brief`；后续 Bible 和 Outline 只消费已确认的 Brief，不直接读取榜单作品清单。
+
+Agent 只有在用户明确要求“参考市场/排行榜找灵感”时才执行 `ideate-drama-from-market`。命令行工作流先用 `node scripts/project-store.mjs market-report-ref <项目目录> <report-id> <hypothesis-id...>` 生成可校验报告引用，再按 Skill 合同生成并登记灵感；普通创作不强制经过市场步骤。运行 `node scripts/market-inspiration-offline-smoke.mjs` 可在临时工作区验证全程不刷新网络的闭环。
+
+## 通用门禁
+
+项目配置 `automation_mode` 默认为 `true`。开启时由 agent 自主完成下表中的常规确认；关闭时才等待用户逐项确认。阶段门禁、权限/素材权利事实和安全校验始终有效。
+
+- 覆盖、删除、重命名、阶段回退、批量生成、付费重试、切换 Provider/模型/工作流、上传参考素材和最终选版都必须产生确认记录。
+- 多集项目仍按全局阶段推进；分集级 Skill 必须为每个已建 `ep-NNN` 同时登记独立产物，Codex 合同运行记录必须逐一绑定对应分集证据，不能用某一集替其他集背书。
+- Provider 返回成功不等于完成；本地文件、哈希、provenance、账本和验收缺一不可。
+- 源时间线情感配音发布验收还必须指定 `DUBBING_EVIDENCE_PROJECT` 与 `DUBBING_EVIDENCE_REPORT`；报告必须来自真实镜头 A/B，并绑定完整复听、制作耗时、实际 Provider 任务、字幕和口型证据。
+- 用户未确认的参数保持未决，不用示例值或所谓“最佳实践”替用户决定。

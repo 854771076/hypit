@@ -1,0 +1,10 @@
+{
+  "name": "@hypit/short-drama-node",
+  "version": "0.0.0-dev",
+  "license": "SEE LICENSE IN LICENSE",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./cli": "./src/cli.ts"
+  }
+}

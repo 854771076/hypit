@@ -31,7 +31,18 @@ installDistributionPackageResolution([distributionRoot]);
 const { hypitHostPackageRoot } = await import(new URL("packages/runtime-host-node/src/index.ts", distributionUrl).href);
 installExternalPackageResolution([hypitHostPackageRoot()]);
 const args = process.argv.slice(2);
-if (args[0] === "studio" || (args[0] === "help" && args[1] === "studio")) {
+if (args[0] === "short-drama" || (args[0] === "help" && args[1] === "short-drama")) {
+  const { runShortDramaCli } = await import(new URL("packages/short-drama-node/src/cli.ts", distributionUrl).href);
+  try {
+    await runShortDramaCli(args[0] === "help" ? ["help"] : args.slice(1).filter((arg) => arg !== "--debug"), {
+      write: (text) => process.stdout.write(text),
+    });
+  } catch (error) {
+    const { renderCliError } = await import(new URL("packages/cli/src/index.ts", distributionUrl).href);
+    process.stderr.write(renderCliError(error, { debug: args.includes("--debug") }));
+    process.exitCode = 1;
+  }
+} else if (args[0] === "studio" || (args[0] === "help" && args[1] === "studio")) {
   const { runStudio } = await import(new URL("packages/studio/start.ts", distributionUrl).href);
   try {
     await runStudio(args[0] === "help" ? ["--help"] : args.slice(1).filter((arg) => arg !== "--debug"), {

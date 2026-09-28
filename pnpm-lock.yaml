@@ -3176,6 +3176,8 @@ importers:
         specifier: workspace:*
         version: link:../speech
 
+  packages/short-drama-node: {}
+
   packages/sound:
     dependencies:
       '@hypit/component-kit':
