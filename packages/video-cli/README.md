@@ -96,11 +96,26 @@ half-open seconds interval once. Native timestamps, including variable frame rat
 decoder PTS and time base. `tiles --ranges <json> --every-frame` decodes each listed interval and
 paginates its images. `--transcript` adds word context. This native path uses no FPS resampling.
 
-For `transcribe`, set `--language` to an explicit lowercase two- or three-letter spoken language code,
-such as `en`, `zh` or `ko`. The selected service owns which languages it can align. Chinese speech uses `zh`, including
+For authored speech, keep using an explicit lowercase two- or three-letter spoken language code such as
+`en`, `zh` or `ko`. Reference analysis may use `transcribe --language auto`: the selected Endpoint must
+return a detected language and confidence, low confidence requires `--confirm-language <code>`, and the
+CLI then retranscribes with that explicit code. `--dialogue-language ja` records the generated-dialogue
+target when it differs from the source; `--subtitle-language zh-CN` records the independent
+postproduction subtitle target. Neither changes recognition language. The selected service owns which languages it can align. Chinese speech uses `zh`, including
 Chinese speech containing English names. The request selects the recognition language and
 language-specific aligner; ASR size remains a deployment choice. Caption font and Script's
 simplified/traditional characters are independent authoring choices.
+
+Whole-file detection returns one language and cannot prove that a source is monolingual. For multilingual
+or code-switching references, detect utterance boundaries first, transcribe each extracted interval with
+`--language auto`, confirm low-confidence results, and retain the original text plus confirmed language
+code for every dialogue turn. Generation prompts must carry those per-turn codes unchanged.
+
+`hypit media shots` detects changes on the native frame clock and separates 3–10 frame flashes into
+editing events. `hypit media prepare-depth-source` accepts only an explicitly declared
+`--source-role original-reference`, validates that it is video, and copies it byte-for-byte for depth
+extraction. It never paints, delogos or re-encodes pixels. `clean-text` is disabled; generated shots with
+unwanted text are rejected during review and regenerated from improved prompts or references.
 
 `transcribe` uses the Profile's `whisperx-alignment` Endpoint (after
 extracting 16 kHz mono speech audio with ffmpeg). Direct invocation forwards the Provider's progress

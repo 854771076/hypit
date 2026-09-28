@@ -164,7 +164,13 @@
     "examples/provider-package/packages/*/package.json",
     "examples/provider-package/packages/*/tsconfig.json",
     "examples/provider-package/packages/*/src/**/*",
-    "examples/provider-package/hypit.runtime.json"
+    "examples/provider-package/hypit.runtime.json",
+    "examples/depth-guided-video-replication/README.md",
+    "examples/depth-guided-video-replication/*.svml",
+    "examples/depth-guided-video-replication/*.svrun",
+    "examples/depth-guided-video-replication/*.svs",
+    "examples/depth-guided-video-replication/hypit.runtime.json",
+    "examples/depth-guided-video-replication/assets/*"
   ],
   "scripts": {
     "pack:distribution": "node scripts/pack-distribution.mjs",
@@ -208,6 +214,7 @@
     "@hypit/credential-store-platform": "workspace:*",
     "@hypit/deck-track": "workspace:*",
     "@hypit/deck-track-studio": "workspace:*",
+    "@hypit/depth-video": "workspace:*",
     "@hypit/elevenlabs-speech": "workspace:*",
     "@hypit/estimate": "workspace:*",
     "@hypit/film": "workspace:*",
@@ -244,6 +251,8 @@
     "@hypit/provider-media-local": "workspace:*",
     "@hypit/provider-monid": "workspace:*",
     "@hypit/provider-pollo": "workspace:*",
+    "@hypit/provider-runninghub": "workspace:*",
+    "@hypit/provider-starrouter": "workspace:*",
     "@hypit/provider-tokendance": "workspace:*",
     "@hypit/provider-whisperx-local": "workspace:*",
     "@hypit/ranking": "workspace:*",

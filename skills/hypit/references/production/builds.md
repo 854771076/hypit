@@ -69,6 +69,12 @@ asset as an ordinary project file and select it with `file` and `satisfy` in the
 the file Output; downstream preparation and alignment still run when needed. A completed SemanticTake
 can instead be reused directly through its existing Result Output.
 
+The bundled RunningHub Provider keeps a checkpointed task pending when status lookup or output
+download hits a transient network, proxy, timeout, HTTP 429 or HTTP 5xx failure, then retries the same
+task instead of resubmitting it. A lost response to the initial create request is different: without a
+task id its remote outcome is unknown, so the Provider reports that uncertainty and does not retry a
+possibly paid submission. Inspect RunningHub activity for the task before authorizing a replacement.
+
 Use `status <build-id> --verbose` for task IDs, Endpoints and progress. Use
 `inspect <build-id> --verbose --json` for the Result's full retained execution records, including
 available credential references and receipts; increase `--limit` if the report lists omitted records.
@@ -94,15 +100,15 @@ would be sent. Planning starts no external work.
 
 Use the default reports to follow the remaining work. `--json` changes the encoding; `--verbose`
 expands the scope. A Run's Candidate count is not its count of new requests or generated assets:
-Candidates may supply existing values or select another Producer. Read demanded Needs to decide
-what will execute, and `pricing` to identify the subset that may incur a Provider charge.
+Candidates may supply existing values or select another Producer. The confirmation view is the
+production plan itself: read the named requests and quantities for boards, depth videos, audio
+references, generated shots and processing work.
 
 With a selected Runtime Profile, the plan also names the Endpoint behind each request, applies that
-Endpoint's request-support rules, checks cheap readiness for the demanded capabilities, and shows the
-Provider's declared price page or that its price source is unknown. Planning remains local and does
-not require a billing account to answer.
+Endpoint's request-support rules and checks cheap readiness for the demanded capabilities. It does not
+calculate or show a concrete price. Planning remains local and does not require a billing account.
 
-Read the current pricing material selected Providers expose for these same Needs:
+When an operator separately needs Provider rate diagnostics, they may read the current pricing material:
 
 ```bash
 hypit pricing path/to/build.svrun
@@ -114,16 +120,12 @@ known parameters, request counts, and the Provider's rate summary or document wi
 no-charge work is summarized in one count. Missing pricing declarations and failed queries stay
 visible as uncertainty; a declared price page remains useful when the Provider supplies no document.
 
-Use the stated units and conditions together with authored duration, resolution, count, or other
-billing facts to calculate and explain the expected cost. Providers may publish several price tiers
-for one model; match the request to the applicable conditions. A future audio input may not have a
-known duration yet. Use its per-audio-second rate with an explicitly estimated length from the
-production plan, keeping that estimate distinct from measured usage. Hypit itself calculates no total.
+This command is not part of the generation confirmation gate and Hypit calculates no total.
 
 `--json` puts each group's `requests` beside its `pricingDocuments`, retaining the Provider's original
 data. Both views include all pricing groups by default. `--limit <count>` shortens only the human
-view; `--verbose` shows original documents and the no-charge work. Read the relevant groups and explain
-the expected cost of the described work, the account that would pay and any material uncertainty.
+view; `--verbose` shows original documents and the no-charge work. Read these groups only when
+explicitly needed for billing diagnostics.
 
 Read the remaining Needs against this change. A Caption or MG-only revision should keep its existing
 media generation satisfied; replacing selected B-roll should leave the unchanged performance satisfied.
@@ -133,25 +135,21 @@ lost or never selected, repair the Run and plan again before asking to spend or 
 
 ## Work within the agreed paid scope
 
-Spending authority covers a described piece of work through the selected billing accounts and the
-cost or budget the user accepts. Explain those terms before asking for authorization, using the
-available Provider rates and the work's expected usage. Give an estimate at the precision the current
-plan supports, with material uncertainty visible. Account access and available quota describe what
-can run; the user's agreement establishes what you may spend to make it.
+Paid-work authority covers the displayed production plan through the selected billing accounts. Before
+asking for authorization, show the work and quantities without calculating a concrete price. Account
+access and available quota describe what can run; approval of that plan establishes what may be
+submitted. If the user supplies a budget ceiling, never exceed it.
 
 The commission can cover a whole production, including reference transcription, generated media
 and semantic alignment, or just the reference analysis before the user decides to commission the
 video. Early hosted transcription fits either scope. Establish its coverage before invoking
-`hypit transcribe`, which immediately calls the selected Endpoint. For that reference, source
-duration and the Provider's published rates can support the estimate; a production Run need not
-exist yet. Local WhisperX has no hosted Provider call charge. As the creative plan becomes concrete,
-`plan` and `pricing` expose the exact remaining requests for that Run.
+`hypit transcribe`, which immediately calls the selected Endpoint. A production Run need not exist yet.
+As the creative plan becomes concrete, `plan` exposes the exact remaining requests for that Run.
 
 Carry covered work forward and keep the user informed. The same agreement can apply across tool
 calls and Builds; a new command is not itself a new authorization request. Ask for a new decision
-when the work expands beyond the agreed scope or cost, or would use an account outside that agreement.
-Use the current plan, available Results and costs already incurred or committed to judge the
-remaining work. Treat estimates as estimates where actual charges are unavailable.
+when the work expands beyond the agreed plan, exceeds a user-supplied budget ceiling, or would use an
+account outside that agreement. Use the current plan and available Results to judge the remaining work.
 
 Preserve the user's agreement in [Brief](../creation/brief.md#brief-preserves-user-authority), and
 resume from it alongside the current Run, Results and Progress. Normal composition work carries

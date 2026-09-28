@@ -175,6 +175,54 @@ test("transcribe passes Korean to the selected endpoint", async () => {
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
+test("auto language detection requires confidence, then retranscribes with the detected dialogue language", async () => {
+  const root = await mkdtemp(join(tmpdir(), "hypit-transcribe-auto-"));
+  try {
+    await writeFile(join(root, "speech.wav"), wav(32_000));
+    const seen: string[] = [];
+    const base = host([]);
+    const env: CreationEnvironment = { cwd: root, openHost: async () => ({ profile: join(root, "runtime.json"), host: {
+      ...base,
+      invoke: async (need) => {
+        const language = (need.constraints as unknown as WhisperXAlignmentRequest).language;
+        seen.push(language);
+        return { value: { kind: "inline", value: canonicalize(sealAlignedTranscriptEvidence({
+          ...(language === "auto" ? { detectedLanguage: "ja", languageConfidence: 0.94 } : {}),
+          passages: interpretWhisperXTranscript({ segments: [{ words: [{ text: "こんにちは", start: 0.1, end: 0.8 }] }] }, 32_000),
+        })) } };
+      },
+    } }) };
+    await runCreationCli([
+      "transcribe", "speech.wav", "--language", "auto", "--subtitle-language", "zh-CN", "--to", "speech.json",
+    ], capture().io, env);
+    assert.deepEqual(seen, ["auto", "ja"]);
+    const result = JSON.parse(await readFile(join(root, "speech.json"), "utf8"));
+    assert.equal(result.source_language, "ja");
+    assert.equal(result.dialogue_language, "ja");
+    assert.equal(result.subtitle_language, "zh-CN");
+    assert.equal(result.detection.confidence, 0.94);
+    assert.equal(result.tracks.translation.status, "pending");
+    assert.equal(result.tracks.subtitles.status, "pending_postproduction");
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("low-confidence language detection stops for an explicit confirmation", async () => {
+  const root = await mkdtemp(join(tmpdir(), "hypit-transcribe-confirm-"));
+  try {
+    await writeFile(join(root, "speech.wav"), wav(16_000));
+    const base = host([]);
+    const env: CreationEnvironment = { cwd: root, openHost: async () => ({ profile: join(root, "runtime.json"), host: {
+      ...base,
+      invoke: async () => ({ value: { kind: "inline", value: canonicalize(sealAlignedTranscriptEvidence({
+        detectedLanguage: "ja", languageConfidence: 0.42, passages: [],
+      })) } }),
+    } }) };
+    await assert.rejects(runCreationCli([
+      "transcribe", "speech.wav", "--language", "auto", "--to", "speech.json",
+    ], capture().io, env), /confidence 0\.42.*--confirm-language ja/u);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
 test("Chinese transcription explicitly sends zh and retains individual character windows", async () => {
   const root = await mkdtemp(join(tmpdir(), "hypit-transcribe-zh-"));
   try {

@@ -8,11 +8,15 @@
     default-edit-language: continuous-shot;
     default-camera-language: reference-locked;
     default-motion-intensity: readable;
+    default-audio-mode: joint-native;
   }
 
-  text-template.broll-v1.block.base { kind: fixed; order: 10; text: "Create a silent B-roll micro-film using the provided reference image or images."; }
+  text-template.broll-v1.block.base { kind: fixed; order: 10; text: "Create a B-roll micro-film using the provided reference image or images."; }
   text-template.broll-v1.block.contract { kind: fixed; order: 20; text: "B-ROLL CONTRACT: create visual support footage. Focus on visible action, object behavior, camera movement, and editing rhythm. Visible people perform visual actions rather than speaking to camera."; }
   text-template.broll-v1.block.reference { kind: fixed; order: 30; text: "REFERENCE CONTRACT: preserve the intended identity, product, UI, props, setting, lighting, texture, wardrobe, and composition from the reference images. Use the references in their authored order and follow the story's explicit description of each reference's role."; }
+  text-template.broll-v1.block.audio { kind: axis; order: 35; parameter: audio-mode; }
+  text-template.broll-v1.choice.audio.joint-native { text: "NATIVE SOUND: generate synchronized room tone, ambience, handling noise, footsteps, cloth movement, impacts, and other physically motivated action sound visible in the shot. Add no dialogue, narration, lyrics, or unrelated music."; }
+  text-template.broll-v1.choice.audio.silent { text: "SILENT WAIVER: output no dialogue, ambience, action sound, music, or other audio because this shot has an explicit silent-video requirement."; }
 
   text-template.broll-v1.block.material { kind: axis; order: 40; parameter: material-mode; }
   text-template.broll-v1.choice.material.practical-real { text: "MATERIAL MODE: practical real-world UGC footage with believable physical causality and a lived-in phone-camera feeling."; }

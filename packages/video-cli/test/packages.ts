@@ -2,6 +2,7 @@ import artifact from "../../artifact/src/activation.js";
 import captionFine from "../../caption-fine/src/activation.js";
 import caption from "../../caption/src/activation.js";
 import composition from "../../composition/src/activation.js";
+import depthVideo from "../../depth-video/src/activation.js";
 import estimate from "../../estimate/src/activation.js";
 import film from "../../film/src/activation.js";
 import fontsOpen from "../../fonts-open/src/activation.js";
@@ -11,6 +12,7 @@ import hyperframes from "../../hyperframes/src/activation.js";
 import mediaPipeline from "../../media-pipeline/src/activation.js";
 import mediaTrack from "../../media-track/src/activation.js";
 import media from "../../media/src/activation.js";
+import minimaxH3 from "../../minimax-h3/src/activation.js";
 import narrative from "../../narrative/src/activation.js";
 import programSpace from "../../program-space/src/activation.js";
 import text from "../../text/src/activation.js";
@@ -40,6 +42,8 @@ export const videoTestPackages = [
   bind("@hypit/artifact", artifact),
   bind("@hypit/narrative", narrative),
   bind("@hypit/media", media),
+  bind("@hypit/depth-video", depthVideo),
+  bind("@hypit/minimax-h3", minimaxH3),
   bind("@hypit/program-space", programSpace),
   bind("@hypit/speech", speech),
   bind("@hypit/speech-evidence", speechEvidence),

@@ -17,6 +17,8 @@ type RawSegment = {
 /** Common transcription response accepted from local WhisperX and remote transcription APIs. */
 export type WhisperXTranscriptResponse = {
   readonly language?: unknown;
+  readonly language_probability?: unknown;
+  readonly language_confidence?: unknown;
   readonly segments?: unknown;
   readonly words?: unknown;
 };

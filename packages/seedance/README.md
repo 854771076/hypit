@@ -18,6 +18,10 @@ the author's literal, in whole seconds inside the model's declared range; measur
 with `hypit measure` and write the number here. Nothing in the graph computes it, so a Build plan is
 complete before it starts.
 
+All three Surfaces default `generate-audio` to `true`, so generated picture, dialogue, ambience and
+action sound stay in one request. Set `generate-audio="false"` only for an explicit silent-video
+requirement or when the selected Endpoint cannot generate audio.
+
 ## Reference audio
 
 The Seedance package rejects reference audio declared as `audio/mp4` or `audio/x-m4a`. Convert the
@@ -81,3 +85,15 @@ Video references can carry motion or camera behavior while image references carr
 appearance. Request duration and reference-clip duration are different limits. Check the selected
 Endpoint's reference duration and media limits when choosing an excerpt; the author's output duration
 alone does not validate the input clip.
+
+StarRouter requires the measured duration on each video reference and validates a 2–15 second total:
+
+```xml
+<seedance:ReferenceVideo id="depth-guided" model="standard" prompt={direction} duration="6">
+  <seedance:Reference image={character.image} person-reference="true"/>
+  <seedance:Reference video={depth.video} person-reference="false" duration-seconds="6"/>
+</seedance:ReferenceVideo>
+```
+
+The prompt must contain the corresponding `@图片1` and `@视频1` labels. A depth video remains an
+ordinary structural reference rather than a native depth/ControlNet input.

@@ -68,3 +68,9 @@ Let speech, source action and effect tails meet in the rhythm the scene needs. U
 overlaps where they make that handoff audible. Review the actual Film where these sounds coexist:
 the chosen voice remains clear when it carries meaning, an effect belongs to its event, and the
 soundtrack retains the work's intended character across the passage.
+
+For a multi-shot recreation, define one scene-level acoustic baseline before generating or mixing:
+room tone, perspective, reverb, noise floor and music state. Treat generated breaths, footsteps and
+contact sounds as shot material to audit, not automatically compatible ambience. Carry the baseline
+under adjoining cuts, crossfade perspective changes, and replace contradictory generated sound instead
+of accepting a new acoustic world at every shot.

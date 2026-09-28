@@ -48,6 +48,9 @@ export type CliBuildResultView = {
   readonly targets: readonly string[];
   readonly omittedTargets?: number;
   readonly outputs: readonly CliOutputView[];
+  readonly availableTargetCount: number;
+  readonly reusableOutputCount: number;
+  readonly outputTypes: readonly { readonly type: string; readonly count: number; readonly targetCount: number }[];
   readonly outputCount: number;
   /** Available Outputs outside the selected inspection scope. */
   readonly otherOutputCount?: number;
@@ -243,6 +246,19 @@ export async function buildResultView(
     throw new Error(`Build Result ${manifest.id} has no public Output ${options.output}`);
   }
   const available = orderedOutputNames(manifest);
+  const targetNames = new Set(manifest.targets);
+  const availableTargetCount = available.filter((name) => targetNames.has(name)).length;
+  const typeCounts = new Map<string, { count: number; targetCount: number }>();
+  for (const name of available) {
+    const stored = manifest.outputs[name] as { readonly type?: TypeRef } | undefined;
+    const type = stored?.type === undefined ? "unknown" : cliTypeName(stored.type);
+    const count = typeCounts.get(type) ?? { count: 0, targetCount: 0 };
+    count.count += 1;
+    if (targetNames.has(name)) count.targetCount += 1;
+    typeCounts.set(type, count);
+  }
+  const outputTypes = [...typeCounts.entries()].sort(([left], [right]) => left.localeCompare(right))
+    .map(([type, counts]) => ({ type, ...counts }));
   const allNames = options.output !== undefined ? [options.output] : options.verbose ? available
     : available.filter((name) => manifest.targets.includes(name) || manifest.highlightedOutputs?.includes(name));
   const selected = options.verbose ? allNames.slice(0, options.limit) : allNames;
@@ -262,6 +278,9 @@ export async function buildResultView(
     ...(manifest.run === undefined ? {} : { run: projectPath(manifest.run.path, options.projectRoot) }),
     targetCount: manifest.targets.length,
     targets: manifest.targets,
+    availableTargetCount,
+    reusableOutputCount: available.length - availableTargetCount,
+    outputTypes,
     outputCount: available.length,
     outputs,
     ...(available.length === allNames.length ? {} : { otherOutputCount: available.length - allNames.length }),

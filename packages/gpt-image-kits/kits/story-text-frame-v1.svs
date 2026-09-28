@@ -1,0 +1,12 @@
+<?svml using="@hypit/text/svs@1"?>
+
+<sheet version="1" id="story-text-frame-v1">
+  text-template.story-text-frame-v1 { separator: paragraph; }
+  text-template.story-text-frame-v1.block.purpose { kind: fixed; order: 10; text: "Create one immutable approved story-text asset for a single exact display state. This is a full-frame or in-scene production plate, not a subtitle, caption, label sheet, storyboard, or alternate design."; }
+  text-template.story-text-frame-v1.block.text { kind: slot; order: 20; slot: text; optional: false; label: "EXACT VISIBLE TEXT — COPY ONCE WITHOUT TRANSLATION OR CORRECTION:"; }
+  text-template.story-text-frame-v1.block.appearance { kind: slot; order: 30; slot: appearance; optional: false; label: "GLYPH AND DISPLAY APPEARANCE:"; }
+  text-template.story-text-frame-v1.block.composition { kind: slot; order: 40; slot: composition; optional: false; label: "COMPOSITION AND GEOMETRY:"; }
+  text-template.story-text-frame-v1.block.context { kind: slot; order: 50; slot: context; optional: true; label: "SCENE AND REFERENCE RESPONSIBILITIES:"; }
+  text-template.story-text-frame-v1.block.fidelity { kind: fixed; order: 60; text: "TEXT FIDELITY: reproduce every approved character exactly once, in the stated order, case, punctuation, separator shape, spacing, leading zero, and line break. Do not translate, paraphrase, autocorrect, add, remove, repeat, mirror, scramble, deform, or replace any character. Keep glyph shape, baseline, tracking, perspective, scale, color, glow, surface integration, and placement stable."; }
+  text-template.story-text-frame-v1.block.hygiene { kind: fixed; order: 70; text: "OUTPUT HYGIENE: add no subtitles, captions, translations, labels, annotations, logos, watermarks, UI, or other readable text. Produce only this one requested display state. After original-resolution visual review and OCR, use the result as a standalone approved image or as one semantic reference state for a temporal storyboard and video-generation prompt. Do not paste, composite, or locally retouch it over generated video."; }
+</sheet>

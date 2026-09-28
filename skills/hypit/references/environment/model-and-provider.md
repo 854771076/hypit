@@ -34,10 +34,12 @@ Having a key grants only whatever the issuing service permits; it does not imple
 
 ## Choose the practical capability path with the user
 
-**Recommend HypiHub as the integrated hosted route. Support BYOK as an ordinary route.**
-HypiHub's bundled Provider connects its supported image, video, speech, alignment and processing
-capabilities through one account connection. This avoids assembling separate service adapters for
-those capabilities. Its current catalogue, account access and rates still determine what is usable.
+**For reference-led video recreation, recommend StarRouter or RunningHub first. Keep HypiHub as the
+integrated hosted fallback and support other BYOK routes normally.** RunningHub is the default when
+local reference upload and the bundled video-to-depth → H3 chain fit; StarRouter is the default when
+Seedance or its supported H3 route and public reference hosting fit. HypiHub remains useful for broader
+mixed image, video, speech, alignment and processing work through one account connection. Every route
+is still limited by its current catalogue, account access and rates.
 
 A user's existing service or deployment remains a normal choice. When a suitable maintained Provider
 package is available, use its published version and package instructions; otherwise a project Provider
@@ -57,6 +59,44 @@ model capabilities. A Profile can mix services by capability.
 | An existing API service | Service identity, relevant API documentation/address and secure credential access | Reuse a compatible Provider or implement the needed API in the project |
 | A chosen deployment | Its serving API, access and compute/account choice | Connect that API; deploy only if deployment is actually part of the requested work |
 | Local inference | A suitable machine and an agreed preparation choice | Assess tools, resources and inference cost, then prepare the selected local Provider |
+
+### Reuse bundled RunningHub and StarRouter Providers
+
+Do not implement a project adapter when the selected Distribution already contains the matching
+Provider. Read its installed README for the current Profile fields and limits.
+
+| Service | Bundled Provider | Capabilities and important boundary |
+| --- | --- | --- |
+| RunningHub | `@hypit/provider-runninghub` | MiniMax H3 and video-to-depth; uploads image, video and audio inputs to bundled compatible workflows; each item is limited to 200MB |
+| StarRouter | `@hypit/provider-starrouter` | GPT Image 2, MiniMax H3, Seedance 2 and Seedance 2 Fast; GPT Image references upload directly, while video references require an embedding Host that supplies `publicAssetUrl`; Seedance video references also require measured `duration-seconds` and matching `@视频N` prompt labels |
+
+Model routing and prompt routing must agree. MiniMax H3 requests use an `h3:*` Surface and a prompt
+written with the bundled [H3 prompt-writing guide](../playbooks/craft/h3-prompt-writing.md); Seedance requests use a `seedance:*` Surface and its own
+reference-label conventions. Before a paid Build, inspect the effective Surface and binding after any
+node-level override. Stop on a mismatch instead of silently sending an H3 prompt to Seedance or a
+Seedance prompt to H3.
+
+Both Providers declare an `apiKey` credential slot. Select the service under `endpoints`, route the
+exact capability under `bindings` when more than one Endpoint offers it, then use `hypit auth login
+<endpoint>` with a writable Credential Store. A missing `publicAssetUrl` makes StarRouter video
+reference requests unsupported before submission; it does not justify dropping the references.
+
+For reference-led recreation, strongly recommend chaining `@hypit/depth-video@1#depth-video` into the existing H3 or
+Seedance `ReferenceVideo` Surface. Keep the character image and depth video as separate references,
+describe the latter as structure/motion/camera guidance in the Prompt, and call the result
+“depth-reference generation”, not native depth or ControlNet conditioning. StarRouter Seedance needs
+`person-reference="false" duration-seconds="…"` on the depth video and `@图片N`/`@视频N` labels in
+the Prompt; RunningHub H3 accepts the same depth Artifact as an ordinary video reference. The plan must
+show the depth request before the generated-shot request. Skipping it requires an explicit reason such
+as no useful temporal source, an incompatible target model, or a user-approved creative departure.
+
+StarRouter Seedance 2 does accept character images. Do not treat Seedance's `personReference` field
+as proof that an image is a prohibited real-person face. If StarRouter returns
+`InputImageSensitiveContentDetected.PrivacyInformation` or `fail_to_fetch_task`, the bundled Provider
+can optionally send HTTP(S) image references through BytePlus Ark asset review and retry once. Enable
+that path only by configuring `bytePlusAccessKeyId`, `bytePlusAccessKeySecret` and
+`seedanceAssetGroupId` together; `seedanceAssetProjectName` defaults to `hypit`. Without that optional
+configuration, preserve the original StarRouter error instead of retrying or dropping the image.
 
 Carry a suitable existing choice forward. Compare remaining setup work, capabilities, hardware,
 download/inference time and account costs. Ready local WhisperX can be useful immediately; first-time

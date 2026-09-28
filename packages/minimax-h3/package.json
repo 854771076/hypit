@@ -5,7 +5,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./reference-shot": "./kits/reference-shot-v1.svs"
   },
   "hypit": {
     "activation": "./src/activation.ts"
@@ -17,5 +18,8 @@
     "@hypit/model-kit": "workspace:*",
     "@hypit/protocol": "workspace:*",
     "@hypit/text": "workspace:*"
+  },
+  "devDependencies": {
+    "@hypit/svs": "workspace:*"
   }
 }

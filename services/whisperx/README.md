@@ -15,6 +15,9 @@ canonical 16 kHz mono PCM s16 WAV
 It does not run FFmpeg, modify the authored script, split caption cues, infer SVML Segments, cache
 Build results or create a SemanticTake. Missing WhisperX word timing stays missing; the author-side
 semantic projection combines this evidence with one explicit Script Segment later.
+An omitted request language enables model language detection. The response preserves the detected
+language and, when WhisperX supplies it, `language_probability`; policy thresholds and confirmation
+belong to the calling CLI, not this service.
 
 ## Install
 

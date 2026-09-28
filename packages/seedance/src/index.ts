@@ -18,6 +18,10 @@ export type SeedanceModel = typeof seedanceModels[number];
 const ASPECT_RATIOS = ["1:1", "4:3", "3:4", "16:9", "9:16", "21:9", "adaptive"] as const;
 
 const PERSON_REFERENCE_FIELDS = [{ name: "personReference", value: { kind: "boolean" } }] as const;
+const VIDEO_REFERENCE_FIELDS = [
+  ...PERSON_REFERENCE_FIELDS,
+  { name: "durationSeconds", value: { kind: "number", minimum: 0.001 }, optional: true },
+] as const;
 
 const SEEDANCE_25_DURATIONS = [-1, ...Array.from({ length: 27 }, (_item, index) => index + 4)] as const;
 
@@ -38,7 +42,7 @@ function seedancePortTable(model: SeedanceModel): GenerationPortTable {
     ports: [
       { name: "prompt", value: { kind: "text", maxChars: is25 ? 30_000 : 20_000 }, minItems: 1, maxItems: 1 },
       { name: "referenceImage", value: { kind: "media", accepts: ["image"], itemFields: PERSON_REFERENCE_FIELDS }, minItems: 0, maxItems: is25 ? 30 : 9 },
-      { name: "referenceVideo", value: { kind: "media", accepts: ["video"], itemFields: PERSON_REFERENCE_FIELDS }, minItems: 0, maxItems: is25 ? 10 : 3 },
+      { name: "referenceVideo", value: { kind: "media", accepts: ["video"], itemFields: VIDEO_REFERENCE_FIELDS }, minItems: 0, maxItems: is25 ? 10 : 3 },
       { name: "referenceAudio", value: { kind: "media", accepts: ["audio"] }, minItems: 0, maxItems: is25 ? 10 : 3 },
       { name: "firstFrame", value: { kind: "media", accepts: ["image"], itemFields: PERSON_REFERENCE_FIELDS }, minItems: 0, maxItems: 1 },
       { name: "lastFrame", value: { kind: "media", accepts: ["image"], itemFields: PERSON_REFERENCE_FIELDS }, minItems: 0, maxItems: 1 },
@@ -187,7 +191,7 @@ const seedanceVideoPort: readonly SurfacePortVocabulary[] = [{
 }];
 
 const seedanceSettingNotes: readonly string[] = [
-  "`resolution` defaults to `720p`, `aspect-ratio` to `9:16` and `generate-audio` to `false`.",
+  "`resolution` defaults to `720p`, `aspect-ratio` to `9:16` and `generate-audio` to `true`.",
   "`standard` offers `1080p` and `4k`; `2.5` offers `1080p`; `fast` and `mini` render at `480p` or `720p`.",
   "`duration` is 4 to 15 seconds for `standard`, `fast` and `mini`, and `-1` for automatic or 4 to 30 seconds for `2.5`.",
 ];
@@ -292,6 +296,12 @@ export const seedanceMarkupSurfaces = [
             accepts: [artifactTypes.blob],
           },
           {
+            name: "duration-seconds",
+            kind: "literal",
+            required: false,
+            summary: "Declares the reference video's measured duration when the selected Provider requires it.",
+          },
+          {
             name: "audio",
             kind: "reference",
             required: false,
@@ -317,6 +327,7 @@ export const seedanceMarkupSurfaces = [
         ...seedanceSettingNotes,
         "The element requires at least one `Reference` child, and the model's port limits cap how many of each role it accepts.",
         "Every image/video Reference requires `person-reference=\"true|false\"`. Classify the supplied material; audio must omit the field. The Provider transports it according to its API.",
+        "A video Reference may declare its measured `duration-seconds` for Providers that validate reference duration.",
         "A `Reference` carries exactly one of `image`, `video` or `audio`, and is empty.",
       ],
     },

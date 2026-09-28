@@ -36,6 +36,8 @@ export type SpeechTranscriptPassage = {
 };
 
 export type AlignedTranscriptEvidence = {
+  readonly detectedLanguage?: string;
+  readonly languageConfidence?: number;
   readonly passages: readonly SpeechTranscriptPassage[];
 };
 
@@ -65,6 +67,8 @@ const activity = object({
 });
 
 export const alignedTranscriptEvidenceFields = {
+  detectedLanguage: { schema: { kind: "string" }, optional: true },
+  languageConfidence: { schema: score, optional: true },
   passages: {
     schema: {
       kind: "array",

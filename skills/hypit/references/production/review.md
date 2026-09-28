@@ -114,6 +114,42 @@ Inspect the relationships that make the composition work:
 - **composition** — each element has enough room and the full frame preserves the intended visual
   hierarchy.
 
+For generated recreation, do not approve only isolated attractive shots. Review every cut at tail,
+handoff and head, then sample the whole encoded Film for: identity/wardrobe/body-proportion drift;
+screen direction, eyeline, held-prop and contact-state continuity; exposure, white balance, skin
+texture, diffusion, lens and depth-of-field continuity; mouth-to-dialogue timing; room-tone and
+perspective continuity; and any unintended subtitle, glyph, logo, watermark, UI text or symbol. Exact
+model-generated countdown and interface states must match their approved storyboard cells and pass
+original-resolution visual inspection. Verify the requested sequence, placement and transition
+timing in the full-frame result. Reject malformed or extra digits, unstable display placement, wrong
+state timing and unrequested text; improve the prompt or board and regenerate the smallest failing shot.
+Never paint over, inpaint, composite over or locally replace part of a generated video.
+
+Before reviewing generated pixels, audit the shot's production evidence: every selected optional asset
+board is approved; both the temporal storyboard and shot board are approved; the depth video, audio
+reference and video prompt are connected; the ordered reference manifest matches the actual model inputs;
+and its start/end states agree with the continuity plan. A visually appealing result does not cure a
+missing reference edge or accidental use of source picture or sound. During review, compare the output
+with the exact selected versions rather than with an informal memory of the character or scene.
+
+For native generated audio, listen to every accepted shot and the joined Film. Compare visible dialogue
+with the exact Script and, when wording matters, use ASR as supporting evidence rather than replacing
+listening. Check speaker ownership, missing or invented words, mouth timing, breaths, contact sounds,
+ambience, room perspective, noise floor and cut-to-cut sound-field continuity. Reject a visually correct
+shot whose dialogue or physical sound is wrong; do not hide it under music or retain source audio when
+the Brief requires a complete remake.
+
+For multilingual dialogue, compare every turn with its own confirmed language code and original text.
+Reject translation, transliteration, dominant-language replacement or an undeclared language switch even
+when the words sound superficially plausible.
+
+For every shot carrying a key character, record a separate identity decision against the selected
+character board when present, otherwise against the approved identity evidence in both required boards.
+A pending or rejected
+decision blocks that generated Result from entering the Timeline. Identity drift is repaired only by
+improving the prompt/reference contract and regenerating the smallest failing shot; it is never hidden by
+continuing the edit or locally retouching the face.
+
 For geometry, read three nested relationships: Canvas, outer Frame or background, and inner content.
 Check containment and capacity at each boundary, then judge optical alignment. Intentional crop,
 bleed, overlap, and asymmetric balance are part of the design when they help the work; measurements

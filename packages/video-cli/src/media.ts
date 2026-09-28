@@ -17,7 +17,7 @@ import type { FrameWords, TranscriptWord } from "./transcript.js";
  * the input media. These commands expose evidence; editorial interpretation belongs to the author.
  */
 
-export const mediaCommands = ["probe", "cut", "frames", "tile", "tiles", "boundaries", "fetch", "prepare-fetch"] as const;
+export const mediaCommands = ["probe", "cut", "frames", "tile", "tiles", "boundaries", "shots", "prepare-depth-source", "clean-text", "fetch", "prepare-fetch"] as const;
 export type MediaCommand = typeof mediaCommands[number];
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -484,6 +484,86 @@ export async function visualBoundaries(
   return candidates;
 }
 
+export type ExactCut = { readonly frame: number; readonly at: number; readonly score: number };
+export type AnalyzedShot = {
+  readonly startFrame: number;
+  readonly endFrameExclusive: number;
+  readonly start: number;
+  readonly end: number;
+  readonly kind: "shot" | "flash";
+  readonly narrativeFunction: "flash_insert" | "review_required";
+};
+export type ShotAnalysis = {
+  readonly format: "hypit.shot-analysis@1";
+  readonly path: string;
+  readonly frameRate: number;
+  readonly duration: number;
+  readonly threshold: number;
+  readonly cuts: readonly ExactCut[];
+  readonly shots: readonly AnalyzedShot[];
+  readonly editEvents: readonly AnalyzedShot[];
+};
+
+/** 让 ffmpeg 在原生帧时钟上计算场景变化；短闪只成为后期事件，不交给视频模型吞并。 */
+export async function exactShotAnalysis(source: string, threshold = 0.1): Promise<ShotAnalysis> {
+  assert(Number.isFinite(threshold) && threshold >= 0 && threshold <= 1, "shot threshold must be between 0 and 1");
+  const info = await probeMedia(source);
+  requireVideo(info, source);
+  assert(info.frameRate > 0, `${source}: frame rate is unavailable`);
+  const output = await runProcessOutput("ffmpeg", [
+    "-hide_banner", "-loglevel", "error", "-i", source,
+    "-vf", `select='gt(scene,${threshold})',metadata=print:file=-`, "-an", "-f", "null", "-",
+  ]);
+  const frameOutput = await runProcess("ffprobe", [
+    "-v", "error", "-select_streams", "v:0", "-show_frames",
+    "-show_entries", "frame=best_effort_timestamp_time", "-of", "csv=p=0", source,
+  ]);
+  const frameTimes = frameOutput.toString("utf8").split(/\r?\n/u)
+    .map((line) => Number(line.trim().split(",")[0]))
+    .filter((value) => Number.isFinite(value));
+  assert(frameTimes.length > 0, `${source}: native video frame timestamps are unavailable`);
+  const lines = output.stdout.toString("utf8").split(/\r?\n/u);
+  const cuts: ExactCut[] = [];
+  for (let index = 0; index < lines.length; index += 1) {
+    const frame = /pts_time:([0-9.]+)/u.exec(lines[index] ?? "");
+    const score = /lavfi\.scene_score=([0-9.]+)/u.exec(lines[index + 1] ?? "");
+    if (frame === null || score === null) continue;
+    const at = Number(frame[1]);
+    let nativeFrame = 0;
+    for (let candidate = 1; candidate < frameTimes.length; candidate += 1) {
+      if (Math.abs(frameTimes[candidate]! - at) >= Math.abs(frameTimes[nativeFrame]! - at)) continue;
+      nativeFrame = candidate;
+    }
+    cuts.push({ frame: nativeFrame, at: round(frameTimes[nativeFrame]!), score: round(Number(score[1])) });
+  }
+  const endFrame = frameTimes.length;
+  const edges = [0, ...cuts.map((cut) => cut.frame), endFrame]
+    .filter((frame, index, values) => index === 0 || frame > values[index - 1]!);
+  const shots = edges.slice(0, -1).map((startFrame, index): AnalyzedShot => {
+    const endFrameExclusive = edges[index + 1]!;
+    const frames = endFrameExclusive - startFrame;
+    const kind = frames >= 3 && frames <= 10 ? "flash" as const : "shot" as const;
+    return {
+      startFrame,
+      endFrameExclusive,
+      start: round(frameTimes[startFrame] ?? info.duration),
+      end: round(frameTimes[endFrameExclusive] ?? info.duration),
+      kind,
+      narrativeFunction: kind === "flash" ? "flash_insert" : "review_required",
+    };
+  });
+  return {
+    format: "hypit.shot-analysis@1",
+    path: source,
+    frameRate: info.frameRate,
+    duration: info.duration,
+    threshold,
+    cuts,
+    shots,
+    editEvents: shots.filter((shot) => shot.kind === "flash"),
+  };
+}
+
 // ---------------------------------------------------------------------------------------------------
 // Commands
 
@@ -794,6 +874,33 @@ async function boundaries(argv: readonly string[], io: CliIo, cwd: string): Prom
     shown.map((candidate) => `  ${candidate.at} s  score ${candidate.score}`).join("\n")}${remaining > 0 ? `\n  … ${remaining} more; --json returns all candidates` : ""}\n`);
 }
 
+async function shots(argv: readonly string[], io: CliIo, cwd: string): Promise<void> {
+  const parsed = parseArguments(argv, ["--threshold"]);
+  const source = await sourceFile(parsed, cwd);
+  const threshold = numberOption(parsed, "--threshold", DEFAULT_BOUNDARY_THRESHOLD, 0, 1);
+  const analysis = await exactShotAnalysis(source, threshold);
+  if (parsed.json) { io.write(`${JSON.stringify(analysis, null, 2)}\n`); return; }
+  io.write(`${source}\n  ${analysis.shots.length} native-frame shots, ${analysis.editEvents.length} short edit events at ${analysis.frameRate} fps\n`);
+}
+
+async function cleanText(argv: readonly string[], io: CliIo, cwd: string): Promise<void> {
+  void argv; void io; void cwd;
+  throw new Error("clean-text is disabled because Hypit never modifies video pixels to hide generated text; improve the prompt or references and regenerate the smallest failing shot");
+}
+
+async function prepareDepthSource(argv: readonly string[], io: CliIo, cwd: string): Promise<void> {
+  const parsed = parseArguments(argv, ["--source-role", "--to"]);
+  assert(parsed.options.get("--source-role") === "original-reference",
+    "--source-role must be original-reference; generated shots must be regenerated when they fail review");
+  const source = await sourceFile(parsed, cwd);
+  const info = await probeMedia(source);
+  requireVideo(info, source);
+  const target = await destination(parsed, cwd, "the byte-identical depth source to write");
+  await copyFile(source, target);
+  if (parsed.json) io.write(`${JSON.stringify({ path: target, source, sourceRole: "original-reference", pixelsModified: false }, null, 2)}\n`);
+  else io.write(`${target}\n  original reference copied byte-for-byte for depth extraction without pixel modification\n`);
+}
+
 async function fetch(argv: readonly string[], io: CliIo, cwd: string): Promise<void> {
   const parsed = parseArguments(argv, ["--to"]);
   const [url] = parsed.positionals;
@@ -825,6 +932,12 @@ export function writeMediaHelp(io: CliIo, topic?: MediaCommand): void {
       "    Paginated grids (3 rows by default). --every-frame decodes every original frame once per interval, preserving actual timestamps. Range files contain { start, end, id?, frames?, every? }."],
     boundaries: ["  hypit media boundaries <file> [--rate <samples/s>] [--threshold <0..1>]",
       "    Mechanical adjacent-frame change candidates with scores; never editorial shot labels."],
+    shots: ["  hypit media shots <file> [--threshold <0..1>]",
+      "    Native-frame cut analysis. 3–10 frame flashes become independent edit events; narrative meaning remains review_required."],
+    "prepare-depth-source": ["  hypit media prepare-depth-source <file> --source-role original-reference --to <depth-source.mp4>",
+      "    Validate and copy one declared original reference byte-for-byte without repair, delogo or re-encode."],
+    "clean-text": ["  hypit media clean-text",
+      "    Disabled: Hypit never paints, delogos, composites or locally retouches video to hide generated text. Improve the prompt or references and regenerate the smallest failing shot."],
     "prepare-fetch": ["  hypit media prepare-fetch", "    Explicitly prepare the pinned yt-dlp environment; does not fetch media."],
     fetch: ["  hypit media fetch <url> --to <video.mp4>", "    A link turned into a file with the pinned yt-dlp, video and audio together."],
   };
@@ -850,6 +963,9 @@ export async function runMediaCli(argv: readonly string[], io: CliIo, cwd = proc
   else if (command === "tile") await tile(rest, io, cwd);
   else if (command === "tiles") await tiles(rest, io, cwd);
   else if (command === "boundaries") await boundaries(rest, io, cwd);
+  else if (command === "shots") await shots(rest, io, cwd);
+  else if (command === "prepare-depth-source") await prepareDepthSource(rest, io, cwd);
+  else if (command === "clean-text") await cleanText(rest, io, cwd);
   else if (command === "prepare-fetch") {
     const parsed = parseArguments(rest, []);
     assert(parsed.positionals.length === 0, "prepare-fetch takes no positional arguments");

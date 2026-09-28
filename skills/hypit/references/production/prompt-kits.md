@@ -18,7 +18,11 @@ Choose a Kit whose fixed assumptions serve that intention:
 | Direction needed | Where to look |
 | --- | --- |
 | The fixed phone-video capture wording, followed by Person, Shot and Setting | The installed `@hypit/gpt-image-kits` README and its `phone-ugc-v1` template |
-| A speaking performer, podcast, street encounter, video call, silent B-roll, or motion/camera transfer | The installed `@hypit/seedance-kits` README and its corresponding exported template |
+| A selected character, scene or prop setting board; or a single-frame, temporal or shot-board image | The installed `@hypit/gpt-image-kits` README and its `asset-sheet-v1` or `storyboard-v1` template |
+| A difficult changing state such as a countdown, device display, hand contact or exact pose, represented in a six-cell board by default and passed to the video model | The installed `@hypit/gpt-image-kits` README and its `storyboard-v1` template |
+| A speaking performer, podcast, street encounter, video call, B-roll with native sound or an explicit silent waiver, or motion/camera transfer | The installed `@hypit/seedance-kits` README and its corresponding exported template |
+| A Seedance recreation shot with mandatory depth, temporal-storyboard, shot-board, audio-reference and video-prompt contracts, plus optional asset boards | The installed `@hypit/seedance-kits` README and its `recreation-shot-v1` template |
+| A MiniMax H3 Ref2VA recreation shot with the same mandatory references and the required six ordered sections | The installed `@hypit/minimax-h3` README and its `reference-shot-v1` template |
 
 These are packaged Sources, so their README and exported `.svs` files supply the template names,
 Text slots, defaults and Recipe choices. A package's Surface vocabulary serves a different role:

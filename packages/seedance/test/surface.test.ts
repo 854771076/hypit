@@ -48,6 +48,19 @@ test("TextVideo exposes prompt-only generation without inventing a usage", async
   assert.equal(Object.keys(result.components[0]?.inputs ?? {}).some((name) => name.includes("media")), false);
 });
 
+test("Seedance enables joint audio unless the author explicitly disables it", async () => {
+  const enabled = await decode(
+    '<seedance:TextVideo id="with-audio" model="mini" prompt={direction} duration="6"/>',
+    decodeSeedanceTextVideoSurface,
+  );
+  const disabled = await decode(
+    '<seedance:TextVideo id="silent" model="mini" prompt={direction} duration="6" generate-audio="false"/>',
+    decodeSeedanceTextVideoSurface,
+  );
+  assert.match(JSON.stringify(enabled.records), /"generateAudio":\[true\]/u);
+  assert.match(JSON.stringify(disabled.records), /"generateAudio":\[false\]/u);
+});
+
 test("admitted M4A audio is rejected at decode while future audio remains a graph reference", async () => {
   const source = '<seedance:ReferenceVideo id="speaker" model="mini" prompt={direction} duration="6"><seedance:Reference image={generated.image} person-reference="true"/><seedance:Reference audio={voice.audio}/></seedance:ReferenceVideo>';
   for (const mediaType of ["audio/mp4", "audio/x-m4a", "audio/wav", "audio/mpeg"]) {
@@ -145,13 +158,13 @@ test("the three Surfaces make incompatible invocation shapes unrepresentable", a
 test("visual reference classification survives authoring as per-input metadata", async () => {
   const result = await decode(`<seedance:ReferenceVideo id="motion" model="mini" prompt={direction} duration="6">
     <seedance:Reference image={generated.image} person-reference="true"/>
-    <seedance:Reference video={first.image} person-reference="false"/>
+    <seedance:Reference video={first.image} person-reference="false" duration-seconds="6"/>
     <seedance:Reference image={last.image} person-reference="false"/>
   </seedance:ReferenceVideo>`, decodeSeedanceReferenceVideoSurface);
   const bindings = result.records.filter((record) => record.id.endsWith(".binding"));
   assert.deepEqual(bindings.map((record) => record.value.kind === "inline" ? record.value.value : null), [
     { role: "image", fields: { personReference: true } },
-    { role: "video", fields: { personReference: false } },
+    { role: "video", fields: { personReference: false, durationSeconds: 6 } },
     { role: "image", fields: { personReference: false } },
   ]);
   const frames = await decode('<seedance:FrameVideo id="frames" model="fast" prompt={direction} duration="5" first-frame={first.image} first-frame-person-reference="true" last-frame={last.image} last-frame-person-reference="false"/>', decodeSeedanceFrameVideoSurface);
@@ -162,6 +175,12 @@ test("visual reference classification survives authoring as per-input metadata",
   ]);
   await assert.rejects(decode('<seedance:ReferenceVideo id="bad" model="mini" prompt={direction} duration="6"><seedance:Reference audio={voice.audio} person-reference="true"/></seedance:ReferenceVideo>', decodeSeedanceReferenceVideoSurface), /applies to image or video/);
   await assert.rejects(decode('<seedance:ReferenceVideo id="bad" model="mini" prompt={direction} duration="6"><seedance:Reference image={generated.image} person-reference="maybe"/></seedance:ReferenceVideo>', decodeSeedanceReferenceVideoSurface), /must be true or false/);
+  await assert.rejects(decode('<seedance:ReferenceVideo id="bad" model="mini" prompt={direction} duration="6"><seedance:Reference video={first.image} person-reference="false" duration-seconds="0"/></seedance:ReferenceVideo>', decodeSeedanceReferenceVideoSurface), /duration-seconds/u);
+  const providerSpecificDuration = await decode('<seedance:ReferenceVideo id="long-reference" model="mini" prompt={direction} duration="6"><seedance:Reference video={first.image} person-reference="false" duration-seconds="16"/></seedance:ReferenceVideo>', decodeSeedanceReferenceVideoSurface);
+  const providerSpecificBinding = providerSpecificDuration.records.find((record) => record.id.endsWith(".binding"))!;
+  assert.deepEqual(providerSpecificBinding.value.kind === "inline" ? providerSpecificBinding.value.value : null, {
+    role: "video", fields: { personReference: false, durationSeconds: 16 },
+  });
   await assert.rejects(decode('<seedance:FrameVideo id="bad" model="mini" prompt={direction} duration="6" first-frame={first.image} first-frame-person-reference="true" last-frame-person-reference="true"/>', decodeSeedanceFrameVideoSurface), /requires last-frame/);
 });
 

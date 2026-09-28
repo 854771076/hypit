@@ -1,0 +1,20 @@
+<?svml using="@hypit/text/svs@1"?>
+
+<sheet version="1" id="asset-sheet-v1">
+  text-template.asset-sheet-v1 {
+    separator: paragraph;
+    default-asset-type: character;
+  }
+
+  text-template.asset-sheet-v1.block.purpose { kind: fixed; order: 10; text: "Create one coherent production setting board for the same canonical asset. This is reusable continuity evidence, not a mood-board collage and not a set of alternate designs."; }
+  text-template.asset-sheet-v1.block.asset-type { kind: axis; order: 20; parameter: asset-type; }
+  text-template.asset-sheet-v1.choice.asset-type.character { text: "CHARACTER BOARD: show one unchanged person with a clean face close-up, front/side/back full-body views, the approved costume, footwear, accessories, grooming, makeup, body proportions, and a small set of useful expressions. Keep one identity and one appearance version across every view."; }
+  text-template.asset-sheet-v1.choice.asset-type.scene { text: "SCENE BOARD: show one coherent location without named performers, including compatible wide and reverse views, a readable layout or axonometric view, entrances and exits, fixed foreground/midground/background anchors, all visible dressing elements, materials, palette, and the motivated key-light source and direction. Preserve one-use dressing inside the scene contract instead of omitting it."; }
+  text-template.asset-sheet-v1.choice.asset-type.prop { text: "PROP BOARD: show one unchanged object with a clean principal view, front/side/back views, scale cues, materials, color, markings, ownership cues when relevant, and the exact approved persistent state. Do not invent alternate states."; }
+  text-template.asset-sheet-v1.block.asset { kind: slot; order: 30; slot: asset; optional: false; label: "CANONICAL ASSET CONTRACT:"; }
+  text-template.asset-sheet-v1.block.views { kind: slot; order: 40; slot: views; optional: true; label: "REQUIRED VIEWS AND DETAILS:"; }
+  text-template.asset-sheet-v1.block.style { kind: slot; order: 50; slot: style; optional: true; label: "VISUAL BIBLE:"; }
+  text-template.asset-sheet-v1.block.references { kind: slot; order: 60; slot: references; optional: true; label: "REFERENCE RESPONSIBILITIES:"; }
+  text-template.asset-sheet-v1.block.text { kind: slot; order: 70; slot: visible-text; optional: true; label: "APPROVED VISIBLE ASSET TEXT OR MARKINGS ONLY:"; }
+  text-template.asset-sheet-v1.block.hygiene { kind: fixed; order: 80; text: "Keep identity, geometry, materials, scale, color, lighting logic, and every repeated detail consistent across views. Use a neutral readable sheet layout. Add no explanatory captions, sheet labels, arrows, numbering, unapproved logos, watermarks, UI, or unrelated objects. Preserve only the exact approved asset text or markings above; add no other readable text. Do not merge reference images as pasted fragments."; }
+</sheet>

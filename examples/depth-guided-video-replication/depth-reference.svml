@@ -1,0 +1,90 @@
+<?svml using="@hypit/markup@1"?>
+
+<svml>
+  <import from="@hypit/script@1"/>
+  <import as="media" from="@hypit/media@1"/>
+  <import as="depth" from="@hypit/depth-video@1"/>
+  <import as="text" from="@hypit/text@1"/>
+  <import as="h3" from="@hypit/minimax-h3@1"/>
+  <import as="pipeline" from="@hypit/media-pipeline@1"/>
+  <import as="whisperx" from="@hypit/whisperx@1"/>
+  <import as="time" from="@hypit/timeline-author@1"/>
+  <import as="program" from="@hypit/program-space@1"/>
+  <import as="space" from="@hypit/spatial@1"/>
+  <import as="performance" from="@hypit/performance@1"/>
+  <import as="film" from="@hypit/film@1"/>
+  <import as="render" from="@hypit/render-hyperframes@1"/>
+  <import as="recipes" source="./recipes.svs"/>
+  <import as="prompt-kit" source="@hypit/minimax-h3/reference-shot"/>
+  <import as="detail-kit" source="./detail-prompt.svs"/>
+
+  <media:Video id="original-shot" src="./assets/original-shot.mp4"/>
+  <media:Image id="character-board" src="./assets/character.png"/>
+  <media:Image id="scene-board" src="./assets/character.png"/>
+  <media:Image id="prop-board" src="./assets/character.png"/>
+  <media:Image id="temporal-storyboard" src="./assets/character.png"/>
+  <media:Image id="shot-board" src="./assets/character.png"/>
+  <media:Audio id="audio-reference" src="../interview/assets/chad.wav"/>
+  <depth:Video id="depth-map" source={original-shot}/>
+
+  <script id="story"><shot><HOST>We made it. Keep moving.</shot></script>
+  <text:Value id="shot-timing">The accepted speech timing owns event speech-start and event speech-end. Begin visible mouth movement on speech-start, finish the final syllable on speech-end, and preserve a stable closed-mouth tail for the intended edit. Recompile these event frames whenever the selected audiovisual result changes.</text:Value>
+  <text:Value id="shot-continuity">Independent opening from the approved storyboard: do not inherit an unrelated previous tail. Start with the host upright at the established mark, facing the destination with the prop in the approved hand. End on the same screen direction with settled weight, unchanged prop ownership and a readable closed-mouth pose.</text:Value>
+  <text:Value id="subject-definitions">&lt;Subject 1&gt; is the host in &lt;Picture 1&gt;; preserve the host's identity, face, hairstyle, costume, body proportions and overall appearance. &lt;Subject 2&gt; is the approved scene in &lt;Picture 2&gt;; preserve its location geometry, materials, dressing and light. &lt;Subject 3&gt; is the approved prop in &lt;Picture 3&gt;; preserve its form, markings, ownership and state. &lt;Picture 4&gt; is the temporal storyboard for [Shot 1] and controls composition plus the ordered action stages, but must never appear as a grid. &lt;Video 1&gt; is the grayscale depth reference for [Shot 1] and controls spatial layout, subject motion and camera movement only.</text:Value>
+  <text:Value id="depth-contract">&lt;Video 1&gt; is the required grayscale depth video and controls spatial layout, subject motion and camera movement only.</text:Value>
+  <text:Value id="temporal-storyboard-contract">&lt;Picture 4&gt; is the required temporal storyboard and controls action-state order without appearing as a grid.</text:Value>
+  <text:Value id="shot-board-contract">&lt;Picture 5&gt; is the required shot board and controls staging, coverage and character relationships without appearing as a grid.</text:Value>
+  <text:Value id="asset-board-contract">&lt;Picture 1&gt;, &lt;Picture 2&gt; and &lt;Picture 3&gt; are optional selected asset boards for identity, scene and prop continuity.</text:Value>
+  <text:Value id="audio-reference-contract">&lt;Audio 1&gt; is the required source-language performance reference and controls voice, delivery, emotion and acoustic perspective without copying source picture.</text:Value>
+  <text:Value id="summary">[reference generation] The target video is a single continuous vertical cinematic shot of &lt;Subject 1&gt; performing inside &lt;Subject 2&gt; with &lt;Subject 3&gt;. &lt;Picture 4&gt; supplies the temporal storyboard, and &lt;Video 1&gt; guides only spatial structure, body motion and camera path.</text:Value>
+  <text:Value id="retention-analysis">&lt;Subject 1&gt; (appears in [Shot 1]): fully_preserved - identity, facial features, hairstyle, costume and body proportions remain consistent with &lt;Picture 1&gt;. &lt;Subject 2&gt; (appears in [Shot 1]): fully_preserved - geometry, dressing, materials and light remain consistent with &lt;Picture 2&gt;. &lt;Subject 3&gt; (appears in [Shot 1]): fully_preserved - form, markings, ownership and state remain consistent with &lt;Picture 3&gt;. &lt;Picture 4&gt; ([Shot 1] temporal storyboard): partially_preserved - retain composition and action order without reproducing cells, borders, arrows or labels. &lt;Video 1&gt; ([Shot 1] depth structure): fully_preserved - use geometry, timing and camera movement without transferring grayscale appearance.</text:Value>
+  <text:Value id="shot-direction">The target video uses a clean live-action cinematic style in a vertical composition. It preserves the exposure, white balance, natural skin texture, restrained diffusion, contrast, saturation, lens character, depth of field, camera height and key-light direction established by &lt;Subject 2&gt;. [Shot 1] A medium shot establishes &lt;Subject 2&gt;, then begins with &lt;Subject 1&gt; in the opening body configuration from &lt;Video 1&gt; and the first action state from &lt;Picture 4&gt;. &lt;Subject 1&gt; retains the exact identity and appearance from &lt;Picture 1&gt;; &lt;Subject 2&gt; retains the approved location geometry, materials, dressing and light from &lt;Picture 2&gt;; &lt;Subject 3&gt; retains the approved form, markings, ownership and state from &lt;Picture 3&gt;. The camera follows the path encoded by &lt;Video 1&gt; while the action advances through the ordered temporal stages in &lt;Picture 4&gt;. Show readable preparation, anatomically plausible joint paths, stable foot placement, believable weight transfer, visible contact with &lt;Subject 3&gt;, physical response, recovery and a briefly stable tail. &lt;Subject 1&gt; looks toward the intended destination. Output one normal full-frame moving image: never show the storyboard grid, pasted references, subtitles, captions, titles, labels, unapproved logos, watermarks, interface elements or other unapproved readable text.</text:Value>
+  <text:Render id="detailed-description" template={detail-kit.depth-detail}>
+    <text:Set name="direction" text={shot-direction}/>
+    <text:Set name="timing" text={shot-timing}/>
+    <text:Set name="continuity" text={shot-continuity}/>
+    <text:Set name="dialogue" text={story.segment.shot.speech}/>
+  </text:Render>
+  <text:Value id="overall-soundscape">Natural room tone remains continuous beneath synchronized speech, quiet breathing, clothing movement and physically matched footsteps or prop-contact sounds. The acoustic perspective and noise floor remain stable for the full shot.</text:Value>
+  <text:Value id="non-diegetic-music">N/A</text:Value>
+  <text:Render id="shot-prompt" template={prompt-kit.reference-shot-v1}>
+    <text:Set name="subject-definitions" text={subject-definitions}/>
+    <text:Set name="depth-video" text={depth-contract}/>
+    <text:Set name="temporal-storyboard" text={temporal-storyboard-contract}/>
+    <text:Set name="shot-board" text={shot-board-contract}/>
+    <text:Set name="asset-boards" text={asset-board-contract}/>
+    <text:Set name="audio-reference" text={audio-reference-contract}/>
+    <text:Set name="summary" text={summary}/>
+    <text:Set name="retention-analysis" text={retention-analysis}/>
+    <text:Set name="detailed-description" text={detailed-description}/>
+    <text:Set name="overall-soundscape" text={overall-soundscape}/>
+    <text:Set name="non-diegetic-music" text={non-diegetic-music}/>
+  </text:Render>
+  <h3:ReferenceVideo id="generated-shot" prompt={shot-prompt}
+    duration="5" resolution="768P" aspect-ratio="9:16">
+    <h3:Reference image={character-board}/>
+    <h3:Reference image={scene-board}/>
+    <h3:Reference image={prop-board}/>
+    <h3:Reference image={temporal-storyboard}/>
+    <h3:Reference image={shot-board}/>
+    <h3:Reference video={depth-map.video}/>
+    <h3:Reference audio={audio-reference}/>
+  </h3:ReferenceVideo>
+
+  <program:Clock id="clock" frame-rate="30"/>
+  <space:Canvas id="vertical" width="720" height="1280"/>
+  <space:Frame id="full-frame" within={vertical} left="0%" top="0%" right="100%" bottom="100%"/>
+  <pipeline:Normalize id="shot-media" source={generated-shot.video}
+    video="primary-moving" audio="default" span-authority="video" clock={clock}/>
+  <whisperx:SemanticTake id="shot-take" narrative={story}
+    segment={story.segment.shot} media={shot-media.media} language="en"/>
+  <time:Timeline id="timeline" clock={clock}><time:Take source={shot-take.take}/></time:Timeline>
+  <performance:Style id="picture-style" frame={full-frame} appearance={recipes.media.performance}/>
+  <performance:Track id="picture" timeline={timeline.timeline} canvas={vertical}>
+    <performance:Use style={picture-style} during="program"/>
+  </performance:Track>
+  <film:Film id="main" canvas={vertical} timeline={timeline.timeline} appearance={recipes.film.vertical}>
+    <film:Track source={picture.visual}/>
+  </film:Film>
+  <render:Video id="final" composition={main.composition} timeline={timeline.timeline}/>
+</svml>

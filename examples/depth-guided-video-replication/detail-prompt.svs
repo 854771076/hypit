@@ -1,0 +1,10 @@
+<?svml using="@hypit/text/svs@1"?>
+
+<sheet version="1" id="depth-detail">
+  text-template.depth-detail { separator: paragraph; }
+  text-template.depth-detail.block.direction { kind: slot; order: 10; slot: direction; optional: false; }
+  text-template.depth-detail.block.timing { kind: slot; order: 20; slot: timing; optional: false; label: "SEMANTIC EVENT AND EDIT TIMING:"; }
+  text-template.depth-detail.block.continuity { kind: slot; order: 30; slot: continuity; optional: false; label: "START/END CONTINUITY:"; }
+  text-template.depth-detail.block.dialogue { kind: slot; order: 40; slot: dialogue; optional: false; label: "<Subject 1> (S1) says with calm, determined delivery, <d>[English]"; }
+  text-template.depth-detail.block.dialogue-close { kind: fixed; order: 50; text: "</d>. The mouth movement remains synchronized to the complete line, then the speaker closes their lips naturally."; }
+</sheet>

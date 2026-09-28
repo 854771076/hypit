@@ -1,0 +1,12 @@
+{
+  "2": { "inputs": { "max_res": ["24", 0], "window_size": 110, "images": ["21", 0], "overlap": 25, "guidance_scale": 1, "depthcrafter_model": ["3", 0], "num_inference_steps": 5 }, "class_type": "DepthCrafter", "_meta": { "title": "DepthCrafter" } },
+  "3": { "inputs": { "enable_model_cpu_offload": true, "enable_sequential_cpu_offload": false }, "class_type": "DownloadAndLoadDepthCrafterModel", "_meta": { "title": "DownloadAndLoadDepthCrafterModel" } },
+  "6": { "inputs": { "images": ["33", 0], "pix_fmt": "yuv420p", "format": "video/h264-mp4", "frame_rate": ["7", 0], "pingpong": false, "save_output": true, "filename_prefix": "depth", "loop_count": 0, "save_metadata": true, "crf": 19, "trim_to_audio": false, "no_preview": false }, "class_type": "VHS_VideoCombine", "_meta": { "title": "Video Combine" } },
+  "7": { "inputs": { "video_info": ["21", 3] }, "class_type": "VHS_VideoInfo", "_meta": { "title": "Video Info" } },
+  "20": { "inputs": { "model": "video_depth_anything_vitl.pth" }, "class_type": "LoadVideoDepthAnythingModel", "_meta": { "title": "Load Video Depth Anything Model" } },
+  "21": { "inputs": { "custom_height": 0, "force_rate": 0, "custom_width": 0, "select_every_nth": 1, "frame_load_cap": 0, "format": "AnimateDiff", "video": "input.mp4", "skip_first_frames": 0, "force_size": "Disabled" }, "class_type": "VHS_LoadVideo", "_meta": { "title": "Load Video" } },
+  "23": { "inputs": { "input_size": 512, "max_res": ["24", 0], "vda_model": ["20", 0], "images": ["21", 0], "precision": "fp16", "colormap": "gray" }, "class_type": "VideoDepthAnythingProcess", "_meta": { "title": "Video Depth Anything Process" } },
+  "24": { "inputs": { "value": 768 }, "class_type": "PrimitiveInt", "_meta": { "title": "分辨率" } },
+  "28": { "inputs": { "value": 0 }, "class_type": "PrimitiveInt", "_meta": { "title": "模式" } },
+  "33": { "inputs": { "value1": ["23", 0], "index": 0, "value0": ["2", 0] }, "class_type": "easy anythingIndexSwitch", "_meta": { "title": "Anything Index Switch" } }
+}

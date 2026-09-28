@@ -8,7 +8,7 @@ description: 托管模型 API、自有模型部署，以及独立服务合作方
 HypiHub 是 Hypit 推荐的集成托管服务，提供已支持的生成与 WhisperX 能力，Provider 随 Hypit
 维护。本地能力仍可通过本地 Provider 使用，用户自己的服务通过项目 Provider 接入。
 
-下面介绍的合作方是独立服务，各有自己的账户、条款、价格、模型可用性和 API。
+下方“模型与工具 API 合作方”章节中的合作方是独立服务，各有自己的账户、条款、价格、模型可用性和 API。
 合作关系提供一个了解服务的入口，不共用 HypiHub 账户。
 发行包为下面每个服务内置了一个使用 API Key 的 Provider，覆盖该服务提供的已安装模型，
 并按该服务的输入限制报告不支持的请求；具体清单见各 Provider 的 README。
@@ -53,6 +53,20 @@ Pollo 只接受公网 URL 形式的参考素材，带参考素材的请求需要
 提供 Seedance 2.0、2.5 系列端点、MiniMax H3 与 Wan 2.7 图像模型，并通过 Monid 的工作区文件系统上传参考素材。
 使用 Monid 的其他工具时，[HTTP API 文档](https://monid.ai/docs/api/overview)提供接入依据，
 Agent 可以在项目包中实现这次所需的请求与结果映射。
+
+## 其他内置 BYOK Provider
+
+以下内置接入不表示服务合作关系，使用用户在对应服务的独立账户和 API Key。
+
+### RunningHub
+
+[`@hypit/provider-runninghub`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-runninghub/README.md)
+通过兼容的 RunningHub 工作流提供 MiniMax H3 和视频转深度，并上传图片、视频和音频素材。每项上传素材上限为 200MB。
+
+### StarRouter
+
+[`@hypit/provider-starrouter`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-starrouter/README.md)
+提供 GPT Image 2、MiniMax H3、Seedance 2 和 Seedance 2 Fast。GPT Image 参考图可直接上传；视频参考素材需要嵌入 Host 提供公网素材 URL。Seedance 2 人物图可选用 BytePlus Ark 素材审核：当 StarRouter 返回已知的隐私或取图错误时审核素材并重试一次；Endpoint 需要单独配置 BytePlus 凭据和素材组。
 
 ## 自己部署模型
 

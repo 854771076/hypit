@@ -40,6 +40,31 @@ the supplied material contains a person, false otherwise.
 Inspect the selected excerpt, not just its first frame. Audio must omit the field; the installed
 Seedance README owns the corresponding required first/last-frame attributes.
 
+For a reference-led recreation, a depth prepass is mandatory before final shot generation. Generate and
+inspect the depth video first, then pass it as the motion/structure/camera reference; an optional selected
+character board may additionally carry identity and appearance. Never omit this edge from the request
+graph; choose another model or Endpoint when the current route cannot consume it.
+
+Before compiling a recreation request, approve both its temporal storyboard and shot board, then bind
+them with the required depth video, audio reference and video prompt in one ordered per-shot manifest.
+Selected character, scene and prop boards and spatial previz are optional additions.
+[Asset and shot preproduction](asset-and-shot-preproduction.md)
+owns this gate and the different responsibility of each reference. A complete asset library does not
+mean every asset belongs in every request; use the views that know this shot without silently dropping a
+required identity, world, prop-state, storyboard or depth role.
+
+Lock a recreation's visual baseline before generating shots: source exposure and white balance, skin
+texture and diffusion, contrast and saturation, lens/field of view, depth of field, camera height and
+movement character. Carry the same concrete baseline into every related request. When literal source
+boundary images are compatible with the intended transformation, prefer first/last-frame generation
+for adjoining shots and use the accepted previous tail as the next head; a prose reminder is not a
+pixel-continuity edge. Preserve identity, costume, body proportions, screen direction, held-prop state,
+key-light direction and the source shot's end pose across that handoff.
+
+Direct physical actions through contact states rather than action names alone: anticipation, limb and
+joint path, contact point, transferred weight, prop response, recovery and a briefly stable tail. Split
+an interaction when one request would need several independent contacts or exact hand choreography.
+
 For a longer action, distinguish the duration of source footage the model can accept from the
 duration it can produce in one request. Use one request when the model's capability and the work's
 continuity allow it. A forty-second fight might contain several exchanges and reversals, or its
@@ -201,16 +226,41 @@ edge against its intended background, including shoulders, hair, hands, spill an
 Keep those responsibilities explicit in Source. Prompt prose does not create a media edge, and a
 reference does not explain which fact it should preserve. A selected model may accept only some of
 these inputs; use its installed vocabulary and package-local documentation for the exact request.
+Generated source footage must not contain incidental subtitles, captions, titles, labels, logos,
+watermarks, UI text or other unrequested readable text. Approved story text that physically belongs in
+the shot, including a countdown, may be generated when the Brief calls for it.
+
+For each exact countdown, clock, message or difficult changing state, make a temporal storyboard before
+video generation. Default to six cells, while selecting another count when needed for accurate state
+coverage. Give each reading or required state its own cell, approve the original-resolution pixels,
+then attach the board as a semantic reference and direct the exact sequence and timing. The output remains
+one normal full-frame video and must not reveal the grid. Reject malformed output and regenerate after
+improving the prompt or board; never repair generated video with painting, inpainting, compositing,
+source-footage patches or local region replacement.
 
 For a visible A-roll performance, the generated video normally carries the person's picture, exact
-Script delivery and sound together. Give the request the useful camera image, the recurring Voice
-Reference when supported, and the Segment's dialogue.
+Script delivery and sound together. In recreation mode, give the request its mandatory audio reference
+and the Segment's dialogue; general non-recreation modes may use a recurring Voice Reference when supported.
 [Voice direction](voice-direction.md) owns the casting and sample that establish who the person sounds
 like. The passage's direction gives that voice its current attitude and delivery.
 [Script pronunciation](../../creation/script-and-time.md#write-the-intended-pronunciation) explains
 how names and abbreviations receive the intended reading while keeping their display spelling.
 Independent speech is a different A-roll construction, described in
 [Voice and performance](voice-and-performance.md).
+
+Final generated shots default to joint picture-and-audio generation. Wordless action still carries the
+directed ambience and physical sound unless the Brief explicitly requires silence or the Endpoint lacks
+native audio; record that waiver before generation. For visible speech, measure the dialogue first, size the
+request around that performed duration, include the exact Script line and direct voice, mouth movement,
+breath and scene sound in the same request. Seedance defaults `generate-audio` to `true`; for H3, populate
+its audiovisual prompt sections and attach the mandatory audio reference in recreation mode. When speech must be produced
+separately, plan explicit lip synchronization and review the actual phoneme-to-mouth result before the
+Take is accepted.
+
+When the source alternates languages, split analysis by utterance or speaking interval and confirm each
+turn's language independently. Write the exact original line and language code into the joint audiovisual
+request. Do not use the file's dominant language for every turn, infer speech from translated subtitles,
+or let the model translate or switch the declared language.
 
 For silent B-roll, direct the visual event and omit speaking identity that the shot does not use. A
 listener or reaction shot can remain silent while still breathing, noticing, adjusting posture or

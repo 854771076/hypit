@@ -1,0 +1,26 @@
+<?svml using="@hypit/text/svs@1"?>
+
+<sheet version="1" id="recreation-shot-v1">
+  text-template.recreation-shot-v1 {
+    separator: paragraph;
+    default-reference-dialect: provider;
+  }
+
+  text-template.recreation-shot-v1.block.purpose { kind: fixed; order: 10; text: "Create one full-frame atomic narrative shot with native synchronized picture and sound. The supplied references have separate responsibilities; combine their evidence without turning any board into a visible collage."; }
+  text-template.recreation-shot-v1.block.reference-dialect { kind: axis; order: 20; parameter: reference-dialect; }
+  text-template.recreation-shot-v1.choice.reference-dialect.provider { text: "REFERENCE DIALECT — SELECTED ENDPOINT: follow the selected Endpoint and installed package documentation for image, video, and any supported audio-reference labels. Do not reuse StarRouter labels unless that Endpoint requires them."; }
+  text-template.recreation-shot-v1.block.depth-video { kind: slot; order: 30; slot: depth-video; optional: false; label: "REQUIRED DEPTH VIDEO:"; }
+  text-template.recreation-shot-v1.block.temporal-storyboard { kind: slot; order: 40; slot: temporal-storyboard; optional: false; label: "REQUIRED TEMPORAL STORYBOARD:"; }
+  text-template.recreation-shot-v1.block.shot-board { kind: slot; order: 50; slot: shot-board; optional: false; label: "REQUIRED SHOT BOARD:"; }
+  text-template.recreation-shot-v1.block.asset-boards { kind: slot; order: 60; slot: asset-boards; optional: true; label: "OPTIONAL ASSET BOARDS:"; }
+  text-template.recreation-shot-v1.block.audio-reference { kind: slot; order: 70; slot: audio-reference; optional: false; label: "REQUIRED AUDIO REFERENCE:"; }
+  text-template.recreation-shot-v1.block.video-prompt { kind: slot; order: 80; slot: video-prompt; optional: false; label: "VIDEO PROMPT:"; }
+  text-template.recreation-shot-v1.block.timing { kind: slot; order: 90; slot: timing; optional: false; label: "SEMANTIC EVENT AND EDIT TIMING:"; }
+  text-template.recreation-shot-v1.block.continuity { kind: slot; order: 100; slot: continuity; optional: false; label: "START/END CONTINUITY:"; }
+  text-template.recreation-shot-v1.block.dialogue { kind: slot; order: 110; slot: dialogue; optional: true; label: "EXACT DIALOGUE:"; }
+  text-template.recreation-shot-v1.block.sound { kind: slot; order: 120; slot: sound; optional: false; label: "NATIVE SOUND CONTRACT:"; }
+  text-template.recreation-shot-v1.block.text { kind: slot; order: 130; slot: visible-text; optional: true; label: "APPROVED VISIBLE STORY TEXT ONLY:"; }
+  text-template.recreation-shot-v1.block.physics { kind: fixed; order: 140; text: "PHYSICAL CONTINUITY: preserve character identity, appearance version, body proportions, scene geometry, prop ownership and state, screen direction, camera side, gaze, key-light direction, and contact causality. Show anticipation, contact/change, transferred weight or object response, recovery, and a briefly stable final state when the action requires them."; }
+  text-template.recreation-shot-v1.block.audio { kind: fixed; order: 150; text: "AUDIO: visible speakers deliver only the exact dialogue with synchronized mouth action, breath, expression, and timing. Preserve the declared language of each dialogue turn; do not translate, transliterate, dub into another language, or switch languages. Visible non-speakers remain naturally closed-mouth. Generate coherent ambience and physically timed action sound; preserve voice and room perspective through the shot. Do not invent dialogue, narration, lyrics, or unrelated music."; }
+  text-template.recreation-shot-v1.block.hygiene { kind: fixed; order: 160; text: "OUTPUT HYGIENE: output one normal full-frame moving image. Never show a grid, storyboard cells, split screen, panel borders, arrows, labels, reference-sheet layout, or pasted references. Add no subtitles, captions, translations, logos, watermarks, UI, glyphs, or readable text except the explicitly approved story text above. Identity mismatch in any required character is a rejection: reject the shot and regenerate it from improved prompt and reference evidence before editing. Never patch, paint over, composite over, or locally retouch a failed generated video; reject it and regenerate the smallest failing shot after improving its prompt, storyboard, or reference contract."; }
+</sheet>

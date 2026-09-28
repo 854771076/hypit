@@ -10,7 +10,7 @@ HypiHub is Hypit's recommended integrated hosted service for supported generatio
 work. Its Provider is maintained with Hypit. Local execution remains available through the local
 Providers, and users can connect their own services through project Providers.
 
-The services introduced below are independent partners. They have their own accounts, terms,
+The services in the partner section below are independent partners. They have their own accounts, terms,
 prices, model availability and APIs. A partnership is an introduction, not a shared HypiHub account.
 The Distribution bundles an API-key Provider for each service named below; each Provider maps the
 installed models that service offers and reports that service's input limits, and its README lists
@@ -63,6 +63,25 @@ serves the Seedance 2.0 and 2.5 endpoints, MiniMax H3 and the Wan 2.7 image mode
 reference media through Monid's workspace file system. For another Monid tool, its
 [HTTP API documentation](https://monid.ai/docs/api/overview) supplies the connection details, and
 the Agent can implement the required request and result mapping in a project package.
+
+## Other bundled BYOK Providers
+
+These bundled integrations do not imply a service partnership. They use the user's separate service
+account and API key.
+
+### RunningHub
+
+[`@hypit/provider-runninghub`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-runninghub/README.md)
+serves MiniMax H3 and video-to-depth through compatible RunningHub workflows. It uploads image,
+video and audio references; each uploaded item is limited to 200MB.
+
+### StarRouter
+
+[`@hypit/provider-starrouter`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-starrouter/README.md)
+serves GPT Image 2, MiniMax H3, Seedance 2 and Seedance 2 Fast. GPT Image references upload directly;
+video references require an embedding Host that supplies a public asset URL. Seedance 2 character
+images can optionally use BytePlus Ark asset review before one retry when StarRouter reports its known
+privacy or fetch errors; the Endpoint must configure the separate BytePlus credentials and asset group.
 
 ## Your own model deployment
 
