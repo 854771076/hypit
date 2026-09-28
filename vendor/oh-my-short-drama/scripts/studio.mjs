@@ -683,8 +683,6 @@ export async function openStudio(rootArg = DEFAULT_WORKSPACE_ROOT, route = '') {
 export async function openProjectStudio(projectRootArg, options = {}) {
   const projectRoot = resolve(projectRootArg)
   const project = await readJson(resolve(projectRoot, '.short-drama/project.json'))
-  const directoryKey = basename(projectRoot)
-  if (project.key !== directoryKey) throw new Error(`Dashboard 要求项目目录名与 project.key 一致：${directoryKey} != ${project.key}`)
   const route = `#/projects/${encodeURIComponent(project.key)}/overview`
   const url = await (options.openStudioFn || openStudio)(dirname(projectRoot), route)
   const receiptPath = resolve(projectRoot, '.short-drama/dashboard.json')

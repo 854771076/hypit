@@ -16,13 +16,13 @@ async function run(script: string, args: readonly string[], io: Io): Promise<voi
     const child = spawn(process.execPath, [path, ...args], { cwd: process.cwd(), env: { ...process.env, CODEX_PLUGIN_ROOT: factoryRoot }, stdio: ["inherit", "pipe", "pipe"] });
     let error = "";
     child.stdout.setEncoding("utf8").on("data", (text: string) => io.write(text));
-    child.stderr.setEncoding("utf8").on("data", (text: string) => { error += text; });
+    child.stderr.setEncoding("utf8").on("data", (text: string) => { error = `${error}${text}`.slice(-64 * 1024); });
     child.once("error", reject);
     child.once("close", (code, signal) => code === 0 ? done() : reject(new Error(error.trim() || `${script} 失败（${signal ?? code}）`)));
   });
 }
 
-function parse(argv: readonly string[]): { readonly positionals: readonly string[]; readonly workspace: string; readonly profile: "standard" | "viral-recreation" } {
+function parse(argv: readonly string[]): { readonly positionals: readonly string[]; readonly workspace: string; readonly profile: "standard" | "viral-recreation"; readonly hasProfile: boolean } {
   const positionals: string[] = [];
   let workspace = process.cwd();
   let profile: "standard" | "viral-recreation" = "standard";
@@ -32,7 +32,7 @@ function parse(argv: readonly string[]): { readonly positionals: readonly string
     const value = argv[index]!;
     if (value === "--workspace") {
       if (hasWorkspace) throw new Error("--workspace 只能出现一次");
-      if (argv[index + 1] === undefined) throw new Error("--workspace 缺少值");
+      if (argv[index + 1] === undefined || argv[index + 1]!.startsWith("--")) throw new Error("--workspace 缺少值");
       hasWorkspace = true;
       workspace = resolve(argv[++index]!);
     } else if (value === "--profile") {
@@ -43,7 +43,7 @@ function parse(argv: readonly string[]): { readonly positionals: readonly string
       profile = selected;
     } else positionals.push(value);
   }
-  return { positionals, workspace: resolve(workspace), profile };
+  return { positionals, workspace: resolve(workspace), profile, hasProfile };
 }
 
 export function writeShortDramaHelp(io: Io): void {
@@ -56,14 +56,29 @@ export function writeShortDramaHelp(io: Io): void {
   project <project-store command> [...] [--workspace <project-directory>]
   preflight <init|media|editing> [--workspace <project-directory>]
   dashboard [--workspace <project-directory>]
+  root
   tool <relative-script.mjs> [raw script arguments...]
 `);
 }
 
 export async function runShortDramaCli(argv: readonly string[], io: Io): Promise<void> {
-  if (argv.length === 0 || argv.includes("--help") || argv[0] === "help") { writeShortDramaHelp(io); return; }
+  if (argv.length === 0 || argv[0] === "--help" || argv[0] === "-h" || argv[0] === "help") { writeShortDramaHelp(io); return; }
   const command = argv[0]!;
-  const { positionals, workspace, profile } = parse(argv.slice(1));
+  if (command !== "tool" && argv.slice(1).some((arg) => arg === "--help" || arg === "-h")) { writeShortDramaHelp(io); return; }
+  if (command === "tool") {
+    const script = argv[1];
+    if (script === undefined || script === "--") throw new Error("tool 需要脚本相对路径");
+    const args = argv.slice(2);
+    await run(script, args[0] === "--" ? args.slice(1) : args, io);
+    return;
+  }
+  if (command === "root") {
+    if (argv.length !== 1) throw new Error("root 不接受参数");
+    io.write(`${factoryRoot}\n`);
+    return;
+  }
+  const { positionals, workspace, profile, hasProfile } = parse(argv.slice(1));
+  if (command !== "init" && hasProfile) throw new Error("--profile 只适用于 init");
   if (command === "init") {
     if (positionals.length !== 1) throw new Error("init 需要一个 project-id");
     const temporary = await mkdtemp(join(tmpdir(), "hypit-short-drama-init-"));
@@ -112,11 +127,6 @@ export async function runShortDramaCli(argv: readonly string[], io: Io): Promise
   if (command === "dashboard") {
     if (positionals.length !== 0) throw new Error("dashboard 不接受位置参数");
     await run("studio.mjs", ["open-project", workspace], io);
-    return;
-  }
-  if (command === "tool") {
-    if (positionals.length === 0) throw new Error("tool 需要脚本相对路径");
-    await run(positionals[0]!, positionals.slice(1), io);
     return;
   }
   throw new Error(`未知 short-drama 命令：${command}`);

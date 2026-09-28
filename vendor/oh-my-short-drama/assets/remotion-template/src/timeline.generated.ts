@@ -1,6 +1,5 @@
-// Placeholder timeline. render-edit.mjs scaffold overwrites this file with the
-// episode's actual renderer timeline before any render or freeze. It exists only
-// so the template compiles out of the box.
+// 占位时间线；render-edit.mjs 会在渲染或冻结前用当前分集的真实时间线覆盖此文件。
+// 保留它只为确保模板无需额外准备即可编译。
 export const timeline = {
   fps: 24,
   width: 1920,

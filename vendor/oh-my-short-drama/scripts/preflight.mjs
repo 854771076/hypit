@@ -2,13 +2,20 @@
 import { constants } from 'node:fs'
 import { access, mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
-import { spawnSync } from 'node:child_process'
-import { dirname, relative, resolve } from 'node:path'
+import { delimiter, dirname, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { credential } from './generation/credentials.mjs'
 
-function hasCommand(name) {
-  return spawnSync('/usr/bin/env', ['sh', '-lc', `command -v ${name}`], { encoding: 'utf8' }).status === 0
+export async function hasCommand(name, env = process.env, platform = process.platform) {
+  const path = env.PATH || env.Path || ''
+  const extensions = platform === 'win32' ? (env.PATHEXT || '.COM;.EXE;.BAT;.CMD').split(';') : ['']
+  for (const directory of path.split(platform === 'win32' ? ';' : delimiter)) {
+    for (const extension of extensions) {
+      try { await access(resolve(directory || '.', `${name}${extension}`), constants.X_OK); return true }
+      catch {}
+    }
+  }
+  return false
 }
 
 export async function runPreflight(projectRoot, mode = 'init', persist = true) {
@@ -29,13 +36,14 @@ export async function runPreflight(projectRoot, mode = 'init', persist = true) {
   } catch (error) {
     if (mode !== 'init') throw new Error(`无法读取 project.json：${error.message}`)
   }
+  const [ffmpeg, ffprobe, npm, npx] = await Promise.all(['ffmpeg', 'ffprobe', 'npm', 'npx'].map((name) => hasCommand(name)))
   const checks = {
     node: { ok: nodeMajor >= 20, version: process.versions.node },
     project_directory: { ok: true },
-    ffmpeg: { ok: hasCommand('ffmpeg') },
-    ffprobe: { ok: hasCommand('ffprobe') },
-    npm: { ok: hasCommand('npm') },
-    npx: { ok: hasCommand('npx') },
+    ffmpeg: { ok: ffmpeg },
+    ffprobe: { ok: ffprobe },
+    npm: { ok: npm },
+    npx: { ok: npx },
     providers,
     selected_providers: selectedProviders,
   }
@@ -50,7 +58,7 @@ export async function runPreflight(projectRoot, mode = 'init', persist = true) {
     }
   }
   if (mode === 'editing') for (const name of ['ffmpeg', 'ffprobe', 'npm', 'npx']) if (!checks[name].ok) errors.push(`缺少 ${name}`)
-  const report = { version: 1, mode, ok: errors.length === 0, checks, errors, checkedAt: new Date().toISOString() }
+  const report = { version: 1, mode, credential_owner: 'short-drama-plugin', ok: errors.length === 0, checks, errors, checkedAt: new Date().toISOString() }
   if (persist) {
     const path = resolve(root, '.short-drama/environment.json')
     const history = resolve(root, '.short-drama/environment')

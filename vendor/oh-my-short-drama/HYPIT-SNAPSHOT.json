@@ -1,8 +1,8 @@
 {
-  "source": "/Users/xiaomao/plugins/codex-short-drama",
-  "repository": "https://github.com/854771076/oh-my-short-drama",
-  "baseCommit": "1ee506005db22990640a2d9011f4eaf4e5adba48",
+  "sourceRepository": "https://github.com/854771076/oh-my-short-drama",
+  "sourceCommit": "1ee506005db22990640a2d9011f4eaf4e5adba48",
   "capturedAt": "2026-09-28",
-  "includesLocalChanges": true,
+  "sourceHadLocalChanges": true,
+  "contentTreeSha256": "d810d6bd46ba8824abd7cd7218925da4291c3f40d31c3008a547885b6b37da0c",
   "integration": "Hypit exposes the upstream project engine and dashboard through hypit short-drama; media generation may reuse Hypit providers through the short-drama skill."
 }

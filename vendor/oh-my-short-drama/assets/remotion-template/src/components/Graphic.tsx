@@ -26,7 +26,7 @@ export const GraphicOverlay: React.FC<{ graphic: Graphic; layout: SubtitleLayout
       </div>
     )
   }
-  // message: side HUD bubble, kept clear of faces and key props
+  // 消息采用侧边 HUD 气泡，避开人脸和关键道具。
   const bubble: React.CSSProperties = {
     position: 'absolute',
     top: layout.marginV,

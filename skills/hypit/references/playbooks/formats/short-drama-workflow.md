@@ -2,11 +2,12 @@
 
 Use this workflow for an original, adapted or reference-led short drama. It turns
 [Short drama](short-drama.md) into auditable project work. The complete project contract, module router,
-prompt library, recovery tools and Dashboard are vendored from
-[`oh-my-short-drama`](../../../../../vendor/oh-my-short-drama/skills/short-drama/SKILL.md). Read that
-Skill first, then read every reference returned by `hypit short-drama modules required`; do not replace
-those contracts with this summary. Hypit Runtime remains the preferred owner of paid media generation,
-Results and deterministic editing where an equivalent component exists.
+prompt library, recovery tools and Dashboard are bundled with the installed CLI. Run
+`hypit short-drama root`, then read `skills/short-drama/SKILL.md` under the returned directory before
+continuing. Resolve every reference returned by `hypit short-drama modules required` from that same
+directory; do not replace those contracts with this summary. This indirection is required because the
+Hypit Skill may be installed independently from the npm package. Hypit Runtime remains the preferred
+owner of paid media generation, Results and deterministic editing where an equivalent component exists.
 
 ```bash
 hypit short-drama init <project-id> --profile standard
@@ -14,6 +15,7 @@ hypit short-drama init <project-id> --profile viral-recreation
 hypit short-drama status
 hypit short-drama check
 hypit short-drama dashboard
+hypit short-drama root
 hypit short-drama modules required <stage>
 hypit short-drama advance <next-stage>
 hypit short-drama rewind <earliest-affected-stage>
