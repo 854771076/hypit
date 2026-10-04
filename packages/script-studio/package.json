@@ -14,6 +14,7 @@
     "@hypit/script": "workspace:*",
     "@hypit/studio-adapter": "workspace:*",
     "@hypit/narrative": "workspace:*",
+    "@hypit/narrative-temporal": "workspace:*",
     "@hypit/protocol": "workspace:*"
   }
 }

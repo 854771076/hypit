@@ -2,7 +2,7 @@ import { depthStackMarkupSurfaces, depthStackModuleRef } from "@hypit/depth-stac
 import type { DepthStackProgram } from "@hypit/depth-stack";
 import { compositionTypes } from "@hypit/composition";
 import type { StudioTrackCompanion, StudioTrackCompanionContext, StudioEntityDraft, StudioInspectorFieldDeclaration } from "@hypit/studio-adapter";
-import { requiredSurfaceValue, temporalLineageFor, temporalSemanticSource } from "@hypit/studio-adapter";
+import { requiredSurfaceValue, temporalLineageFor, temporalDomainSource } from "@hypit/studio-adapter";
 
 const deckProperties = (depthStackMarkupSurfaces
   .find((surface) => surface.name === "track")?.vocabulary.attributes
@@ -84,7 +84,7 @@ function projectDeck(context: StudioTrackCompanionContext): readonly StudioEntit
   return program.cards.map((card, index): StudioEntityDraft => {
     const child = children.get(card.id);
     const temporal = temporalLineageFor(context, card.id, "activation");
-    const markerId = temporalSemanticSource(temporal)?.id;
+    const markerId = temporalDomainSource(temporal)?.id;
     const endFrameExclusive = program.cards[index + 1]?.activationFrame ?? program.terminalFrame;
     const renders = context.spans.filter((span) => span.id === card.id || span.subjectId === card.id);
     const render = renders[0];

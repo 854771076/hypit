@@ -291,18 +291,18 @@ importers:
       '@hypit/text':
         specifier: workspace:*
         version: link:packages/text
-      '@hypit/timeline':
-        specifier: workspace:*
-        version: link:packages/timeline
-      '@hypit/timeline-author':
-        specifier: workspace:*
-        version: link:packages/timeline-author
       '@hypit/text-fine':
         specifier: workspace:*
         version: link:packages/text-fine
       '@hypit/text-fine-studio':
         specifier: workspace:*
         version: link:packages/text-fine-studio
+      '@hypit/timeline':
+        specifier: workspace:*
+        version: link:packages/timeline
+      '@hypit/timeline-author':
+        specifier: workspace:*
+        version: link:packages/timeline-author
       '@hypit/visual-ir':
         specifier: workspace:*
         version: link:packages/visual-ir
@@ -2893,6 +2893,9 @@ importers:
       '@hypit/narrative':
         specifier: workspace:*
         version: link:../narrative
+      '@hypit/narrative-temporal':
+        specifier: workspace:*
+        version: link:../narrative-temporal
       '@hypit/protocol':
         specifier: workspace:*
         version: link:../protocol
@@ -3094,9 +3097,6 @@ importers:
       '@hypit/media-pipeline':
         specifier: workspace:*
         version: link:../media-pipeline
-      '@hypit/narrative-temporal':
-        specifier: workspace:*
-        version: link:../narrative-temporal
       '@hypit/package-loader-node':
         specifier: workspace:*
         version: link:../package-loader-node
@@ -3136,12 +3136,12 @@ importers:
       '@hypit/temporal':
         specifier: workspace:*
         version: link:../temporal
-      '@hypit/timeline':
-        specifier: workspace:*
-        version: link:../timeline
       '@hypit/text-fine-studio':
         specifier: workspace:*
         version: link:../text-fine-studio
+      '@hypit/timeline':
+        specifier: workspace:*
+        version: link:../timeline
       '@hypit/validation':
         specifier: workspace:*
         version: link:../validation
@@ -3234,61 +3234,6 @@ importers:
         specifier: workspace:*
         version: link:../svs
 
-  packages/timeline:
-    dependencies:
-      '@hypit/component-kit':
-        specifier: workspace:*
-        version: link:../component-kit
-      '@hypit/protocol':
-        specifier: workspace:*
-        version: link:../protocol
-
-  packages/timeline-author:
-    dependencies:
-      '@hypit/component-kit':
-        specifier: workspace:*
-        version: link:../component-kit
-      '@hypit/elaborator':
-        specifier: workspace:*
-        version: link:../elaborator
-      '@hypit/markup':
-        specifier: workspace:*
-        version: link:../markup
-      '@hypit/protocol':
-        specifier: workspace:*
-        version: link:../protocol
-      '@hypit/temporal':
-        specifier: workspace:*
-        version: link:../temporal
-      '@hypit/temporal-markup':
-        specifier: workspace:*
-        version: link:../temporal-markup
-      '@hypit/timeline':
-        specifier: workspace:*
-        version: link:../timeline
-    devDependencies:
-      '@hypit/core':
-        specifier: workspace:*
-        version: link:../core
-      '@hypit/script':
-        specifier: workspace:*
-        version: link:../script
-      '@hypit/text':
-        specifier: workspace:*
-        version: link:../text
-      '@hypit/validation':
-        specifier: workspace:*
-        version: link:../validation
-
-  packages/transport-aws-lambda:
-    dependencies:
-      '@aws-sdk/client-lambda':
-        specifier: 3.1103.0
-        version: 3.1103.0
-      '@hypit/protocol':
-        specifier: workspace:*
-        version: link:../protocol
-
   packages/text-fine:
     dependencies:
       '@hypit/component-kit':
@@ -3352,6 +3297,61 @@ importers:
       '@hypit/text-fine':
         specifier: workspace:*
         version: link:../text-fine
+
+  packages/timeline:
+    dependencies:
+      '@hypit/component-kit':
+        specifier: workspace:*
+        version: link:../component-kit
+      '@hypit/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+
+  packages/timeline-author:
+    dependencies:
+      '@hypit/component-kit':
+        specifier: workspace:*
+        version: link:../component-kit
+      '@hypit/elaborator':
+        specifier: workspace:*
+        version: link:../elaborator
+      '@hypit/markup':
+        specifier: workspace:*
+        version: link:../markup
+      '@hypit/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+      '@hypit/temporal':
+        specifier: workspace:*
+        version: link:../temporal
+      '@hypit/temporal-markup':
+        specifier: workspace:*
+        version: link:../temporal-markup
+      '@hypit/timeline':
+        specifier: workspace:*
+        version: link:../timeline
+    devDependencies:
+      '@hypit/core':
+        specifier: workspace:*
+        version: link:../core
+      '@hypit/script':
+        specifier: workspace:*
+        version: link:../script
+      '@hypit/text':
+        specifier: workspace:*
+        version: link:../text
+      '@hypit/validation':
+        specifier: workspace:*
+        version: link:../validation
+
+  packages/transport-aws-lambda:
+    dependencies:
+      '@aws-sdk/client-lambda':
+        specifier: 3.1103.0
+        version: 3.1103.0
+      '@hypit/protocol':
+        specifier: workspace:*
+        version: link:../protocol
 
   packages/validation:
     dependencies:

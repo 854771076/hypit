@@ -2,7 +2,7 @@ import { screenOverlayModuleRef, screenOverlayTypes } from "@hypit/screen-overla
 import type { ScreenOverlayProgram } from "@hypit/screen-overlay";
 import { compositionTypes } from "@hypit/composition";
 import type { StudioTrackCompanion, StudioTrackCompanionContext, StudioEntityDraft, StudioInspectorFieldDeclaration } from "@hypit/studio-adapter";
-import { childEntities, requiredSurfaceValue, temporalLineageFor, temporalSemanticSource } from "@hypit/studio-adapter";
+import { childEntities, requiredSurfaceValue, temporalLineageFor, temporalDomainSource } from "@hypit/studio-adapter";
 
 function projectOverlays(context: StudioTrackCompanionContext): readonly StudioEntityDraft[] {
   const program = requiredSurfaceValue(context, "program") as ScreenOverlayProgram;
@@ -18,7 +18,7 @@ function projectOverlays(context: StudioTrackCompanionContext): readonly StudioE
     const item = program.items[index];
     if (item === undefined) return entity;
     const temporal = temporalLineageFor(context, item.id, "window");
-    const semanticSource = temporalSemanticSource(temporal);
+    const semanticSource = temporalDomainSource(temporal);
     return {
       ...entity,
       display: { title: item.content.kind.replaceAll("-", " "), layers: [] },

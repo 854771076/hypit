@@ -9,7 +9,7 @@ import type {
   StudioMaterialPreview,
   StudioSourceBindingDeclaration,
 } from "@hypit/studio-adapter";
-import { artifactPreview, authoredItemTitle, childEntities, previewLayer, requiredSurfaceValue, temporalLineageFor, temporalSemanticSource } from "@hypit/studio-adapter";
+import { artifactPreview, authoredItemTitle, childEntities, previewLayer, requiredSurfaceValue, temporalLineageFor, temporalDomainSource } from "@hypit/studio-adapter";
 
 const frameParameters: readonly StudioSourceBindingDeclaration[] = [
   { name: "within" },
@@ -151,7 +151,7 @@ function projectVisualClips(context: StudioTrackCompanionContext): readonly Stud
       const clip = clips[index];
       if (clip === undefined) return entity;
       const temporal = temporalLineageFor(context, clip.id, clip.temporalInput);
-      const semanticSource = temporalSemanticSource(temporal);
+      const semanticSource = temporalDomainSource(temporal);
       return {
         ...entity,
         display: {

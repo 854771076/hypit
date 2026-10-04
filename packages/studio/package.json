@@ -35,7 +35,6 @@
     "@hypit/screen-overlay-studio": "workspace:*",
     "@hypit/script-studio": "workspace:*",
     "@hypit/speech": "workspace:*",
-    "@hypit/narrative-temporal": "workspace:*",
     "@hypit/studio-adapter": "workspace:*",
     "@hypit/svs": "workspace:*",
     "@hypit/temporal": "workspace:*",
