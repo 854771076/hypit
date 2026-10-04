@@ -1,10 +1,9 @@
-import { timelineTypes } from "@hypit/timeline";
+import { timelineTypes, timelineDependency } from "@hypit/timeline";
 import type { Timeline } from "@hypit/timeline";
 import { temporalContextAttributeVocabulary } from "@hypit/temporal-markup";
 import { audioTrackSchema, compositionDependency, compositionTypes, visualTrackSchema } from "@hypit/composition";
 
 import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/protocol";
-import { timelineDependency } from "@hypit/timeline";
 import { spatialDependency, spatialTypes } from "@hypit/spatial";
 import { svsManifest, svsModuleRef, svsRecipeType } from "@hypit/svs";
 
@@ -57,7 +56,7 @@ export const filmMarkupSurfaces = [{
           summary: "Names the Film component and the Composition binding it publishes." },
         { name: "canvas", kind: "reference", required: true,
           accepts: [spatialTypes.canvas],
-          summary: "Selects the CanvasSpace that decides the Composition's dimensions." },
+          summary: "Selects the Canvas that decides the Composition's dimensions." },
         ...temporalContextAttributeVocabulary,
         { name: "appearance", kind: "reference", required: true,
           accepts: [svsRecipeType],
@@ -81,10 +80,10 @@ export const filmMarkupSurfaces = [{
           summary: "The assembled Composition, addressed as `<id>.composition`." },
       ],
       example: [
-        '<film:Film id="main" canvas={vertical} timeline={speech.timeline} appearance={recipes.film.vertical}>',
+        '<film:Film id="main" canvas={vertical.canvas} timeline={speech.timeline} appearance={recipes.film.vertical}>',
         "  <film:Track source={performance.visual}/>",
         "  <film:Track source={voice.audio}/>",
-        "  <film:Track source={captions.track}/>",
+        "  <film:Track source={captions.visual}/>",
         "</film:Film>",
       ].join("\n"),
       notes: [

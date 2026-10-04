@@ -1,0 +1,14 @@
+{
+  "name": "@hypit/depth-stack-studio",
+  "version": "0.0.0-dev",
+  "license": "SEE LICENSE IN LICENSE",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "hypit": { "activation": "./src/activation.ts" },
+  "dependencies": {
+    "@hypit/depth-stack": "workspace:*",
+    "@hypit/composition": "workspace:*",
+    "@hypit/studio-adapter": "workspace:*"
+  }
+}

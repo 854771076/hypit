@@ -16,21 +16,20 @@
     "@hypit/composition": "workspace:*",
     "@hypit/elaborator": "workspace:*",
     "@hypit/media": "workspace:*",
-    "@hypit/program-space": "workspace:*",
     "@hypit/protocol": "workspace:*",
-    "@hypit/visual-ir": "workspace:*"
+    "@hypit/visual-ir": "workspace:*",
+    "@hypit/timeline": "workspace:*"
   },
   "devDependencies": {
     "@hypit/caption": "workspace:*",
-    "@hypit/caption-fine": "workspace:*",
-    "@hypit/deck-track": "workspace:*",
+    "@hypit/depth-stack": "workspace:*",
     "@hypit/fonts-open": "workspace:*",
-    "@hypit/media-track": "workspace:*",
+    "@hypit/visual-track": "workspace:*",
     "@hypit/ranking": "workspace:*",
     "@hypit/screen-overlay": "workspace:*",
     "@hypit/script": "workspace:*",
     "@hypit/spatial": "workspace:*",
     "@hypit/svs": "workspace:*",
-    "@hypit/typography-track": "workspace:*"
+    "@hypit/text-fine": "workspace:*"
   }
 }

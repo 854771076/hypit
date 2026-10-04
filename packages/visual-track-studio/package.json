@@ -1,0 +1,16 @@
+{
+  "name": "@hypit/visual-track-studio",
+  "version": "0.0.0-dev",
+  "license": "SEE LICENSE IN LICENSE",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "hypit": { "activation": "./src/activation.ts" },
+  "dependencies": {
+    "@hypit/visual-track": "workspace:*",
+    "@hypit/composition": "workspace:*",
+    "@hypit/protocol": "workspace:*",
+    "@hypit/studio-adapter": "workspace:*",
+    "@hypit/temporal": "workspace:*"
+  }
+}

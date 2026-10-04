@@ -1,6 +1,6 @@
 {
   "name": "@hypit/hypit",
-  "version": "0.2.17",
+  "version": "0.3.0",
   "homepage": "https://hypit.ai",
   "repository": {
     "type": "git",
@@ -50,9 +50,13 @@
       "types": "./dist/public/narrative.d.ts",
       "import": "./packages/narrative/src/index.ts"
     },
-    "./program-space": {
-      "types": "./dist/public/program-space.d.ts",
-      "import": "./packages/program-space/src/index.ts"
+    "./narrative-caption": {
+      "types": "./dist/public/narrative-caption.d.ts",
+      "import": "./packages/narrative-caption/src/index.ts"
+    },
+    "./narrative-temporal": {
+      "types": "./dist/public/narrative-temporal.d.ts",
+      "import": "./packages/narrative-temporal/src/index.ts"
     },
     "./runtime-kit": {
       "types": "./dist/public/runtime-kit.d.ts",
@@ -66,9 +70,21 @@
       "types": "./dist/public/spatial.d.ts",
       "import": "./packages/spatial/src/index.ts"
     },
+    "./region-track": {
+      "types": "./dist/public/region-track.d.ts",
+      "import": "./packages/region-track/src/index.ts"
+    },
     "./speech": {
       "types": "./dist/public/speech.d.ts",
       "import": "./packages/speech/src/index.ts"
+    },
+    "./speech-evidence": {
+      "types": "./dist/public/speech-evidence.d.ts",
+      "import": "./packages/speech-evidence/src/index.ts"
+    },
+    "./speech-alignment": {
+      "types": "./dist/public/speech-alignment.d.ts",
+      "import": "./packages/speech-alignment/src/index.ts"
     },
     "./studio-adapter": {
       "types": "./dist/public/studio-adapter.d.ts",
@@ -98,13 +114,13 @@
       "types": "./dist/public/hyperframes.d.ts",
       "import": "./packages/hyperframes/src/index.ts"
     },
-    "./performance": {
-      "types": "./dist/public/performance.d.ts",
-      "import": "./packages/performance/src/index.ts"
+    "./visual-track": {
+      "types": "./dist/public/visual-track.d.ts",
+      "import": "./packages/visual-track/src/index.ts"
     },
-    "./sound": {
-      "types": "./dist/public/sound.d.ts",
-      "import": "./packages/sound/src/index.ts"
+    "./audio-track": {
+      "types": "./dist/public/audio-track.d.ts",
+      "import": "./packages/audio-track/src/index.ts"
     }
   },
   "bin": {
@@ -206,8 +222,8 @@
     "@hypit/credential-store-file": "workspace:*",
     "@hypit/credential-store-os": "workspace:*",
     "@hypit/credential-store-platform": "workspace:*",
-    "@hypit/deck-track": "workspace:*",
-    "@hypit/deck-track-studio": "workspace:*",
+    "@hypit/depth-stack": "workspace:*",
+    "@hypit/depth-stack-studio": "workspace:*",
     "@hypit/elevenlabs-speech": "workspace:*",
     "@hypit/estimate": "workspace:*",
     "@hypit/film": "workspace:*",
@@ -224,16 +240,15 @@
     "@hypit/interview-emoji-reveal": "workspace:*",
     "@hypit/media": "workspace:*",
     "@hypit/media-pipeline": "workspace:*",
-    "@hypit/media-track": "workspace:*",
-    "@hypit/media-track-studio": "workspace:*",
+    "@hypit/visual-track": "workspace:*",
+    "@hypit/visual-track-studio": "workspace:*",
     "@hypit/mimo-speech": "workspace:*",
     "@hypit/minimax-h3": "workspace:*",
     "@hypit/nano-banana": "workspace:*",
     "@hypit/narrative": "workspace:*",
-    "@hypit/performance": "workspace:*",
-    "@hypit/performance-studio": "workspace:*",
+    "@hypit/narrative-caption": "workspace:*",
+    "@hypit/narrative-temporal": "workspace:*",
     "@hypit/pixverse": "workspace:*",
-    "@hypit/program-space": "workspace:*",
     "@hypit/project-context-node": "workspace:*",
     "@hypit/protocol": "workspace:*",
     "@hypit/provider-beatapi": "workspace:*",
@@ -248,6 +263,7 @@
     "@hypit/provider-whisperx-local": "workspace:*",
     "@hypit/ranking": "workspace:*",
     "@hypit/ranking-studio": "workspace:*",
+    "@hypit/region-track": "workspace:*",
     "@hypit/raster": "workspace:*",
     "@hypit/render-hyperframes": "workspace:*",
     "@hypit/resource-store-fs": "workspace:*",
@@ -263,8 +279,6 @@
     "@hypit/seedance": "workspace:*",
     "@hypit/seedance-kits": "workspace:*",
     "@hypit/seedream": "workspace:*",
-    "@hypit/sound": "workspace:*",
-    "@hypit/sound-studio": "workspace:*",
     "@hypit/spatial": "workspace:*",
     "@hypit/speech": "workspace:*",
     "@hypit/speech-alignment": "workspace:*",
@@ -277,8 +291,8 @@
     "@hypit/text": "workspace:*",
     "@hypit/timeline": "workspace:*",
     "@hypit/timeline-author": "workspace:*",
-    "@hypit/typography-track": "workspace:*",
-    "@hypit/typography-track-studio": "workspace:*",
+    "@hypit/text-fine": "workspace:*",
+    "@hypit/text-fine-studio": "workspace:*",
     "@hypit/visual-ir": "workspace:*",
     "@hypit/volcengine-matting": "workspace:*",
     "@hypit/wan": "workspace:*",

@@ -1,9 +1,5 @@
 import { artifactTypes } from "@hypit/artifact";
-import type {
-  StructuredElement,
-  StructuredSurfaceHandler,
-} from "@hypit/markup";
-
+import type { StructuredElement, StructuredSurfaceHandler } from "@hypit/markup";
 import { assertFontArtifactRef } from "./render.js";
 import { mediaTypes } from "./manifest.js";
 

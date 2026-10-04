@@ -13,9 +13,9 @@
   "dependencies": {
     "@hypit/component-kit": "workspace:*",
     "@hypit/media": "workspace:*",
-    "@hypit/program-space": "workspace:*",
     "@hypit/protocol": "workspace:*",
-    "@hypit/visual-ir": "workspace:*"
+    "@hypit/visual-ir": "workspace:*",
+    "@hypit/timeline": "workspace:*"
   },
   "devDependencies": {
     "@hypit/artifact": "workspace:*",

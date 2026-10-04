@@ -4,7 +4,7 @@ import type { BlobRef, CanonicalValue, StoredValue } from "@hypit/protocol";
 import { canonicalize } from "@hypit/protocol";
 import { rasterComposeRequest } from "@hypit/raster";
 import { rasterCapabilities } from "@hypit/raster";
-import type { CanvasSpace, SpatialFrame } from "@hypit/spatial";
+import type { Canvas, SpatialFrame } from "@hypit/spatial";
 
 import { imageComposeProducers, imageComposeTypes } from "./manifest.js";
 import {
@@ -44,7 +44,7 @@ export const imageComposeComponent = {
   }, {
     producer: imageComposeProducers.request,
     handler: ({ inputs }: ProducerHandlerContext) => {
-      const canvas = inline<CanvasSpace>(inputs.canvas?.value, "CanvasSpace");
+      const canvas = inline<Canvas>(inputs.canvas?.value, "Canvas");
       const options = inline<ImageComposeOptions>(inputs.options?.value, "ImageComposeOptions");
       const set = inline<ImageComposeLayerSet>(inputs.layers?.value, "ImageComposeLayerSet");
       return { outputs: {}, needs: { image: rasterComposeRequest({

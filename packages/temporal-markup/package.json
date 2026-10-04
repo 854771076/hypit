@@ -10,9 +10,7 @@
   "dependencies": {
     "@hypit/elaborator": "workspace:*",
     "@hypit/markup": "workspace:*",
-    "@hypit/narrative": "workspace:*",
     "@hypit/timeline": "workspace:*",
-    "@hypit/temporal": "workspace:*",
-    "@hypit/program-space": "workspace:*"
+    "@hypit/temporal": "workspace:*"
   }
 }

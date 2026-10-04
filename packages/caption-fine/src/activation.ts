@@ -23,7 +23,7 @@ export const hypitPackage = {
     }),
     createMarkupSurfaceHostFacet({
       module: captionFineModuleRef,
-    declaration: captionFineMarkupSurfaces.find((item) => item.name === "track")!,
+    declaration: captionFineMarkupSurfaces.find((item) => item.name === "caption")!,
       handler: decodeFineCaptionTrackSurface,
     }),
   ],

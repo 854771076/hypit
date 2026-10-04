@@ -1,7 +1,6 @@
-import { decodeClockSurface } from "@hypit/program-space";
 import { createMarkupSurfaceHostFacet } from "@hypit/markup";
 import {
-  decodeTimelineAuthorSurface, timelineAuthorComponent, timelineAuthorManifest,
+  decodeAbsoluteInstantSurface, decodeAbsoluteWindowSurface, decodeClockSurface, decodeTimelineAuthorSurface, timelineAuthorComponent, timelineAuthorManifest,
   timelineAuthorModuleRef,
   timelineAuthorMarkupSurfaces,
 } from "./index.js";
@@ -17,6 +16,10 @@ export const hypitPackage = {
     declaration: timelineAuthorMarkupSurfaces.find((item) => item.name === "timeline")!, handler: decodeTimelineAuthorSurface,
   }), createMarkupSurfaceHostFacet({ module: timelineAuthorModuleRef,
     declaration: timelineAuthorMarkupSurfaces.find(item => item.name === "clock")!, handler: decodeClockSurface,
+  }), createMarkupSurfaceHostFacet({ module: timelineAuthorModuleRef,
+    declaration: timelineAuthorMarkupSurfaces.find(item => item.name === "window")!, handler: decodeAbsoluteWindowSurface,
+  }), createMarkupSurfaceHostFacet({ module: timelineAuthorModuleRef,
+    declaration: timelineAuthorMarkupSurfaces.find(item => item.name === "instant")!, handler: decodeAbsoluteInstantSurface,
   })],
 };
 export default hypitPackage;

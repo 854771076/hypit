@@ -12,12 +12,11 @@
   },
   "dependencies": {
     "@hypit/component-kit": "workspace:*",
-    "@hypit/media": "workspace:*",
     "@hypit/narrative": "workspace:*",
-    "@hypit/program-space": "workspace:*",
+    "@hypit/narrative-temporal": "workspace:*",
     "@hypit/protocol": "workspace:*",
-    "@hypit/speech": "workspace:*",
-    "@hypit/speech-evidence": "workspace:*"
+    "@hypit/speech-evidence": "workspace:*",
+    "@hypit/temporal": "workspace:*"
   },
   "devDependencies": {
     "@hypit/script": "workspace:*"

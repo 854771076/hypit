@@ -13,7 +13,9 @@
   "dependencies": {
     "@hypit/artifact": "workspace:*",
     "@hypit/component-kit": "workspace:*",
+    "@hypit/elaborator": "workspace:*",
     "@hypit/protocol": "workspace:*",
+    "@hypit/temporal": "workspace:*",
     "@hypit/markup": "workspace:*"
   }
 }

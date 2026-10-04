@@ -1,8 +1,7 @@
-import { programSpaceTypes } from "@hypit/program-space";
+import { timelineTypes } from "@hypit/timeline";
 import type { StudioFilmCompanion } from "@hypit/studio-adapter";
 import { compositionTypes } from "@hypit/composition";
 import { filmModuleRef } from "@hypit/film";
-import { timelineTypes } from "@hypit/timeline";
 
 /** Film owns the author vocabulary that selects its time source and peer Tracks. */
 export const filmStudioCompanions: readonly StudioFilmCompanion[] = [{

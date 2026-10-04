@@ -3,7 +3,7 @@ import type { VisualElement } from "@hypit/hypit/composition";
 import { browserProgram } from "@hypit/hypit/hyperframes";
 import type { FontStackRef } from "@hypit/hypit/media";
 import type { Timeline } from "@hypit/hypit/timeline";
-import type { CanvasSpace } from "@hypit/hypit/spatial";
+import type { SpatialFrame } from "@hypit/hypit/spatial";
 import { assertTemporalWindowFor } from "@hypit/hypit/temporal";
 import type { TemporalInstant, TemporalWindow } from "@hypit/hypit/temporal";
 
@@ -11,9 +11,9 @@ export type Message = { id: string; sender: string; text: string; side: "left" |
 export type ChatOptions = { id: string; title: string; entranceFrames: number };
 
 /** Layout, arrival and scrolling share one visual component; timing is already resolved. */
-export function renderChat(timeline: Timeline, canvas: CanvasSpace, window: TemporalWindow,
+export function renderChat(timeline: Timeline, within: SpatialFrame, window: TemporalWindow,
   font: FontStackRef, messages: readonly Message[], options: ChatOptions) {
-  assertTemporalWindowFor(window, { subjectId: options.id, space: timeline });
+  assertTemporalWindowFor(window, { subjectId: options.id, timeline: timeline });
   if (!Number.isSafeInteger(options.entranceFrames) || options.entranceFrames < 1) throw new Error("Chat entrance-frames must be a positive integer.");
   if (messages.some(message => message.at.frame < window.span.startFrame || message.at.frame >= window.span.endFrameExclusive)) throw new Error("Chat messages must appear inside the scene's window.");
   let order = 0;
@@ -56,9 +56,10 @@ export function renderChat(timeline: Timeline, canvas: CanvasSpace, window: Temp
         [...dots.children].forEach((dot,i)=>dot.style.transform='translateY('+(-3*(1+Math.sin(frame*.18-i)))+'px)');
       };`,
   });
-  return sealVisualTrack({ id: options.id, programSpaceId: timeline.id, visualIr: "hypit.visual-ir@1",
-    presents: [{ id: options.id, span: window.span, stacking: { order: 0, tieBreak: options.id },
+  return sealVisualTrack({ id: options.id, timelineId: timeline.id, visualIr: "hypit.visual-ir@1",
+    presents: [{ id: options.id, order: 0, z: 0, span: window.span,
       elements: [{ id: "chat", kind: "program", order: 0, program,
-        style: [{ name: "position", value: "absolute" }, { name: "inset", value: 0 },
-          { name: "width", value: `${canvas.widthPx}px` }, { name: "height", value: `${canvas.heightPx}px` }] }, ...children] }] });
+        style: [{ name: "position", value: "absolute" }, { name: "left", value: `${within.xPx}px` },
+          { name: "top", value: `${within.yPx}px` },
+          { name: "width", value: `${within.widthPx}px` }, { name: "height", value: `${within.heightPx}px` }] }, ...children] }] });
 }

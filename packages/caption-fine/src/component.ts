@@ -1,10 +1,10 @@
 import type { Timeline } from "@hypit/timeline";
-import type { CaptionProgram, TimedCaptionProjection } from "@hypit/caption";
+import type { CaptionDocument, CaptionProgram, CaptionTiming } from "@hypit/caption";
 import type { ComponentPackage } from "@hypit/component-kit";
-import type { CaptionDocument } from "@hypit/narrative";
 import type { StoredValue } from "@hypit/protocol";
 import { canonicalize } from "@hypit/protocol";
-import type { SpatialRegionTimeline } from "@hypit/spatial";
+import type { RegionTrack } from "@hypit/region-track";
+import type { SpatialFrame } from "@hypit/spatial";
 
 import { captionFineProducers } from "./manifest.js";
 import { renderFineCaption } from "./render.js";
@@ -22,7 +22,7 @@ export const captionFineComponent = {
       producer: captionFineProducers.schedule,
       handler: ({ inputs }) => ({
         outputs: { schedule: { kind: "inline", value: canonicalize(scheduleFineCaption(
-          inline<TimedCaptionProjection>(inputs.caption?.value, "TimedCaptionProjection"),
+          inline<CaptionTiming>(inputs.timing?.value, "CaptionTiming"),
           inline<CaptionProgram>(inputs.program?.value, "CaptionProgram"),
           inline<CaptionDocument>(inputs.document?.value, "CaptionDocument"),
         )) } },
@@ -37,6 +37,7 @@ export const captionFineComponent = {
           inline<CaptionProgram>(inputs.program?.value, "CaptionProgram"),
           inline<CaptionDocument>(inputs.document?.value, "CaptionDocument"),
           inline<Timeline>(inputs.timeline?.value, "Timeline"),
+          inline<SpatialFrame>(inputs.within?.value, "SpatialFrame"),
         )) } },
         needs: {},
       }),
@@ -49,7 +50,8 @@ export const captionFineComponent = {
           inline<CaptionProgram>(inputs.program?.value, "CaptionProgram"),
           inline<CaptionDocument>(inputs.document?.value, "CaptionDocument"),
           inline<Timeline>(inputs.timeline?.value, "Timeline"),
-          inline<SpatialRegionTimeline>(inputs.regions?.value, "SpatialRegionTimeline"),
+          inline<SpatialFrame>(inputs.within?.value, "SpatialFrame"),
+          inline<RegionTrack>(inputs.regions?.value, "RegionTrack"),
         )) } },
         needs: {},
       }),

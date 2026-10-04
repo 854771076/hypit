@@ -1,6 +1,6 @@
 import type { ComponentPackage } from "@hypit/component-kit";
-import type { ProgramSpace } from "@hypit/program-space";
 import type { Composition } from "@hypit/composition";
+import type { Timeline } from "@hypit/timeline";
 import type { CanonicalValue, StoredValue } from "@hypit/protocol";
 import { canonicalize } from "@hypit/protocol";
 
@@ -22,7 +22,7 @@ export const hyperframesComponent = {
           kind: "inline",
           value: canonicalize(compileHyperframesDocument(
             inline(inputs.composition!.value, "Composition") as unknown as Composition,
-            inline(inputs.space!.value, "ProgramSpace") as unknown as ProgramSpace,
+            inline(inputs.timeline!.value, "Timeline") as unknown as Timeline,
           )),
         },
       },

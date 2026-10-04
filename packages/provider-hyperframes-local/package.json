@@ -39,6 +39,6 @@
   "devDependencies": {
     "@hypit/composition": "workspace:*",
     "@hypit/driver-node": "workspace:*",
-    "@hypit/program-space": "workspace:*"
+    "@hypit/timeline": "workspace:*"
   }
 }

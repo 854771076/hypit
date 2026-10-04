@@ -4,7 +4,7 @@ import type { SynchronizedMedia } from "@hypit/media";
 import { canonicalize } from "@hypit/protocol";
 import type { BlobRef, StoredValue } from "@hypit/protocol";
 import type { TemporalInstant, TemporalWindow } from "@hypit/temporal";
-import type { CanvasSpace, SpatialFrame } from "@hypit/spatial";
+import type { SpatialFrame } from "@hypit/spatial";
 import type { Text } from "@hypit/text";
 
 import { rankingProducers, rankingTypes } from "./manifest.js";
@@ -189,7 +189,7 @@ export const rankingComponent = {
       handler: ({ inputs }) => {
         const common = programInputs(inputs);
         return { outputs: { program: output(buildTierBoardProgram(common.header,
-          inline<CanvasSpace>(inputs.canvas?.value, "CanvasSpace"), common.frame, common.schedule,
+          inline<SpatialFrame>(inputs.within?.value, "SpatialFrame"), common.frame, common.schedule,
           inline<TierBoardStyle>(inputs.style?.value, "TierBoardStyle"), inline<TierBoardItemSet>(inputs.set?.value, "TierBoardItemSet"))) }, needs: {} };
       },
     },
@@ -198,7 +198,7 @@ export const rankingComponent = {
       handler: ({ inputs }) => {
         const common = programInputs(inputs);
         return { outputs: { program: output(buildColumnProgram(common.header,
-          inline<CanvasSpace>(inputs.canvas?.value, "CanvasSpace"), common.frame, common.schedule,
+          inline<SpatialFrame>(inputs.within?.value, "SpatialFrame"), common.frame, common.schedule,
           inline<ColumnStyle>(inputs.style?.value, "ColumnStyle"), inline<ColumnItemSet>(inputs.set?.value, "ColumnItemSet"))) }, needs: {} };
       },
     },

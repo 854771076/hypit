@@ -126,9 +126,7 @@
     "@hypit/media": "workspace:*",
     "@hypit/package-loader-node": "workspace:*",
     "@hypit/protocol": "workspace:*",
-    "@hypit/markup": "workspace:*"
-  },
-  "devDependencies": {
+    "@hypit/markup": "workspace:*",
     "@hypit/studio-adapter": "workspace:*"
   }
 }

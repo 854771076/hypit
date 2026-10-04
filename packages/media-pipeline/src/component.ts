@@ -4,10 +4,13 @@ import { plannedNeedInputs } from "@hypit/component-kit";
 import type { ComponentPackage, PlannedNeedFacet } from "@hypit/component-kit";
 import { synchronizedMediaSampleFrames, verifyMediaInspection, verifyMediaStreamSelection, verifyMuxedMedia, verifyRenderedVisual, verifySynchronizedMedia, verifyTimelineAudio } from "@hypit/media";
 import type { MediaInspection, MediaStreamSelection, MuxedMedia, RenderedVisual, SynchronizedMedia, TimelineAudio } from "@hypit/media";
-import { assertProgramClockIdentity } from "@hypit/program-space";
-import type { ProgramClock, ProgramSpace } from "@hypit/program-space";
-import { assertSpeechDurationIdentity, speechEvidenceSampleBoundary } from "@hypit/speech";
+import { assertClockIdentity } from "@hypit/timeline";
+import type { Clock, Timeline } from "@hypit/timeline";
+import { assertSpeechDurationIdentity } from "@hypit/speech";
 import type { SpeechDuration } from "@hypit/speech";
+import { speechEvidenceSampleBoundary } from "@hypit/speech-evidence";
+import { assertLocalTemporalDomain } from "@hypit/temporal";
+import type { LocalTemporalDomain } from "@hypit/temporal";
 import type { Composition } from "@hypit/composition";
 import type { BlobRef, CanonicalValue, CapabilityRef, ProducerRef, StoredValue } from "@hypit/protocol";
 import { canonicalize } from "@hypit/protocol";
@@ -247,9 +250,9 @@ export const mediaPipelineComponent = {
       producer: mediaPipelineProducers.planStill,
       handler: ({ inputs }) => {
         const duration = inline(inputs.duration!.value, "SpeechDuration") as unknown as SpeechDuration;
-        const clock = inline(inputs.clock!.value, "ProgramClock") as unknown as ProgramClock;
+        const clock = inline(inputs.clock!.value, "Clock") as unknown as Clock;
         assertSpeechDurationIdentity(duration);
-        assertProgramClockIdentity(clock);
+        assertClockIdentity(clock);
         const layout = inline(inputs.layout!.value, "StillVideoLayout") as unknown as StillVideoLayout;
         verifyStillVideoLayout(layout);
         const frames = Math.round(duration * clock.frameRate.numerator / clock.frameRate.denominator);
@@ -290,7 +293,14 @@ export const mediaPipelineComponent = {
       producer: mediaPipelineProducers.projectSpeechEvidenceAudio,
       handler: ({ inputs }) => {
         const media = inline(inputs.media!.value, "SynchronizedMedia") as unknown as SynchronizedMedia;
+        const domain = inline(inputs.domain!.value, "LocalTemporalDomain") as unknown as LocalTemporalDomain;
         verifySynchronizedMedia(media);
+        assertLocalTemporalDomain(domain);
+        if (domain.frameCount !== media.frameDomain.frameCount
+          || domain.frameRate.numerator !== media.frameDomain.frameRate.numerator
+          || domain.frameRate.denominator !== media.frameDomain.frameRate.denominator) {
+          throw new Error(`Speech evidence domain ${domain.id} does not describe its normalized media`);
+        }
         if (media.audio === undefined) throw new Error("Speech evidence requires normalized Take audio");
         const sourceSampleFrames = synchronizedMediaSampleFrames(media);
         const evidenceSampleFrames = speechEvidenceSampleBoundary(sourceSampleFrames);
@@ -299,6 +309,7 @@ export const mediaPipelineComponent = {
           throw new Error("Speech evidence audio sample domain is invalid");
         }
         const need: ProjectSpeechEvidenceAudioNeed = {
+          domainId: domain.id,
           source: media.audio.artifact,
           sourceSampleFrames,
           evidenceSampleFrames,
@@ -310,9 +321,9 @@ export const mediaPipelineComponent = {
       producer: mediaPipelineProducers.planAudio,
       handler: ({ inputs }) => {
         const composition = inline(inputs.composition!.value, "Composition") as unknown as Composition;
-        const space = inline(inputs.space!.value, "ProgramSpace") as unknown as ProgramSpace;
+        const timeline = inline(inputs.timeline!.value, "Timeline") as unknown as Timeline;
         return {
-          outputs: { plan: { kind: "inline", value: canonicalize(compileAudioProgramPlan(composition, space)) } },
+          outputs: { plan: { kind: "inline", value: canonicalize(compileAudioProgramPlan(composition, timeline)) } },
           needs: {},
         };
       },

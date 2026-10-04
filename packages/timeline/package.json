@@ -12,11 +12,6 @@
   },
   "dependencies": {
     "@hypit/component-kit": "workspace:*",
-    "@hypit/composition": "workspace:*",
-    "@hypit/media": "workspace:*",
-    "@hypit/narrative": "workspace:*",
-    "@hypit/program-space": "workspace:*",
-    "@hypit/protocol": "workspace:*",
-    "@hypit/speech": "workspace:*"
+    "@hypit/protocol": "workspace:*"
   }
 }

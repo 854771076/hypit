@@ -1,0 +1,22 @@
+{
+  "name": "@hypit/narrative-alignment-adjust",
+  "version": "0.0.0-dev",
+  "license": "SEE LICENSE IN LICENSE",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "hypit": {
+    "activation": "./src/activation.ts"
+  },
+  "dependencies": {
+    "@hypit/component-kit": "workspace:*",
+    "@hypit/elaborator": "workspace:*",
+    "@hypit/markup": "workspace:*",
+    "@hypit/narrative": "workspace:*",
+    "@hypit/protocol": "workspace:*",
+    "@hypit/narrative-temporal": "workspace:*",
+    "@hypit/temporal": "workspace:*"
+  }
+}

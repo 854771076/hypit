@@ -9,6 +9,7 @@
   "dependencies": {
     "@hypit/audio-track": "workspace:*",
     "@hypit/composition": "workspace:*",
-    "@hypit/studio-adapter": "workspace:*"
+    "@hypit/studio-adapter": "workspace:*",
+    "@hypit/temporal": "workspace:*"
   }
 }

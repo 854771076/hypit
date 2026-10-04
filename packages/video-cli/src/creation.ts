@@ -16,8 +16,7 @@ import {
 import type { CanonicalValue, CapabilityRef, Need, StoredValue } from "@hypit/protocol";
 import type { ResourceStore } from "@hypit/runtime";
 import type { RuntimeHostCapabilityProvider, RuntimeHostProviderQuery, RuntimeInvocationObservation } from "@hypit/runtime-host-node";
-import { sealSpeechEvidenceAudio } from "@hypit/speech";
-import { speechEvidenceTypes } from "@hypit/speech-evidence";
+import { sealSpeechEvidenceAudio, speechEvidenceTypes } from "@hypit/speech-evidence";
 import type { AlignedTranscriptEvidence } from "@hypit/speech-evidence";
 import { sealText } from "@hypit/text";
 import { whisperXCapabilities, whisperXRequestForEvidenceAudio } from "@hypit/whisperx";
@@ -291,7 +290,7 @@ async function transcribe(argv: readonly string[], io: CliIo, environment: Creat
   const evidence = await speechEvidenceBytes(source);
   const resources = new MemoryResourceStore();
   const artifact = await resources.put(evidence.bytes, "audio/wav");
-  const audio = sealSpeechEvidenceAudio({ artifact, sampleFrames: evidence.sampleFrames });
+  const audio = sealSpeechEvidenceAudio({ domainId: "cli-transcribe", artifact, sampleFrames: evidence.sampleFrames });
   const need: Need = {
     id: "need:hypit-transcribe",
     capability: whisperXCapabilities.alignment,

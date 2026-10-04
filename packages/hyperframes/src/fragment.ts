@@ -1,7 +1,7 @@
-import { programSpaceTypes } from "@hypit/program-space";
 import { compositionTypes } from "@hypit/composition";
 import type { Composition } from "@hypit/composition";
 import { sealGraphFragment } from "@hypit/elaborator";
+import { timelineTypes } from "@hypit/timeline";
 
 import { hyperframesProducers, hyperframesTypes } from "./manifest.js";
 
@@ -16,12 +16,12 @@ const operation = (id: string) => ({ kind: "fragment-operation" as const, operat
 export const hyperframesDocumentFragment = sealGraphFragment({
   inputs: [
     { name: "composition", type: compositionTypes.composition },
-    { name: "space", type: programSpaceTypes.programSpace },
+    { name: "timeline", type: timelineTypes.track },
   ],
   operations: [{
     id: "compile-document",
     producer: hyperframesProducers.compile,
-    inputs: { composition: input("composition"), space: input("space") },
+    inputs: { composition: input("composition"), timeline: input("timeline") },
     result: { kind: "output", name: "document" },
   }],
   exports: [{

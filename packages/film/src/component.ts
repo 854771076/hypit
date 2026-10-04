@@ -1,6 +1,6 @@
 import type { Timeline } from "@hypit/timeline";
 import type { ComponentPackage } from "@hypit/component-kit";
-import type { CanvasSpace } from "@hypit/spatial";
+import type { Canvas } from "@hypit/spatial";
 import type { AudioTrack, VisualTrack } from "@hypit/composition";
 import type { StoredValue } from "@hypit/protocol";
 import { canonicalize } from "@hypit/protocol";
@@ -50,7 +50,7 @@ export const filmComponent = {
       handler: ({ inputs }) => ({
         outputs: { composition: { kind: "inline", value: canonicalize(compileFilmComposition(
           inline<FilmProgram>(inputs.program?.value, "FilmProgram"),
-          inline<CanvasSpace>(inputs.canvas?.value, "CanvasSpace"),
+          inline<Canvas>(inputs.canvas?.value, "Canvas"),
           inline<Timeline>(inputs.timeline?.value, "Timeline"),
           inline<FilmTrackSet>(inputs.set?.value, "FilmTrackSet"),
         )) } },

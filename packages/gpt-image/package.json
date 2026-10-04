@@ -24,11 +24,11 @@
     "@hypit/core": "workspace:*",
     "@hypit/media": "workspace:*",
     "@hypit/narrative": "workspace:*",
-    "@hypit/program-space": "workspace:*",
     "@hypit/raster": "workspace:*",
     "@hypit/run": "workspace:*",
     "@hypit/seedance": "workspace:*",
     "@hypit/spatial": "workspace:*",
-    "@hypit/speech": "workspace:*"
+    "@hypit/speech": "workspace:*",
+    "@hypit/timeline": "workspace:*"
   }
 }

@@ -14,11 +14,10 @@ import {
 } from "@hypit/image-compose";
 import { rasterCapabilities } from "@hypit/raster";
 import type { CanonicalValue, StoredValue, TypeRef, TypedRecord } from "@hypit/protocol";
-import { sealCanvasSpace, sealSpatialFrame, spatialTypes } from "@hypit/spatial";
+import { sealCanvas, sealSpatialFrame, spatialTypes } from "@hypit/spatial";
 
-const canvas = sealCanvasSpace({
+const canvas = sealCanvas({
   widthPx: 1080, heightPx: 1920,
-  origin: "top-left", xDirection: "right", yDirection: "down", pixelAspect: "square",
 });
 const frame = sealSpatialFrame({ xPx: -10, yPx: 20, widthPx: 500, heightPx: 400 });
 const options = sealImageComposeOptions({ background: "#11223344" });

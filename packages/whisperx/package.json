@@ -16,13 +16,14 @@
     "@hypit/media-pipeline": "workspace:*",
     "@hypit/media": "workspace:*",
     "@hypit/narrative": "workspace:*",
+    "@hypit/narrative-temporal": "workspace:*",
     "@hypit/protocol": "workspace:*",
-    "@hypit/speech": "workspace:*",
     "@hypit/speech-alignment": "workspace:*",
     "@hypit/speech-evidence": "workspace:*",
-    "@hypit/markup": "workspace:*"
+    "@hypit/markup": "workspace:*",
+    "@hypit/temporal": "workspace:*"
   },
   "devDependencies": {
-    "@hypit/program-space": "workspace:*"
+    "@hypit/timeline": "workspace:*"
   }
 }

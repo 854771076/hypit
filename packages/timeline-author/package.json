@@ -14,10 +14,8 @@
     "@hypit/component-kit": "workspace:*",
     "@hypit/elaborator": "workspace:*",
     "@hypit/protocol": "workspace:*",
-    "@hypit/speech": "workspace:*",
     "@hypit/timeline": "workspace:*",
     "@hypit/markup": "workspace:*",
-    "@hypit/program-space": "workspace:*",
     "@hypit/temporal": "workspace:*",
     "@hypit/temporal-markup": "workspace:*"
   },

@@ -14,7 +14,7 @@ import {
 import type { MediaExecutionEnvironment, MediaOperationResult } from "@hypit/media-execution";
 import { mediaPipelineCapabilities } from "@hypit/media-pipeline";
 import { isStreamingResourceStore } from "@hypit/runtime";
-import { speechTypes } from "@hypit/speech";
+import { speechEvidenceTypes } from "@hypit/speech-evidence";
 import { defineEndpointPackage } from "@hypit/endpoint-kit";
 import type { EndpointFulfillment, EndpointInvocationContext } from "@hypit/endpoint-kit";
 
@@ -128,7 +128,7 @@ export function createLocalMediaProvider(config: CreateLocalMediaProviderOptions
       {
         lifecycle: "immediate" as const,
         capability: mediaPipelineCapabilities.projectSpeechEvidenceAudio,
-        returns: speechTypes.evidenceAudio,
+        returns: speechEvidenceTypes.audio,
         handler: operation(executeProjectSpeechEvidenceAudio),
       },
       {

@@ -17,11 +17,13 @@
     "@hypit/elaborator": "workspace:*",
     "@hypit/media": "workspace:*",
     "@hypit/narrative": "workspace:*",
-    "@hypit/program-space": "workspace:*",
     "@hypit/protocol": "workspace:*",
     "@hypit/run": "workspace:*",
     "@hypit/speech": "workspace:*",
+    "@hypit/speech-evidence": "workspace:*",
     "@hypit/svs": "workspace:*",
-    "@hypit/markup": "workspace:*"
+    "@hypit/markup": "workspace:*",
+    "@hypit/timeline": "workspace:*",
+    "@hypit/temporal": "workspace:*"
   }
 }

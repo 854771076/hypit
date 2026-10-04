@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import sharp from "sharp";
 import { sealComposition, sealVisualTrack } from "@hypit/composition";
-import { sealProgramSpace } from "@hypit/program-space";
+import { sealTimeline } from "@hypit/timeline";
 import { browserProgram, compileHyperframesDocument, hyperframesHtmlDomain } from "@hypit/hyperframes";
 import { stageHyperframesProject } from "@hypit/hyperframes/project";
 import { verifyHyperframesFramesRequest } from "@hypit/render-hyperframes";
@@ -13,10 +13,10 @@ import { MemoryResourceStore } from "@hypit/driver-node";
 import { renderHyperframesFrames } from "../src/index.js";
 
 function fixture() {
-  const space = sealProgramSpace({ id: "space", durationSec: 1, frameRate: { numerator: 12, denominator: 1 } });
+  const space = sealTimeline({ id: "space", frameCount: 12, frameRate: { numerator: 12, denominator: 1 } });
   return compileHyperframesDocument(sealComposition({ id: "frames", canvas: { width: 96, height: 64, clearColor: "#000000" },
-    tracks: [sealVisualTrack({ id: "motion", programSpaceId: space.id, visualIr: "hypit.visual-ir@1", presents: [{ id: "reveal",
-      span: { startFrame: 3, endFrameExclusive: 12 }, stacking: { order: 0, tieBreak: "reveal" }, elements: [{ id: "program", order: 0,
+    tracks: [sealVisualTrack({ id: "motion", timelineId: space.id, visualIr: "hypit.visual-ir@1", presents: [{ id: "reveal",
+      order: 0, z: 0, span: { startFrame: 3, endFrameExclusive: 12 }, elements: [{ id: "program", order: 0,
         kind: "program", style: [{ name: "position", value: "absolute" }, { name: "inset", value: 0 }],
         program: browserProgram({ html: '<div class="box"></div>', css: '.box{position:absolute;top:0;width:8px;height:64px;background:#ff0000}',
           setup: 'return frame => { root.querySelector(".box").style.left = `${frame * 8}px`; };' }),

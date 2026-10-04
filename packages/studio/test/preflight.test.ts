@@ -1,9 +1,8 @@
-import { programSpaceTypes } from "@hypit/program-space";
+import { timelineTypes } from "@hypit/timeline";
 import assert from "node:assert/strict";
 import test from "node:test";
 
 import { compositionTypes } from "@hypit/composition";
-import { timelineTypes } from "@hypit/timeline";
 import type { StudioFilmCompanion, StudioPlacement } from "@hypit/studio-adapter";
 
 import type { CompiledSource } from "../src/compile.js";
@@ -15,7 +14,7 @@ const filmModule = { name: "@example/film", version: "1" } as const;
 const companion: StudioFilmCompanion = {
   id: "film",
   match: { module: filmModule, surface: "film", outputType: compositionTypes.composition },
-  timeSources: [{ attribute: "semantic", type: timelineTypes.track }, { attribute: "space", type: programSpaceTypes.programSpace }],
+  timeSources: [{ attribute: "semantic", type: timelineTypes.track }, { attribute: "space", type: timelineTypes.track }],
   tracks: { childSurface: "Track", sourceAttribute: "source", types: [compositionTypes.visualTrack] },
 };
 

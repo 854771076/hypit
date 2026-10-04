@@ -12,8 +12,6 @@
   },
   "dependencies": {
     "@hypit/component-kit": "workspace:*",
-    "@hypit/media": "workspace:*",
-    "@hypit/narrative": "workspace:*",
     "@hypit/protocol": "workspace:*"
   }
 }

@@ -1,8 +1,8 @@
-import { programSpaceDependency, programSpaceTypes } from "@hypit/program-space";
 import { compositionDependency, compositionTypes } from "@hypit/composition";
 import { compositableSurfaceSchema, mediaDependency } from "@hypit/media";
 import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/protocol";
 import { VISUAL_IR_V1 } from "@hypit/visual-ir";
+import { timelineDependency, timelineTypes } from "@hypit/timeline";
 
 export const hyperframesModuleRef = { name: "@hypit/hyperframes", version: "1" } as const;
 export const hyperframesTypes = {
@@ -64,14 +64,14 @@ export const hyperframesManifest: ModuleManifest = {
   format: "hypit.module@1",
   name: hyperframesModuleRef.name,
   version: hyperframesModuleRef.version,
-  dependencies: [compositionDependency, mediaDependency, programSpaceDependency],
+  dependencies: [compositionDependency, mediaDependency, timelineDependency],
   types: [{ name: hyperframesTypes.document.name }],
   capabilities: [],
   producers: [{
     name: hyperframesProducers.compile.name,
     inputs: [
       { name: "composition", type: compositionTypes.composition },
-      { name: "space", type: programSpaceTypes.programSpace },
+      { name: "timeline", type: timelineTypes.track },
     ],
     outputs: [{ name: "document", type: hyperframesTypes.document }],
     needs: [],

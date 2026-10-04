@@ -17,29 +17,28 @@ const step = (id: string, owner: string, name: string, inputs: ProducerStep["inp
 
 test("Studio reads Instant lineage and author authority from executed graph edges", () => {
   const program = [
-    record("semantic", "@hypit/timeline", "Timeline", { id: "speech" }),
-    record("moment", "@hypit/narrative", "NarrativeMoment", { id: "cue", anchorId: "cue-anchor" }),
-    record("point-spec", "@hypit/temporal", "TemporalInstantSpec", {
-      id: "deck.card", subjectId: "card", projection: { ref: "moment.cue" }, authority: { kind: "semantic", boundary: "cue" },
+    record("timeline", "@hypit/timeline", "Timeline", { id: "speech", frameRate: { numerator: 30, denominator: 1 }, frameCount: 100 }),
+    record("projection", "@hypit/narrative-temporal", "NarrativeProjection", { id: "story-on-speech", narrativeId: "story", timelineId: "speech", segments: [], tokens: [], boundaries: [] }),
+    record("moment", "@hypit/narrative", "NarrativeMoment", { narrativeId: "story", id: "cue", anchorId: "cue-anchor" }),
+    record("point-spec", "@hypit/narrative-temporal", "NarrativeInstantSpec", {
+      id: "deck.card::cue", subjectId: "card", boundary: "cue",
     }),
-    record("card-spec", "@hypit/deck-track", "DepthStackCardSpec", { id: "card" }),
+    record("card-spec", "@hypit/depth-stack", "DepthStackCardSpec", { id: "card" }),
   ];
   const executed = [
     record("point", "@hypit/temporal", "TemporalInstant", {
-      id: "deck.card::cue", subjectId: "card", source: { spaceId: "speech", narrativeId: "story", kind: "moment", id: "cue" }, projection: { ref: "moment.cue" },
-      authority: { kind: "semantic", boundary: "cue" }, frame: 42,
+      id: "deck.card::cue", subjectId: "card", timelineId: "speech", frame: 42,
     }),
-    record("cards", "@hypit/deck-track", "DepthStackCardSet", { cards: [{ id: "card", activationFrame: 42 }] }),
+    record("cards", "@hypit/depth-stack", "DepthStackCardSet", { cards: [{ id: "card", activationFrame: 42 }] }),
     record("track", "@hypit/composition", "VisualTrack", { presents: [] }),
     record("unused-point", "@hypit/temporal", "TemporalInstant", {
-      id: "unused::cue", subjectId: "unused", source: { spaceId: "speech", narrativeId: "story", kind: "moment", id: "cue" }, projection: { ref: "moment.cue" },
-      authority: { kind: "semantic", boundary: "cue" }, frame: 7,
+      id: "unused::cue", subjectId: "unused", timelineId: "speech", frame: 7,
     }),
   ];
   const steps = [
-    step("project", "@hypit/temporal", "project-moment-instant", { semantic: "semantic", moment: "moment", spec: "point-spec" }, { instant: "point" }),
-    step("append", "@hypit/deck-track", "append-depth-stack-card", { set: "empty", spec: "card-spec", activation: "point" }, { set: "cards" }),
-    step("render", "@hypit/deck-track", "render-depth-stack", { program: "cards" }, { track: "track" }),
+    step("project", "@hypit/narrative-temporal", "project-moment-instant", { timeline: "timeline", projection: "projection", moment: "moment", spec: "point-spec" }, { instant: "point" }),
+    step("append", "@hypit/depth-stack", "append-depth-stack-card", { set: "empty", spec: "card-spec", activation: "point" }, { set: "cards" }),
+    step("render", "@hypit/depth-stack", "render-depth-stack", { program: "cards" }, { track: "track" }),
   ];
   const state = {
     format: "hypit.build@1",
@@ -61,17 +60,17 @@ test("Studio reads Instant lineage and author authority from executed graph edge
     id: "deck.card::cue",
     projection: {
       kind: "instant", expression: "moment.cue", reference: "moment.cue", frame: 42,
-      source: { spaceId: "speech", narrativeId: "story", kind: "moment", id: "cue" },
-      authority: { kind: "semantic", source: { spaceId: "speech", narrativeId: "story", kind: "moment", id: "cue" }, boundary: "cue" },
+      source: { timelineId: "speech", narrativeId: "story", type: type("@hypit/narrative", "NarrativeMoment"), kind: "moment", id: "cue" },
+      authority: { kind: "domain", source: { timelineId: "speech", narrativeId: "story", type: type("@hypit/narrative", "NarrativeMoment"), kind: "moment", id: "cue" }, boundary: "cue" },
     },
     consumers: [{
       step: "append",
-      producer: producer("@hypit/deck-track", "append-depth-stack-card"),
+      producer: producer("@hypit/depth-stack", "append-depth-stack-card"),
       input: "activation",
       role: "domain",
       inputs: [
         { name: "activation", record: "point", type: type("@hypit/temporal", "TemporalInstant"), value: executed[0]!.value.kind === "inline" ? executed[0]!.value.value : undefined },
-        { name: "spec", record: "card-spec", type: type("@hypit/deck-track", "DepthStackCardSpec"), value: { id: "card" } },
+        { name: "spec", record: "card-spec", type: type("@hypit/depth-stack", "DepthStackCardSpec"), value: { id: "card" } },
       ],
     }],
   });

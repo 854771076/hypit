@@ -29,7 +29,8 @@ import { gptImageDenoiseV1, imageTransformManifest, imageTransformTypes } from "
 import { exactModelMediaInputNames } from "@hypit/model-kit";
 import { mediaManifest } from "@hypit/media";
 import { narrativeManifest } from "@hypit/narrative";
-import { programSpaceManifest } from "@hypit/program-space";
+import { timelineManifest } from "@hypit/timeline";
+import { temporalManifest } from "@hypit/temporal";
 import type { CanonicalValue, ResourceId, ModuleManifest, StoredValue, TypeRef } from "@hypit/protocol";
 import { rasterManifest } from "@hypit/raster";
 import { createProvidedCandidate } from "@hypit/run";
@@ -62,7 +63,8 @@ function fixture() {
     gptImageCleanManifest,
     narrativeManifest,
     mediaManifest,
-    programSpaceManifest,
+    temporalManifest,
+    timelineManifest,
     spatialManifest,
     svsManifest,
     speechManifest,

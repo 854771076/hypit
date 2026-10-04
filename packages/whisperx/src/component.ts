@@ -1,6 +1,6 @@
 import { plannedNeedInputs } from "@hypit/component-kit";
 import type { ComponentPackage } from "@hypit/component-kit";
-import type { SpeechEvidenceAudio } from "@hypit/speech";
+import type { SpeechEvidenceAudio } from "@hypit/speech-evidence";
 import type { CanonicalValue, StoredValue } from "@hypit/protocol";
 import { canonicalize } from "@hypit/protocol";
 
