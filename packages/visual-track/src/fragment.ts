@@ -1,10 +1,10 @@
-import { timelineTypes } from "@hypit/timeline";
+import { timelineTypes } from "@hypit/hypit/timeline";
 
-import { artifactTypes } from "@hypit/artifact";
-import { compositionTypes } from "@hypit/composition";
-import { sealGraphFragment } from "@hypit/elaborator";
-import { spatialTypes } from "@hypit/spatial";
-import { temporalTypes } from "@hypit/temporal";
+import { blobTypes } from "@hypit/hypit/blob";
+import { compositionTypes } from "@hypit/hypit/composition";
+import { sealGraphFragment } from "@hypit/hypit/author";
+import { spatialTypes } from "@hypit/hypit/spatial";
+import { temporalTypes } from "@hypit/hypit/temporal";
 
 import { visualTrackProducers, visualTrackTypes } from "./manifest.js";
 
@@ -16,7 +16,7 @@ export const stillVisualTrackFragment = sealGraphFragment({
   inputs: [
     { name: "header", type: visualTrackTypes.header },
     { name: "timeline", type: timelineTypes.timeline },
-    { name: "source", type: artifactTypes.blob },
+    { name: "source", type: blobTypes.blob },
     { name: "extent", type: spatialTypes.extent },
     { name: "frame", type: spatialTypes.frame },
     { name: "fit", type: spatialTypes.fit },

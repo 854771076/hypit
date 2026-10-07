@@ -1,8 +1,9 @@
-import type { ComponentPackage } from "@hypit/component-kit";
-import { canonicalize } from "@hypit/protocol";
-import type { StoredValue } from "@hypit/protocol";
-import type { LocalTemporalDomain, TemporalDuration, TemporalExtent, TemporalWindow } from "@hypit/temporal";
-import type { Clock, Timeline } from "@hypit/timeline";
+import { canonicalize } from "@hypit/hypit/protocol";
+import type { ProducerPackage } from "@hypit/hypit/producer";
+import type { AdmissionPackage } from "@hypit/hypit/admission";
+import type { StoredValue } from "@hypit/hypit/protocol";
+import type { LocalTemporalDomain, TemporalDuration, TemporalExtent, TemporalWindow } from "@hypit/hypit/temporal";
+import type { Clock, Timeline } from "@hypit/hypit/timeline";
 
 import { timelineAuthorProducers } from "./manifest.js";
 import {
@@ -40,4 +41,4 @@ export const timelineAuthorComponent = {
     { producer: timelineAuthorProducers.instant, handler: ({ inputs }) => ({ outputs: { instant: output(materializeInstant(inline<Timeline>(inputs.timeline?.value, "Timeline"), inline<ConstructionPoint>(inputs.point?.value, "ConstructionPoint"), inline<ConstructionIdentitySpec>(inputs.spec?.value, "ConstructionIdentitySpec"))) }, needs: {} }) },
     { producer: timelineAuthorProducers.window, handler: ({ inputs }) => ({ outputs: { window: output(materializeWindow(inline<Timeline>(inputs.timeline?.value, "Timeline"), inline<ConstructionSpan>(inputs.span?.value, "ConstructionSpan"), inline<ConstructionIdentitySpec>(inputs.spec?.value, "ConstructionIdentitySpec"))) }, needs: {} }) },
   ],
-} satisfies ComponentPackage;
+} satisfies ProducerPackage & AdmissionPackage;

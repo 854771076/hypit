@@ -1,16 +1,16 @@
 import {
   assertCompositableSurfaceRef,
   verifySynchronizedMedia,
-} from "@hypit/media";
-import type { CompositableSurfaceRef, SynchronizedMedia } from "@hypit/media";
-import { canonicalize, isResourceId } from "@hypit/protocol";
-import type { BlobRef } from "@hypit/protocol";
+} from "@hypit/hypit/media";
+import type { CompositableSurfaceRef, SynchronizedMedia } from "@hypit/hypit/media";
+import { canonicalize, isResourceId } from "@hypit/hypit/protocol";
+import type { BlobRef } from "@hypit/hypit/protocol";
 import {
   assertContentFit,
   assertIntrinsicExtent,
   assertSpatialMap2D,
-} from "@hypit/spatial";
-import type { ContentFit, IntrinsicExtent, SpatialMap2D } from "@hypit/spatial";
+} from "@hypit/hypit/spatial";
+import type { ContentFit, IntrinsicExtent, SpatialMap2D } from "@hypit/hypit/spatial";
 
 import type {
   MediaGradientStop,
@@ -36,7 +36,7 @@ export function assertMediaIdentity(value: string, label: string): void {
 function assertBlob(value: BlobRef, label: string, prefix?: string): void {
   assert(value.kind === "blob" && isResourceId(value.resource)
     && Number.isSafeInteger(value.size) && value.size >= 0 && value.mediaType.length > 0,
-  `${label} is not a valid BlobArtifact.`);
+  `${label} is not a valid Blob.`);
   if (prefix !== undefined) assert(value.mediaType.startsWith(prefix), `${label} must be ${prefix} bytes.`);
 }
 

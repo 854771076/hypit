@@ -1,4 +1,5 @@
-import type { ComponentPackage } from "@hypit/component-kit";
+import type { AdmissionPackage } from "@hypit/admission";
+import type { ProducerPackage } from "@hypit/producer";
 import type { StoredValue } from "@hypit/protocol";
 import { timelineTypes } from "./manifest.js";
 import { assertTimelineIdentity } from "./identity.js";
@@ -15,4 +16,4 @@ export const timelineComponent = {
     type: timelineTypes.timeline,
     handler: ({ value }) => assertTimelineIdentity(track(value)),
   }],
-} satisfies ComponentPackage;
+} satisfies ProducerPackage & AdmissionPackage;

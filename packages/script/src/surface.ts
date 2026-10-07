@@ -17,8 +17,8 @@ import {
   narrativeSelectionType,
   narrativeType,
 } from "./manifest.js";
-import { canonicalize } from "@hypit/protocol";
-import { textTypes } from "@hypit/text";
+import { canonicalize } from "@hypit/hypit/protocol";
+import { textTypes } from "@hypit/hypit/text";
 import { parseScript } from "./parser.js";
 import type { ScriptSurfaceInput, ScriptSurfaceOutput } from "./types.js";
 

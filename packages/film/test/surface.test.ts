@@ -1,6 +1,6 @@
 import { sealTimeline, timelineDependency, timelineTypes } from "@hypit/timeline";
 import { compositionComponent, spatialComponent, videoContractManifests } from "../../../test/support/video-domain.js";
-import { registerTypeValidatorFacets } from "@hypit/component-kit";
+import { registerTypeValidatorFacets } from "@hypit/admission";
 import { compositionDependency, compositionTypes, sealAudioTrack, sealVisualTrack } from "@hypit/composition";
 import type { Track } from "@hypit/composition";
 import assert from "node:assert/strict";
@@ -8,13 +8,14 @@ import test from "node:test";
 import { fixtureResource } from "../../../test/fixture-resource.js";
 import { timelineFixture } from "../../../test/timeline-fixture.js";
 
-import { createResolvedClosure, sealBuildRequest, start } from "@hypit/core";
+import { createResolvedClosure, sealBuildRequest, start } from "@hypit/kernel";
 import {
   AuthorFrontendRegistry,
-  compileSourceClosure,
   resolveCompiledSourceExport,
-} from "@hypit/elaborator";
-import type { AuthorSourceUnit } from "@hypit/elaborator";
+} from "@hypit/author";
+import { compileSourceClosure } from "@hypit/compiler";
+import type { ResolvedSource } from "@hypit/source";
+import { resolveSelfDescribedTextSource } from "@hypit/source/text";
 import {
   decodeFilmSurface,
   filmManifest,
@@ -24,7 +25,7 @@ import {
   filmTypes,
 } from "@hypit/film";
 import type { ModuleManifest } from "@hypit/protocol";
-import { svsFrontend, svsRecipeType } from "@hypit/svs";
+import { recipeFrontend, recipeType } from "@hypit/recipe";
 import {
   decodeCanvasSurface,
   spatialManifest,
@@ -37,7 +38,7 @@ import {
   createMarkupAuthorFrontend,
 } from "@hypit/markup";
 import type { StructuredElement, SurfaceResolvedReference } from "@hypit/markup";
-import { createRecordAdmitter, TypeValidatorRegistry } from "@hypit/validation";
+import { createRecordAdmitter, TypeValidatorRegistry } from "@hypit/admission";
 
 const fixtureModule = { name: "example.film-fixture", version: "1" } as const;
 const fixtureSurfaceDigest = fixtureResource("example.film-fixture/inputs-surface@1");
@@ -77,13 +78,13 @@ const closure = createResolvedClosure([
   filmManifest,
 ]);
 
-function source(id: string, text: string): AuthorSourceUnit {
-  const frontend = id.endsWith(".svs") ? "@hypit/svs@1" : "@hypit/markup@1";
-  return {
+function source(id: string, text: string): ResolvedSource {
+  const frontend = id.endsWith(".svs") ? "@hypit/recipe@1" : "@hypit/markup@1";
+  return resolveSelfDescribedTextSource({
     id,
     name: id.split("/").at(-1) ?? id,
     text: `<?svml using="${frontend}"?>\n${text}`,
-  };
+  });
 }
 
 function validatorRegistry(): TypeValidatorRegistry {
@@ -129,7 +130,7 @@ async function compileFilm(options: { readonly styles?: string; readonly tracks?
       return fixtureModule;
     },
   }));
-  frontends.register(svsFrontend);
+  frontends.register(recipeFrontend);
 
   return await compileSourceClosure({
     entry: source("/project/main.svml", `<svml>
@@ -195,8 +196,8 @@ test("Film distinguishes component output ports and resolves duplicate aliases",
   for (const [path, type] of [["canvas", spatialTypes.canvas], ["timeline", timelineTypes.timeline]] as const) {
     refs.set(path, { path, type, ref: { kind: "record", id: path } });
   }
-  refs.set("appearance", { path: "appearance", type: svsRecipeType,
-    ref: { kind: "record", id: "appearance" }, record: { id: "appearance", type: svsRecipeType,
+  refs.set("appearance", { path: "appearance", type: recipeType,
+    ref: { kind: "record", id: "appearance" }, record: { id: "appearance", type: recipeType,
       value: { kind: "inline", value: { path: "film", properties: { background: "#000000" } } } } });
   for (const [path, component, output, type] of [
     ["board.visual", "board", "visual", compositionTypes.visualTrack],

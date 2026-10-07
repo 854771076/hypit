@@ -1,5 +1,6 @@
+import type { AdmissionPackage } from "@hypit/admission";
 import type { TemporalWindow } from "@hypit/temporal";
-import type { ComponentPackage } from "@hypit/component-kit";
+import type { ProducerPackage } from "@hypit/producer";
 import type { StoredValue } from "@hypit/protocol";
 import { canonicalize } from "@hypit/protocol";
 
@@ -41,4 +42,4 @@ export const captionComponent = {
     { type: captionTypes.program, handler: ({ value }) => assertCaptionProgram(inline<CaptionProgram>(value, "CaptionProgram")) },
     { type: captionTypes.timing, handler: ({ value }) => assertCaptionTiming(inline<CaptionTiming>(value, "CaptionTiming")) },
   ],
-} satisfies ComponentPackage;
+} satisfies ProducerPackage & AdmissionPackage;

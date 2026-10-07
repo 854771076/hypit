@@ -10,7 +10,7 @@ import type { CaptionDocument, CaptionProgram } from "@hypit/caption";
 import { captionUnitsForNarrativeSelection } from "@hypit/narrative-caption";
 import { parseStructuredElement } from "@hypit/markup";
 import type { SurfaceResolvedReference } from "@hypit/markup";
-import { countSpeechEstimateUnits } from "@hypit/estimate";
+import { countSpeechEstimateUnits } from "@hypit/speech-estimate";
 import type { Text } from "@hypit/text";
 
 const body = `<intro><HOST>Try @{brand} <hypit|Hai-Pit> @{/brand} today. ||</intro>

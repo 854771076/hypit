@@ -1,5 +1,5 @@
 import { captionTypes } from "@hypit/caption";
-import { sealGraphFragment } from "@hypit/elaborator";
+import { sealGraphFragment } from "@hypit/author";
 import {
   assertAttributes,
   assertEmptyElement,

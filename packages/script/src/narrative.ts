@@ -1,8 +1,8 @@
-import { canonicalize } from "@hypit/protocol";
-import type { CanonicalValue } from "@hypit/protocol";
-import type { CaptionDocument, CaptionDisplayWord, CaptionUnit } from "@hypit/caption";
-import type { NarrativeCaptionBinding } from "@hypit/narrative-caption";
-import { sealText } from "@hypit/text";
+import { canonicalize } from "@hypit/hypit/protocol";
+import type { CanonicalValue } from "@hypit/hypit/protocol";
+import type { CaptionDocument, CaptionDisplayWord, CaptionUnit } from "@hypit/hypit/caption";
+import type { NarrativeCaptionBinding } from "@hypit/hypit/narrative-caption";
+import { sealText } from "@hypit/hypit/text";
 
 import type { ParsedCaptionRegion, ParsedNarrative } from "./types.js";
 import { cleanProjection, displaySurfaces, joinProjection, lexicalCount } from "./lexical.js";

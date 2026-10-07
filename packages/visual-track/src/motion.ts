@@ -1,8 +1,8 @@
 import type {
   VisualAnimation,
   VisualStyleDeclaration,
-} from "@hypit/composition";
-import { canonicalize } from "@hypit/protocol";
+} from "@hypit/hypit/composition";
+import { canonicalize } from "@hypit/hypit/protocol";
 
 import type {
   MediaSamplingMotion,

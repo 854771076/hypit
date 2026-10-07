@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createResolvedClosure, link } from "@hypit/core";
-import { verifyGraphFragment } from "@hypit/elaborator";
+import { createResolvedClosure, link } from "@hypit/kernel";
+import { verifyGraphFragment } from "@hypit/author";
 import { temporalExtentFromDomain } from "@hypit/temporal";
 import { videoContractManifests } from "../../../test/support/video-domain.js";
 

@@ -1,5 +1,5 @@
 import type { CanonicalValue } from "@hypit/protocol";
-import type { AuthorValueRef } from "@hypit/elaborator";
+import type { AuthorValueRef } from "@hypit/author";
 import type {
   StructuredElement,
   StructuredSurfaceHandler,

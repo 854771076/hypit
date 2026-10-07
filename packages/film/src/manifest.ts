@@ -1,11 +1,10 @@
-import { timelineTypes, timelineDependency } from "@hypit/timeline";
-import type { Timeline } from "@hypit/timeline";
-import { temporalContextAttributeVocabulary } from "@hypit/temporal-markup";
-import { audioTrackSchema, compositionDependency, compositionTypes, visualTrackSchema } from "@hypit/composition";
-
-import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/protocol";
-import { spatialDependency, spatialTypes } from "@hypit/spatial";
-import { svsManifest, svsModuleRef, svsRecipeType } from "@hypit/svs";
+import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/hypit/protocol";
+import { audioTrackSchema, compositionDependency, compositionTypes, visualTrackSchema } from "@hypit/hypit/composition";
+import { spatialDependency, spatialTypes } from "@hypit/hypit/spatial";
+import { recipeManifest, recipeModuleRef, recipeType } from "@hypit/hypit/recipe";
+import { temporalContextAttributeVocabulary } from "@hypit/hypit/temporal/markup";
+import { timelineTypes, timelineDependency } from "@hypit/hypit/timeline";
+import type { Timeline } from "@hypit/hypit/timeline";
 
 export const filmModuleRef = { name: "@hypit/film", version: "1" } as const;
 export const filmTypes = {
@@ -59,7 +58,7 @@ export const filmMarkupSurfaces = [{
           summary: "Selects the Canvas that decides the Composition's dimensions." },
         ...temporalContextAttributeVocabulary,
         { name: "appearance", kind: "reference", required: true,
-          accepts: [svsRecipeType],
+          accepts: [recipeType],
           summary: "Selects the SVS Recipe that decides the clear color behind every Track.",
           recipe: [
             { name: "background", required: true,
@@ -103,7 +102,7 @@ export const filmManifest: ModuleManifest = {
     timelineDependency,
     spatialDependency,
     compositionDependency,
-    { module: svsModuleRef },
+    { module: recipeModuleRef },
   ],
   types: [
     { name: filmTypes.program.name },

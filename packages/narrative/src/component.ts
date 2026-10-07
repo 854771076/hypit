@@ -1,4 +1,5 @@
-import type { ComponentPackage } from "@hypit/component-kit";
+import type { AdmissionPackage } from "@hypit/admission";
+import type { ProducerPackage } from "@hypit/producer";
 import type { StoredValue } from "@hypit/protocol";
 
 import {
@@ -27,4 +28,4 @@ export const narrativeComponent = {
     { type: narrativeTypes.selection, handler: ({ value }) => assertNarrativeSelectionRefIdentity(inline<NarrativeSelectionRef>(value, "NarrativeSelection")) },
     { type: narrativeTypes.moment, handler: ({ value }) => assertNarrativeMomentRefIdentity(inline<NarrativeMomentRef>(value, "NarrativeMoment")) },
   ],
-} satisfies ComponentPackage;
+} satisfies ProducerPackage & AdmissionPackage;

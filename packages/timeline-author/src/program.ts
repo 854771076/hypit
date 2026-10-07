@@ -4,16 +4,16 @@ import {
   composeTemporalWindow,
   durationInFrames,
   projectProgramInstant,
-} from "@hypit/temporal";
+} from "@hypit/hypit/temporal";
 import type {
   LocalTemporalDomain,
   TemporalExtent,
   TemporalDuration,
   TemporalInstant,
   TemporalWindow,
-} from "@hypit/temporal";
-import { assertClockIdentity, sealTimeline } from "@hypit/timeline";
-import type { Clock, Timeline } from "@hypit/timeline";
+} from "@hypit/hypit/temporal";
+import { assertClockIdentity, sealTimeline } from "@hypit/hypit/timeline";
+import type { Clock, Timeline } from "@hypit/hypit/timeline";
 
 import type {
   ConstructionExtent,

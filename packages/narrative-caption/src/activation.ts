@@ -1,4 +1,6 @@
-import { createMarkupSurfaceHostFacet } from "@hypit/markup";
+import { createAdmissionPackageFacet } from "@hypit/admission";
+import { createProducerPackageFacet } from "@hypit/producer";
+import { createMarkupSurfaceFacet } from "@hypit/markup";
 
 import {
   decodeNarrativeCaptionTimingSurface,
@@ -9,10 +11,10 @@ import {
 } from "./index.js";
 
 export const hypitPackage = {
-  format: "hypit.node-package@1" as const,
+  format: "hypit.package@1" as const,
   modules: [{ manifest: narrativeCaptionManifest }],
-  components: [narrativeCaptionComponent],
-  hostFacets: [createMarkupSurfaceHostFacet({
+  facets: [
+    ...[narrativeCaptionComponent].flatMap((component) => [createProducerPackageFacet(component), createAdmissionPackageFacet(component)]),createMarkupSurfaceFacet({
     module: narrativeCaptionModuleRef,
     declaration: narrativeCaptionTimingMarkupSurface,
     handler: decodeNarrativeCaptionTimingSurface,

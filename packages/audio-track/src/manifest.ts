@@ -1,13 +1,13 @@
-import { compositionDependency, compositionTypes } from "@hypit/composition";
-import { mediaDependency, mediaTypes } from "@hypit/media";
-import { blobRefObjectSchema } from "@hypit/protocol";
-import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/protocol";
-import { temporalDependency, temporalTypes } from "@hypit/temporal";
+import { compositionDependency, compositionTypes } from "@hypit/hypit/composition";
+import { mediaDependency, mediaTypes } from "@hypit/hypit/media";
+import { blobRefObjectSchema } from "@hypit/hypit/protocol";
+import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/hypit/protocol";
+import { temporalDependency, temporalTypes } from "@hypit/hypit/temporal";
 import {
   temporalContextAttributeVocabulary,
   temporalWindowAttributeVocabulary,
-} from "@hypit/temporal-markup";
-import { timelineDependency, timelineTypes } from "@hypit/timeline";
+} from "@hypit/hypit/temporal/markup";
+import { timelineDependency, timelineTypes } from "@hypit/hypit/timeline";
 
 export const audioTrackModuleRef = { name: "@hypit/audio-track", version: "1" } as const;
 export const audioTrackTypes = {

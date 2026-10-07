@@ -1,5 +1,6 @@
+import type { AdmissionPackage } from "@hypit/admission";
 import type { CaptionDocument, CaptionTiming } from "@hypit/caption";
-import type { ComponentPackage } from "@hypit/component-kit";
+import type { ProducerPackage } from "@hypit/producer";
 import type { StoredValue } from "@hypit/protocol";
 import { canonicalize } from "@hypit/protocol";
 import type { NarrativeProjection } from "@hypit/narrative-temporal";
@@ -30,4 +31,4 @@ export const narrativeCaptionComponent = {
     type: narrativeCaptionTypes.binding,
     handler: ({ value }) => assertNarrativeCaptionBindingIdentity(inline<NarrativeCaptionBinding>(value, "NarrativeCaptionBinding")),
   }],
-} satisfies ComponentPackage;
+} satisfies ProducerPackage & AdmissionPackage;

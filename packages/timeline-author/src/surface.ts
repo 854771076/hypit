@@ -1,20 +1,12 @@
-import {
-  assertAttributes,
-  assertEmptyElement,
-  localName,
-  textAttribute,
-  type StructuredElement,
-  type StructuredSurfaceHandler,
-  type SurfaceResolvedReference,
-} from "@hypit/markup";
-import { canonicalize, sameType } from "@hypit/protocol";
-import { temporalTypes } from "@hypit/temporal";
+import { assertAttributes, assertEmptyElement, localName, textAttribute, type StructuredElement, type StructuredSurfaceHandler, type SurfaceResolvedReference } from "@hypit/hypit/markup";
+import { canonicalize, sameType } from "@hypit/hypit/protocol";
+import { temporalTypes } from "@hypit/hypit/temporal";
 import {
   createTemporalInstantConstruction,
   createTemporalWindowConstruction,
   resolveTemporalContext,
-} from "@hypit/temporal-markup";
-import { timelineTypes } from "@hypit/timeline";
+} from "@hypit/hypit/temporal/markup";
+import { timelineTypes } from "@hypit/hypit/timeline";
 
 import { compileTimelineAuthorFragment } from "./fragment.js";
 import { timelineAuthorTypes } from "./manifest.js";

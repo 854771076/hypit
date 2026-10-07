@@ -21,28 +21,28 @@ import {
   decodeAudioTrackSurface,
 } from "@hypit/audio-track";
 import type { AudioClipSpec, AudioSourceTimeSpec, AudioTrackSet } from "@hypit/audio-track";
-import { artifactManifest } from "@hypit/artifact";
-import { registerTypeValidatorFacets } from "@hypit/component-kit";
+import { blobManifest } from "@hypit/blob";
+import { registerTypeValidatorFacets } from "@hypit/admission";
 import { sealComposition, compositionManifest, compositionTypes } from "@hypit/composition";
-import { createResolvedClosure, sealBuildRequest, start } from "@hypit/core";
-import { AuthorFrontendRegistry, compileSourceClosure, resolveCompiledSourceExport } from "@hypit/elaborator";
+import { createResolvedClosure, sealBuildRequest, start } from "@hypit/kernel";
+import { AuthorFrontendRegistry, resolveCompiledSourceExport } from "@hypit/author";
+import { compileSourceClosure } from "@hypit/compiler";
 import type { SynchronizedMedia } from "@hypit/media";
 import { mediaComponent, mediaDependency, mediaManifest, mediaTypes } from "@hypit/media";
 import type { NarrativeMomentRef, NarrativeSelectionRef } from "@hypit/narrative";
 import { narrativeManifest } from "@hypit/narrative";
-import { compileAudioProgramPlan } from "@hypit/media-pipeline";
+import { compileAudioProgramPlan } from "@hypit/media-operations";
 import type { ModuleManifest } from "@hypit/protocol";
 import { temporalProducers } from "@hypit/temporal";
 import type { TemporalDuration } from "@hypit/temporal";
 import { speechEvidenceManifest } from "@hypit/speech-evidence";
-import { speechManifest } from "@hypit/speech";
 import { narrativeTemporalManifest } from "@hypit/narrative-temporal";
 import { spatialManifest } from "@hypit/spatial";
-import { svsManifest } from "@hypit/svs";
+import { recipeManifest } from "@hypit/recipe";
 import { temporalManifest } from "@hypit/temporal";
 import { MarkupSurfaceRegistry, createMarkupAuthorFrontend } from "@hypit/markup";
-import { createRecordAdmitter, TypeValidatorRegistry } from "@hypit/validation";
-import { visualIrManifest } from "@hypit/visual-ir";
+import { createRecordAdmitter, TypeValidatorRegistry } from "@hypit/admission";
+import { resolveSelfDescribedTextSource } from "@hypit/source/text";
 
 const space = sealTimeline({ id: "test-space", frameCount: 300, frameRate: { numerator: 30, denominator: 1 },
 });
@@ -324,17 +324,15 @@ test("the self-described Audio Surface parses into the same finite Producer grap
     producers: [],
   };
   const closure = createResolvedClosure([
-    artifactManifest,
+    blobManifest,
     mediaManifest,
     narrativeManifest,
     timelineManifest,
-    speechManifest,
     narrativeTemporalManifest,
-    svsManifest,
+    recipeManifest,
     spatialManifest,
     speechEvidenceManifest,
     temporalManifest,
-    visualIrManifest,
     compositionManifest,
     audioTrackManifest,
     fixtureManifest,
@@ -361,7 +359,7 @@ test("the self-described Audio Surface parses into the same finite Producer grap
   const validators = new TypeValidatorRegistry();
   registerTypeValidatorFacets(validators, mediaComponent.validators ?? []);
   const compiled = await compileSourceClosure({
-    entry: {
+    entry: resolveSelfDescribedTextSource({
       id: "/project/audio.svml",
       name: "audio.svml",
       text: `<?svml using="@hypit/markup@1"?>
@@ -375,7 +373,7 @@ test("the self-described Audio Surface parses into the same finite Producer grap
           </audio:Clip>
         </audio:Track>
       </svml>`,
-    },
+    }),
     closure,
     frontends,
     admitRecord: createRecordAdmitter(validators),

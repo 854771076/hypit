@@ -12,11 +12,12 @@
   },
   "dependencies": {
     "@hypit/caption": "workspace:*",
-    "@hypit/component-kit": "workspace:*",
-    "@hypit/elaborator": "workspace:*",
+    "@hypit/producer": "workspace:*",
+    "@hypit/author": "workspace:*",
     "@hypit/markup": "workspace:*",
     "@hypit/narrative": "workspace:*",
     "@hypit/protocol": "workspace:*",
-    "@hypit/narrative-temporal": "workspace:*"
+    "@hypit/narrative-temporal": "workspace:*",
+    "@hypit/admission": "workspace:*"
   }
 }

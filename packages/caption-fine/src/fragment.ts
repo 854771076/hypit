@@ -1,9 +1,9 @@
-import { captionTypes } from "@hypit/caption";
-import { compositionTypes } from "@hypit/composition";
-import { sealGraphFragment } from "@hypit/elaborator";
-import { timelineTypes } from "@hypit/timeline";
-import { regionTrackTypes } from "@hypit/region-track";
-import { spatialTypes } from "@hypit/spatial";
+import { captionTypes } from "@hypit/hypit/caption";
+import { compositionTypes } from "@hypit/hypit/composition";
+import { sealGraphFragment } from "@hypit/hypit/author";
+import { timelineTypes } from "@hypit/hypit/timeline";
+import { regionEvidenceTypes } from "@hypit/hypit/region-evidence";
+import { spatialTypes } from "@hypit/hypit/spatial";
 
 import { captionFineProducers, captionFineTypes } from "./manifest.js";
 
@@ -53,14 +53,14 @@ export const fineCaptionTrackFragment = sealGraphFragment({
 });
 
 /** The same Caption pipeline with one explicit, external spatial-evidence edge. */
-export const fineCaptionRegionTrackFragment = sealGraphFragment({
+export const fineCaptionRegionEvidenceFragment = sealGraphFragment({
   inputs: [
     { name: "document", type: captionTypes.document },
     { name: "timeline", type: timelineTypes.timeline },
     { name: "within", type: spatialTypes.frame },
     { name: "timing", type: captionTypes.timing },
     { name: "program", type: captionTypes.program },
-    { name: "regions", type: regionTrackTypes.track },
+    { name: "regions", type: regionEvidenceTypes.evidence },
   ],
   operations: [
     {

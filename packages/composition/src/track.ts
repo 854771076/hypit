@@ -6,7 +6,7 @@ import type { BlobRef, CanonicalValue } from "@hypit/protocol";
 import {
   assertVisualStyleV1,
   VISUAL_IR_V1,
-} from "@hypit/visual-ir";
+} from "./visual.js";
 import { assertTimelineIdentity, timelineFrameCount, timelineSampleFrames } from "@hypit/timeline";
 import type { Timeline } from "@hypit/timeline";
 import { assertCompositableSurfaceRef, assertFontArtifactRef } from "@hypit/media";

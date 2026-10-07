@@ -1,10 +1,11 @@
-import type { ComponentPackage, ProducerHandlerContext } from "@hypit/component-kit";
-import type { CompositableSurfaceRef, SynchronizedMedia } from "@hypit/media";
-import { canonicalize } from "@hypit/protocol";
-import type { BlobRef, StoredValue } from "@hypit/protocol";
-import type { ContentFit, IntrinsicExtent, SpatialFrame, SpatialMap2D, SpatialPath } from "@hypit/spatial";
-import type { TemporalWindow } from "@hypit/temporal";
-import type { Timeline } from "@hypit/timeline";
+import type { ProducerPackage, ProducerHandlerContext } from "@hypit/hypit/producer";
+import type { AdmissionPackage } from "@hypit/hypit/admission";
+import type { CompositableSurfaceRef, SynchronizedMedia } from "@hypit/hypit/media";
+import { canonicalize } from "@hypit/hypit/protocol";
+import type { BlobRef, StoredValue } from "@hypit/hypit/protocol";
+import type { ContentFit, IntrinsicExtent, SpatialFrame, SpatialMap2D, SpatialPath } from "@hypit/hypit/spatial";
+import type { TemporalWindow } from "@hypit/hypit/temporal";
+import type { Timeline } from "@hypit/hypit/timeline";
 
 import {
   appendMediaPaintLayer,
@@ -43,7 +44,7 @@ function inline<T>(value: StoredValue | undefined, label: string): T {
 }
 
 function blob(value: StoredValue | undefined): BlobRef {
-  if (value?.kind !== "blob") throw new Error("Visual source must be a BlobArtifact.");
+  if (value?.kind !== "blob") throw new Error("Visual source must be a Blob.");
   return value;
 }
 
@@ -119,4 +120,4 @@ export const visualTrackComponent = {
     type: visualTrackTypes.program,
     handler: ({ value }) => assertVisualTrackProgram(inline<VisualTrackProgram>(value, "VisualTrackProgram")),
   }],
-} satisfies ComponentPackage;
+} satisfies ProducerPackage & AdmissionPackage;

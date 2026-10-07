@@ -1,5 +1,6 @@
-import type { ComponentPackage } from "@hypit/component-kit";
-import { verifyMediaInspection, verifyMediaStreamSelection, verifyMuxedMedia, verifyRenderedVisual, verifySynchronizedMedia, verifyTimelineAudio } from "./identity.js";
+import type { AdmissionPackage } from "@hypit/admission";
+import type { ProducerPackage } from "@hypit/producer";
+import { verifyMediaInspection, verifyMediaStreamSelection, verifyMuxedMedia, verifyTimelineVisual, verifySynchronizedMedia, verifyTimelineAudio } from "./identity.js";
 import { mediaLocalTemporalDomain } from "./domain.js";
 import type { MediaDomainSpec, SynchronizedMedia } from "./types.js";
 import { canonicalize } from "@hypit/protocol";
@@ -13,7 +14,7 @@ export const mediaComponent = {
     { type: mediaTypes.inspection, handler: ({ value }) => verifyMediaInspection(inline(value, "MediaInspection")) },
     { type: mediaTypes.streamSelection, handler: ({ value }) => verifyMediaStreamSelection(inline(value, "MediaStreamSelection")) },
     { type: mediaTypes.synchronized, handler: ({ value }) => verifySynchronizedMedia(inline(value, "SynchronizedMedia")) },
-    { type: mediaTypes.renderedVisual, handler: ({ value }) => verifyRenderedVisual(inline(value, "RenderedVisual")) },
+    { type: mediaTypes.timelineVisual, handler: ({ value }) => verifyTimelineVisual(inline(value, "TimelineVisual")) },
     { type: mediaTypes.timelineAudio, handler: ({ value }) => verifyTimelineAudio(inline(value, "TimelineAudio")) },
     { type: mediaTypes.muxed, handler: ({ value }) => verifyMuxedMedia(inline(value, "MuxedMedia")) },
   ],
@@ -24,4 +25,4 @@ export const mediaComponent = {
       return { outputs: { domain: { kind: "inline", value: canonicalize(mediaLocalTemporalDomain(spec.id, media)) } }, needs: {} };
     } },
   ],
-} satisfies ComponentPackage;
+} satisfies ProducerPackage & AdmissionPackage;

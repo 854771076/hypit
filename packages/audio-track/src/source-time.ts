@@ -2,9 +2,9 @@ import type {
   AudioSourceTimeMap,
   AudioSourceTimePiece,
   AudioSourceTimeRational,
-} from "@hypit/composition";
-import { temporalDurationInSamples } from "@hypit/temporal";
-import type { Timeline } from "@hypit/timeline";
+} from "@hypit/hypit/composition";
+import { temporalDurationInSamples } from "@hypit/hypit/temporal";
+import type { Timeline } from "@hypit/hypit/timeline";
 
 import type {
   AudioSourceTimeBounds,

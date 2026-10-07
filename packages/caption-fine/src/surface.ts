@@ -1,25 +1,20 @@
-import { captionProducers, captionTypes } from "@hypit/caption";
-import { assertFontArtifactRef, assertFontStackRef, mediaTypes } from "@hypit/media";
-import type { FontArtifactRef, FontStackRef } from "@hypit/media";
-import { timelineTypes } from "@hypit/timeline";
-import { regionTrackTypes } from "@hypit/region-track";
-import { spatialTypes } from "@hypit/spatial";
-import { svsRecipeType } from "@hypit/svs";
-import type { SvsRecipe } from "@hypit/svs";
-import type {
-  StructuredElement,
-  StructuredSurfaceHandler,
-  SurfaceResolvedReference,
-  MarkupAttributeValue,
-} from "@hypit/markup";
+import { captionProducers, captionTypes } from "@hypit/hypit/caption";
+import { assertFontArtifactRef, assertFontStackRef, mediaTypes } from "@hypit/hypit/media";
+import type { FontArtifactRef, FontStackRef } from "@hypit/hypit/media";
+import { timelineTypes } from "@hypit/hypit/timeline";
+import { regionEvidenceTypes } from "@hypit/hypit/region-evidence";
+import { spatialTypes } from "@hypit/hypit/spatial";
+import { recipeType } from "@hypit/hypit/recipe";
+import type { Recipe } from "@hypit/hypit/recipe";
+import type { StructuredElement, StructuredSurfaceHandler, SurfaceResolvedReference, MarkupAttributeValue } from "@hypit/hypit/markup";
 
-import { sealGraphFragment } from "@hypit/elaborator";
-import type { FragmentOperation } from "@hypit/elaborator";
-import type { SurfaceRecordDraft, SurfaceComponentDraft } from "@hypit/markup";
-import { assertEmptyElement, optionalTextAttribute } from "@hypit/markup";
-import { createTemporalWindowConstruction, resolveTemporalContext, temporalWindowAttributeNames } from "@hypit/temporal-markup";
-import { temporalTypes } from "@hypit/temporal";
-import { compositionTypes } from "@hypit/composition";
+import { sealGraphFragment } from "@hypit/hypit/author";
+import type { FragmentOperation } from "@hypit/hypit/author";
+import type { SurfaceRecordDraft, SurfaceComponentDraft } from "@hypit/hypit/markup";
+import { assertEmptyElement, optionalTextAttribute } from "@hypit/hypit/markup";
+import { createTemporalWindowConstruction, resolveTemporalContext, temporalWindowAttributeNames } from "@hypit/hypit/temporal/markup";
+import { temporalTypes } from "@hypit/hypit/temporal";
+import { compositionTypes } from "@hypit/hypit/composition";
 import { captionFineProducers, captionFineTypes } from "./manifest.js";
 const input = (name: string) => ({ kind: "fragment-input" as const, name });
 const operation = (id: string) => ({ kind: "fragment-operation" as const, operation: id });
@@ -113,7 +108,7 @@ function exactFonts(
 export const decodeFineCaptionStyleSurface: StructuredSurfaceHandler = ({ element, resolveReference }) => {
   attributes(element, ["id", "recipe", "font"]);
   const id = stringAttribute(element, "id");
-  const recipe = inline<SvsRecipe>(reference(element, "recipe", svsRecipeType, resolveReference), `${element.name}.recipe`);
+  const recipe = inline<Recipe>(reference(element, "recipe", recipeType, resolveReference), `${element.name}.recipe`);
   const style = fineCaptionStyle(id, recipe, exactFonts(element, resolveReference));
   return {
     records: [{ id, type: captionTypes.style, value: { kind: "inline", value: style }, range: element.range }],
@@ -129,7 +124,7 @@ export const decodeFineCaptionTrackSurface: StructuredSurfaceHandler = ({ elemen
   const timing = reference(element, "timing", captionTypes.timing, resolveReference);
   const within = reference(element, "within", spatialTypes.frame, resolveReference);
   const context = resolveTemporalContext({ element, resolveReference });
-  const regions = element.attributes.regions === undefined ? undefined : reference(element, "regions", regionTrackTypes.track, resolveReference);
+  const regions = element.attributes.regions === undefined ? undefined : reference(element, "regions", regionEvidenceTypes.evidence, resolveReference);
   const records: SurfaceRecordDraft[] = [{ id: `${id}.header`, type: captionTypes.header,
     value: { kind: "inline", value: { id } }, range: element.range }];
   const components: SurfaceComponentDraft[] = [];
@@ -163,7 +158,7 @@ export const decodeFineCaptionTrackSurface: StructuredSurfaceHandler = ({ elemen
   }
   operations.push({ id: "schedule", producer: captionFineProducers.schedule,
     inputs: { timing: input("timing"), document: input("document"), program: operation(previous) }, result: { kind: "output", name: "schedule" } });
-  if (regions !== undefined) { inputs.push({ name: "regions", type: regionTrackTypes.track }); bindings.regions = regions.ref; }
+  if (regions !== undefined) { inputs.push({ name: "regions", type: regionEvidenceTypes.evidence }); bindings.regions = regions.ref; }
   operations.push({ id: "render", producer: regions === undefined ? captionFineProducers.render : captionFineProducers.renderWithRegions,
     inputs: { schedule: operation("schedule"), document: input("document"), timeline: input("timeline"), within: input("within"), program: operation(previous), ...(regions === undefined ? {} : { regions: input("regions") }) }, result: { kind: "output", name: "track" } });
   const collector = sealGraphFragment({ inputs, operations, exports: [

@@ -1,15 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { registerTypeValidatorFacets } from "@hypit/component-kit";
-import { createResolvedClosure, sealBuildRequest, start } from "@hypit/core";
-import { AuthorFrontendRegistry, compileSourceClosure, resolveCompiledSourceExport } from "@hypit/elaborator";
-import type { AuthorSourceUnit } from "@hypit/elaborator";
+import { registerTypeValidatorFacets } from "@hypit/admission";
+import { createResolvedClosure, sealBuildRequest, start } from "@hypit/kernel";
+import { AuthorFrontendRegistry, resolveCompiledSourceExport } from "@hypit/author";
+import { compileSourceClosure } from "@hypit/compiler";
+import type { ResolvedSource } from "@hypit/source";
+import { resolveSelfDescribedTextSource } from "@hypit/source/text";
 import {
   MarkupSurfaceRegistry,
   createMarkupAuthorFrontend,
 } from "@hypit/markup";
-import { createRecordAdmitter, TypeValidatorRegistry } from "@hypit/validation";
+import { createRecordAdmitter, TypeValidatorRegistry } from "@hypit/admission";
 
 import {
   anchoredFrame,
@@ -208,8 +210,8 @@ test("SpatialPath is typed geometry and rejects an empty or stateful command str
   assert.throws(() => sealSpatialPath({ commands: [{ kind: "move", xPx: 0, yPx: 0 }, { kind: "close" }] }), /no drawable/u);
 });
 
-function source(text: string): AuthorSourceUnit {
-  return { id: "/project/main.svml", name: "main.svml", text: `<?svml using="@hypit/markup@1"?>\n${text}` };
+function source(text: string): ResolvedSource {
+  return resolveSelfDescribedTextSource({ id: "/project/main.svml", name: "main.svml", text: `<?svml using="@hypit/markup@1"?>\n${text}` });
 }
 
 test("self-described Spatial Surfaces produce explicit static geometry", async () => {

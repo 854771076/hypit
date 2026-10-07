@@ -1,4 +1,5 @@
-import type { ComponentPackage, ProducerHandlerContext } from "@hypit/component-kit";
+import type { AdmissionPackage } from "@hypit/admission";
+import type { ProducerPackage, ProducerHandlerContext } from "@hypit/producer";
 import { canonicalize } from "@hypit/protocol";
 import type { StoredValue } from "@hypit/protocol";
 import type { Timeline } from "@hypit/timeline";
@@ -53,4 +54,4 @@ export const temporalComponent = {
       inline<TemporalInstant>(inputs.end?.value, "TemporalInstant end"),
     )) }, needs: {} }) },
   ],
-} satisfies ComponentPackage;
+} satisfies ProducerPackage & AdmissionPackage;

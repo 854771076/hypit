@@ -1,4 +1,4 @@
-import { timelineTypes, timelineDependency } from "@hypit/timeline";
+import { timelineTypes, timelineDependency } from "@hypit/hypit/timeline";
 import { readFile } from "node:fs/promises";
 
 import {
@@ -9,21 +9,21 @@ import {
   visualTextPaintSchema,
   visualTextSequenceSchema,
   visualTextTypographySchema,
-} from "@hypit/composition";
+} from "@hypit/hypit/composition";
 import {
   spatialDependency,
   spatialFrameSchema,
   spatialPathSchema,
   spatialPointSchema,
   spatialTypes,
-} from "@hypit/spatial";
-import { VISUAL_STYLE_ENUM_VALUES_V1, VISUAL_STYLE_NAMES_V1 } from "@hypit/visual-ir";
-import { mediaDependency, mediaTypes } from "@hypit/media";
-import { svsRecipeType } from "@hypit/svs";
-import { textDependency, textTypes } from "@hypit/text";
-import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/protocol";
-import { temporalDependency, temporalTypes } from "@hypit/temporal";
-import { temporalWindowAttributeVocabulary } from "@hypit/temporal-markup";
+} from "@hypit/hypit/spatial";
+import { VISUAL_STYLE_ENUM_VALUES_V1, VISUAL_STYLE_NAMES_V1 } from "@hypit/hypit/composition";
+import { mediaDependency, mediaTypes } from "@hypit/hypit/media";
+import { recipeType } from "@hypit/hypit/recipe";
+import { textDependency, textTypes } from "@hypit/hypit/text";
+import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/hypit/protocol";
+import { temporalDependency, temporalTypes } from "@hypit/hypit/temporal";
+import { temporalWindowAttributeVocabulary } from "@hypit/hypit/temporal/markup";
 
 const previewImage = (file: string) => ({
   mediaType: "image/png",
@@ -196,7 +196,7 @@ export const textFineMarkupSurfaces = [
         attributes: [
           { name: "id", kind: "identifier", required: true,
             summary: "Names this Style, under which occurrences and Spans reference it." },
-          { name: "recipe", kind: "reference", required: true, accepts: [svsRecipeType],
+          { name: "recipe", kind: "reference", required: true, accepts: [recipeType],
             summary: "Chooses the Recipe that states reusable typography and Paint properties of this Style.",
             recipe: [
               { name: "size", required: true,

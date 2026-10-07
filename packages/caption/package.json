@@ -11,10 +11,11 @@
     "activation": "./src/activation.ts"
   },
   "dependencies": {
-    "@hypit/component-kit": "workspace:*",
+    "@hypit/producer": "workspace:*",
     "@hypit/protocol": "workspace:*",
     "@hypit/markup": "workspace:*",
-    "@hypit/temporal": "workspace:*"
+    "@hypit/temporal": "workspace:*",
+    "@hypit/admission": "workspace:*"
   },
   "devDependencies": {}
 }

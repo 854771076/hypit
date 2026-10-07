@@ -1,7 +1,7 @@
-import { timelineTypes } from "@hypit/timeline";
-import { resolveTemporalContext } from "@hypit/temporal-markup";
+import { timelineTypes } from "@hypit/hypit/timeline";
+import { resolveTemporalContext } from "@hypit/hypit/temporal/markup";
 
-import { compositionTypes } from "@hypit/composition";
+import { compositionTypes } from "@hypit/hypit/composition";
 import type {
   VisualColorPaint,
   VisualStyleDeclaration,
@@ -10,27 +10,22 @@ import type {
   VisualTextRunStyle,
   VisualTextSequenceAnimation,
   VisualTextTypography,
-} from "@hypit/composition";
+} from "@hypit/hypit/composition";
 import {
   assertFontArtifactRef,
   assertFontStackRef,
   mediaTypes,
-} from "@hypit/media";
-import type { FontArtifactRef, FontStackRef } from "@hypit/media";
-import { spatialTypes } from "@hypit/spatial";
-import { sealGraphFragment } from "@hypit/elaborator";
-import type { FragmentOperation, GraphFragment } from "@hypit/elaborator";
-import { svsRecipeType } from "@hypit/svs";
-import type { SvsRecipe } from "@hypit/svs";
-import { textTypes } from "@hypit/text";
-import type {
-  StructuredElement,
-  StructuredSurfaceHandler,
-  SurfaceResolvedReference,
-  MarkupAttributeValue,
-} from "@hypit/markup";
-import { temporalTypes } from "@hypit/temporal";
-import { createTemporalWindowConstruction } from "@hypit/temporal-markup";
+} from "@hypit/hypit/media";
+import type { FontArtifactRef, FontStackRef } from "@hypit/hypit/media";
+import { spatialTypes } from "@hypit/hypit/spatial";
+import { sealGraphFragment } from "@hypit/hypit/author";
+import type { FragmentOperation, GraphFragment } from "@hypit/hypit/author";
+import { recipeType } from "@hypit/hypit/recipe";
+import type { Recipe } from "@hypit/hypit/recipe";
+import { textTypes } from "@hypit/hypit/text";
+import type { StructuredElement, StructuredSurfaceHandler, SurfaceResolvedReference, MarkupAttributeValue } from "@hypit/hypit/markup";
+import { temporalTypes } from "@hypit/hypit/temporal";
+import { createTemporalWindowConstruction } from "@hypit/hypit/temporal/markup";
 
 import { fineTextWindowAttributeVocabulary, textFineProducers, textFineTypes } from "./manifest.js";
 import {
@@ -154,26 +149,26 @@ function inline<T>(value: SurfaceResolvedReference, label: string): T {
   return value.record.value.value as unknown as T;
 }
 
-function recipe(value: SurfaceResolvedReference, label: string): SvsRecipe {
-  if (!sameType(value.type, svsRecipeType)) throw new Error(`${label} must reference an SVS Recipe.`);
-  return inline<SvsRecipe>(value, label);
+function recipe(value: SurfaceResolvedReference, label: string): Recipe {
+  if (!sameType(value.type, recipeType)) throw new Error(`${label} must reference an SVS Recipe.`);
+  return inline<Recipe>(value, label);
 }
 
-function propNumber(value: SvsRecipe, name: string, fallback?: number): number {
+function propNumber(value: Recipe, name: string, fallback?: number): number {
   const result = value.properties[name];
   if (result === undefined && fallback !== undefined) return fallback;
   if (typeof result !== "number" || !Number.isFinite(result)) throw new Error(`Text Recipe ${name} must be a number.`);
   return result;
 }
 
-function propString(value: SvsRecipe, name: string, fallback?: string): string {
+function propString(value: Recipe, name: string, fallback?: string): string {
   const result = value.properties[name];
   if (result === undefined && fallback !== undefined) return fallback;
   if (typeof result !== "string" || !result.trim()) throw new Error(`Text Recipe ${name} must be text.`);
   return result.trim();
 }
 
-function propBoolean(value: SvsRecipe, name: string, fallback: boolean): boolean {
+function propBoolean(value: Recipe, name: string, fallback: boolean): boolean {
   return booleanValue(value.properties[name], `Text Recipe ${name}`, fallback);
 }
 
@@ -359,7 +354,7 @@ const STYLE_PROPERTIES = new Set([
 export const decodeTypographyStyleSurface: StructuredSurfaceHandler = ({ element, resolveReference }) => {
   allowed(element, ["id", "recipe", "font"], ["id", "recipe", "font"]);
   const id = text(element, "id");
-  const value = recipe(reference(element.attributes.recipe, `${element.name}.recipe`, svsRecipeType, resolveReference), `${element.name}.recipe`);
+  const value = recipe(reference(element.attributes.recipe, `${element.name}.recipe`, recipeType, resolveReference), `${element.name}.recipe`);
   const unknown = Object.keys(value.properties).filter((name) => !STYLE_PROPERTIES.has(name));
   if (unknown.length > 0) throw new Error(`Text Recipe does not accept ${unknown[0]}.`);
   const fonts = exactFonts(element, resolveReference);

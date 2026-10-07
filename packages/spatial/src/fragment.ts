@@ -1,4 +1,4 @@
-import { sealGraphFragment } from "@hypit/elaborator";
+import { sealGraphFragment } from "@hypit/author";
 import { spatialProducers, spatialTypes } from "./manifest.js";
 
 const input = (name: string) => ({ kind: "fragment-input" as const, name });

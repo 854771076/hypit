@@ -6,7 +6,7 @@ import { textManifest } from "@hypit/text";
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createResolvedClosure } from "@hypit/core";
+import { createResolvedClosure } from "@hypit/kernel";
 import type { ModuleManifest } from "@hypit/protocol";
 import {
   decodeScriptSurface,

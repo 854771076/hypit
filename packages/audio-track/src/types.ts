@@ -1,8 +1,8 @@
-import type { AudioSourceTimeMap, AudioSourceTimeRational, FrameSpan } from "@hypit/composition";
-import type { BlobRef } from "@hypit/protocol";
+import type { AudioSourceTimeMap, AudioSourceTimeRational, FrameSpan } from "@hypit/hypit/composition";
+import type { BlobRef } from "@hypit/hypit/protocol";
 import type {
   TemporalDuration,
-} from "@hypit/temporal";
+} from "@hypit/hypit/temporal";
 
 export type AudioSourceTimePoint = {
   readonly edge: "start" | "end";

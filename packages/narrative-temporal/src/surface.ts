@@ -1,5 +1,5 @@
-import { sealGraphFragment } from "@hypit/elaborator";
-import type { FragmentOperation, GraphFragment } from "@hypit/elaborator";
+import { sealGraphFragment } from "@hypit/author";
+import type { FragmentOperation, GraphFragment } from "@hypit/author";
 import {
   assertAttributes, assertEmptyElement, localName, textAttribute,
   type StructuredElement, type StructuredSurfaceHandler, type SurfaceComponentDraft,
@@ -9,7 +9,7 @@ import { narrativeTypes } from "@hypit/narrative";
 import { canonicalize, sameType, type TypeRef } from "@hypit/protocol";
 import { temporalProducers, temporalTypes } from "@hypit/temporal";
 import type { TemporalDuration } from "@hypit/temporal";
-import { parseTemporalDuration } from "@hypit/temporal-markup";
+import { parseTemporalDuration } from "@hypit/temporal/markup";
 import { timelineTypes } from "@hypit/timeline";
 
 import { narrativeTemporalProducers, narrativeTemporalTypes } from "./manifest.js";

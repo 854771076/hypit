@@ -1,4 +1,7 @@
-import { createMarkupSurfaceHostFacet } from "@hypit/markup";
+import { createAdmissionPackageFacet } from "@hypit/hypit/admission";
+import { createProducerPackageFacet } from "@hypit/hypit/producer";
+import { createMarkupSurfaceFacet } from "@hypit/hypit/markup";
+import { createStudioCompanionFacet } from "@hypit/studio-companion";
 import {
   audioTrackComponent,
   audioTrackManifest,
@@ -7,21 +10,26 @@ import {
   decodeAudioSourceTimeSurface,
   audioTrackMarkupSurfaces,
 } from "./index.js";
+import { audioTrackStudioParameterCompanions, audioTrackStudioTrackCompanions } from "./studio.js";
 
 export const hypitPackage = {
-  format: "hypit.node-package@1" as const,
+  format: "hypit.package@1" as const,
   modules: [{ manifest: audioTrackManifest }],
-  components: [audioTrackComponent],
-  hostFacets: [
-    createMarkupSurfaceHostFacet({
+  facets: [
+    ...[audioTrackComponent].flatMap((component) => [createProducerPackageFacet(component), createAdmissionPackageFacet(component)]),
+    createMarkupSurfaceFacet({
       module: audioTrackModuleRef,
       declaration: audioTrackMarkupSurfaces.find((item) => item.name === "track")!,
       handler: decodeAudioTrackSurface,
     }),
-    createMarkupSurfaceHostFacet({
+    createMarkupSurfaceFacet({
       module: audioTrackModuleRef,
       declaration: audioTrackMarkupSurfaces.find((item) => item.name === "source-time")!,
       handler: decodeAudioSourceTimeSurface,
+    }),
+    createStudioCompanionFacet({
+      tracks: audioTrackStudioTrackCompanions,
+      parameters: audioTrackStudioParameterCompanions,
     }),
   ],
 };

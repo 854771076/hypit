@@ -11,13 +11,13 @@
     "activation": "./src/activation.ts"
   },
   "dependencies": {
-    "@hypit/component-kit": "workspace:*",
-    "@hypit/elaborator": "workspace:*",
+    "@hypit/producer": "workspace:*",
+    "@hypit/author": "workspace:*",
     "@hypit/markup": "workspace:*",
     "@hypit/narrative": "workspace:*",
     "@hypit/protocol": "workspace:*",
     "@hypit/temporal": "workspace:*",
-    "@hypit/temporal-markup": "workspace:*",
-    "@hypit/timeline": "workspace:*"
+    "@hypit/timeline": "workspace:*",
+    "@hypit/admission": "workspace:*"
   }
 }

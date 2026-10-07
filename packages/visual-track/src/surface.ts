@@ -1,27 +1,16 @@
-import { resolveTemporalContext } from "@hypit/temporal-markup";
-import {
-  assertEmptyElement as empty,
-  assertAttributes as allowed,
-  textAttribute as text,
-  optionalTextAttribute as optionalText,
-  type StructuredElement,
-  type StructuredSurfaceHandler,
-  type SurfaceComponentDraft,
-  type SurfaceRecordDraft,
-  type SurfaceResolvedReference,
-  type MarkupAttributeValue,
-} from "@hypit/markup";
-import { sameType, type CanonicalValue, type TypeRef } from "@hypit/protocol";
-import { artifactTypes } from "@hypit/artifact";
-import { compositionTypes } from "@hypit/composition";
-import { sealGraphFragment } from "@hypit/elaborator";
-import type { FragmentOperation } from "@hypit/elaborator";
-import { mediaTypes } from "@hypit/media";
-import { spatialTypes } from "@hypit/spatial";
-import { svsRecipeType } from "@hypit/svs";
-import type { SvsRecipe } from "@hypit/svs";
-import { temporalTypes } from "@hypit/temporal";
-import { createTemporalWindowConstruction, temporalWindowAttributeNames } from "@hypit/temporal-markup";
+import { resolveTemporalContext } from "@hypit/hypit/temporal/markup";
+import { assertEmptyElement as empty, assertAttributes as allowed, textAttribute as text, optionalTextAttribute as optionalText, type StructuredElement, type StructuredSurfaceHandler, type SurfaceComponentDraft, type SurfaceRecordDraft, type SurfaceResolvedReference, type MarkupAttributeValue } from "@hypit/hypit/markup";
+import { sameType, type CanonicalValue, type TypeRef } from "@hypit/hypit/protocol";
+import { blobTypes } from "@hypit/hypit/blob";
+import { compositionTypes } from "@hypit/hypit/composition";
+import { sealGraphFragment } from "@hypit/hypit/author";
+import type { FragmentOperation } from "@hypit/hypit/author";
+import { mediaTypes } from "@hypit/hypit/media";
+import { spatialTypes } from "@hypit/hypit/spatial";
+import { recipeType } from "@hypit/hypit/recipe";
+import type { Recipe } from "@hypit/hypit/recipe";
+import { temporalTypes } from "@hypit/hypit/temporal";
+import { createTemporalWindowConstruction, temporalWindowAttributeNames } from "@hypit/hypit/temporal/markup";
 
 import {
   decodeMediaFit,
@@ -138,17 +127,17 @@ function reference(
   return value;
 }
 
-function recipe(value: SurfaceResolvedReference, label: string): SvsRecipe {
-  if (!sameType(value.type, svsRecipeType) || value.record?.value.kind !== "inline") {
+function recipe(value: SurfaceResolvedReference, label: string): Recipe {
+  if (!sameType(value.type, recipeType) || value.record?.value.kind !== "inline") {
     throw new Error(`${label} must be an authored SVS Recipe.`);
   }
-  return value.record.value.value as unknown as SvsRecipe;
+  return value.record.value.value as unknown as Recipe;
 }
 
 const FIT_ATTRIBUTES = ["fit", "frame-x", "frame-y", "content-x", "content-y", "fit-offset-x", "fit-offset-y", "fit-constraint"] as const;
 const NUMERIC_CLIP_ATTRIBUTES = new Set(["frame-x", "frame-y", "content-x", "content-y", "fit-offset-x", "fit-offset-y"]);
 
-function sourceRecipe(element: StructuredElement, treatment: SvsRecipe): SvsRecipe {
+function sourceRecipe(element: StructuredElement, treatment: Recipe): Recipe {
   const properties: Record<string, CanonicalValue> = { ...treatment.properties };
   for (const name of FIT_ATTRIBUTES) {
     const raw = optionalText(element, name);
@@ -284,9 +273,9 @@ export const decodeVisualSourceTimeSurface: StructuredSurfaceHandler = ({ elemen
 function treatmentRecipe(
   element: StructuredElement,
   resolve: (path: string) => SurfaceResolvedReference | undefined,
-): SvsRecipe {
+): Recipe {
   if (element.attributes.treatment === undefined) return { path: `${element.name}:default-treatment`, properties: {} };
-  return recipe(reference(element.attributes.treatment, `${element.name}.treatment`, svsRecipeType, resolve), `${element.name}.treatment`);
+  return recipe(reference(element.attributes.treatment, `${element.name}.treatment`, recipeType, resolve), `${element.name}.treatment`);
 }
 
 type FragmentLayer =
@@ -422,7 +411,7 @@ function suffix(index: number): string {
 type SourceLayerContext = {
   readonly trackId: string;
   readonly unitSuffix: string;
-  readonly defaultRecipe: SvsRecipe;
+  readonly defaultRecipe: Recipe;
   readonly sourceElement: StructuredElement;
   readonly source?: DeclaredVisualSource;
   readonly sourceTime?: VisualSourceTimeSpec;
@@ -456,7 +445,7 @@ function declaredVisualSource(
     if (element.attributes.audio !== undefined) throw new Error(`${element.name}.audio is no longer accepted; normalize the source explicitly and use media={...}.`);
     return {
       kind,
-      value: reference(element.attributes.image, `${element.name}.image`, artifactTypes.blob, resolve),
+      value: reference(element.attributes.image, `${element.name}.image`, blobTypes.blob, resolve),
       extent: reference(element.attributes.extent, `${element.name}.extent`, spatialTypes.extent, resolve),
     };
   }
@@ -513,7 +502,7 @@ function sourceLayer(
   const source = context.source ?? declaredVisualSource(element, resolve, true)!;
   const appearance = element.attributes.appearance === undefined
     ? context.defaultRecipe
-    : recipe(reference(element.attributes.appearance, `${element.name}.appearance`, svsRecipeType, resolve), `${element.name}.appearance`);
+    : recipe(reference(element.attributes.appearance, `${element.name}.appearance`, recipeType, resolve), `${element.name}.appearance`);
   const motion = decodeSamplingMotion(element, context.ignoreSiblingChildren);
   const layerSuffix = `${context.unitSuffix}-layer-${suffix(layerIndex)}`;
   const layerId = context.defaultLayerId ?? optionalText(element, "id") ?? `${context.trackId}.${layerSuffix}`;
@@ -552,7 +541,7 @@ function unitLayers(
     readonly trackId: string;
     readonly unitSuffix: string;
     readonly element: StructuredElement;
-    readonly appearance: SvsRecipe;
+    readonly appearance: Recipe;
     readonly directSource: DeclaredVisualSource;
     readonly sourceTime?: VisualSourceTimeSpec;
     readonly mapping?: SurfaceResolvedReference;
