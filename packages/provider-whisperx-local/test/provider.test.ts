@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { sealSpeechEvidenceAudio, speechEvidenceTypes } from "@hypit/speech-evidence";
 import assert from "node:assert/strict";
-import { MemoryResourceStore, EndpointRegistry } from "@hypit/driver-node";
+import { MemoryResourceStore, EndpointRegistry } from "@hypit/executor";
 import type { Need } from "@hypit/protocol";
 import {
   whisperXCapabilities,
