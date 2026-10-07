@@ -1,18 +1,13 @@
 import { placedVisualMedia } from "./placed-visual-media.js";
-import {
-  assertAttributes,
-  assertEmptyElement,
-  textAttribute,
-  canonicalize,
-  sealGraphFragment,
-  createMarkupSurfaceHostFacet,
-} from "@hypit/hypit/author-kit";
+import { assertAttributes, assertEmptyElement, textAttribute, createMarkupSurfaceFacet } from "@hypit/hypit/markup";
+import { canonicalize } from "@hypit/hypit/protocol";
+import { sealGraphFragment } from "@hypit/hypit/author";
 import { presenterStyle, presenterTypes } from "./presenter.js";
 import { sealVisualTrack, compositionTypes } from "@hypit/hypit/composition";
 import { timelineTypes } from "@hypit/hypit/timeline";
 import { spatialTypes } from "@hypit/hypit/spatial";
 import { temporalTypes } from "@hypit/hypit/temporal";
-import { browserProgram } from "@hypit/hypit/hyperframes";
+import { htmlVisual } from "@hypit/hypit/html-program";
 const styles = (o) =>
   Object.entries(o).map(([name, value]) => ({ name, value }));
 // A local Use owns the pullback's clock; media continues from its Source Window.
@@ -65,7 +60,7 @@ export function installPullback(module, manifest, component, optionsType, mode="
       );
       const { clips, children } = placedVisualMedia(timeline, window, sources.sources);
       const duration = window.span.endFrameExclusive - window.span.startFrame;
-      const program = browserProgram({
+      const program = htmlVisual({
         html:
           '<div class="picture">' +
           children.map((c) => "{{" + c.id + "}}").join("") +
@@ -120,7 +115,7 @@ export function installPullback(module, manifest, component, optionsType, mode="
       };
     },
   });
-  return createMarkupSurfaceHostFacet({
+  return createMarkupSurfaceFacet({
     module,
     declaration: {
       name: mode,

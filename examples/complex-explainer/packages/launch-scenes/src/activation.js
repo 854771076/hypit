@@ -1,14 +1,10 @@
 import { sceneCompanions } from "./studio.js";
-import { createStudioTrackCompanionHostFacet } from "@hypit/hypit/studio-adapter";
-import {
-  assertAttributes,
-  assertEmptyElement,
-  textAttribute,
-  canonicalize,
-  sameType,
-  sealGraphFragment,
-  createMarkupSurfaceHostFacet,
-} from "@hypit/hypit/author-kit";
+import { createAdmissionPackageFacet } from "@hypit/hypit/admission";
+import { createProducerPackageFacet } from "@hypit/hypit/producer";
+import { createStudioTrackCompanionFacet } from "@hypit/studio-companion";
+import { assertAttributes, assertEmptyElement, textAttribute, createMarkupSurfaceFacet } from "@hypit/hypit/markup";
+import { canonicalize, sameType } from "@hypit/hypit/protocol";
+import { sealGraphFragment } from "@hypit/hypit/author";
 import { compositionTypes } from "@hypit/hypit/composition";
 import { mediaTypes } from "@hypit/hypit/media";
 import { timelineTypes } from "@hypit/hypit/timeline";
@@ -23,7 +19,7 @@ import {
   temporalContextAttributeVocabulary,
   temporalInstantAttributeNames,
   temporalInstantAttributeVocabulary,
-} from "@hypit/hypit/temporal-markup";
+} from "@hypit/hypit/temporal/markup";
 import { renderPoster } from "./render.js";
 const module = { name: "@explainer/launch-scenes", version: "1" },
   type = (name) => ({ module, name }),
@@ -289,13 +285,14 @@ function decode(tag) {
   };
 }
 export const hypitPackage = {
-  format: "hypit.node-package@1",
+  format: "hypit.package@1",
   modules: [{ manifest }],
-  components: [component],
-  hostFacets: [
-    createStudioTrackCompanionHostFacet(sceneCompanions(module, tags)),
+  facets: [
+    createProducerPackageFacet(component),
+    createAdmissionPackageFacet(component),
+    createStudioTrackCompanionFacet(sceneCompanions(module, tags)),
     ...Object.keys(tags).map((tag) =>
-      createMarkupSurfaceHostFacet({
+      createMarkupSurfaceFacet({
         module,
         declaration: {
           name: tags[tag].name,

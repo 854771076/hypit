@@ -14,6 +14,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@hypit/hypit": "workspace:*"
+    "@hypit/hypit": "workspace:*",
+    "@hypit/studio-companion": "workspace:*"
   }
 }

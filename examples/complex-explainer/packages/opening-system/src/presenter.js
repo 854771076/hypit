@@ -1,24 +1,17 @@
-import {
-  assertAttributes,
-  assertEmptyElement,
-  canonicalize,
-  createMarkupSurfaceHostFacet,
-  optionalTextAttribute,
-  sameType,
-  sealGraphFragment,
-  textAttribute,
-} from "@hypit/hypit/author-kit";
+import { assertAttributes, assertEmptyElement, createMarkupSurfaceFacet, optionalTextAttribute, textAttribute } from "@hypit/hypit/markup";
+import { canonicalize, sameType } from "@hypit/hypit/protocol";
+import { sealGraphFragment } from "@hypit/hypit/author";
 import { compositionTypes, sealVisualTrack } from "@hypit/hypit/composition";
 import { mediaTypes, verifySynchronizedMedia } from "@hypit/hypit/media";
 import { spatialTypes } from "@hypit/hypit/spatial";
-import { svsRecipeType } from "@hypit/hypit/svs";
+import { recipeType } from "@hypit/hypit/recipe";
 import { temporalTypes, assertTemporalWindowFor } from "@hypit/hypit/temporal";
 import {
   createTemporalWindowConstruction,
   resolveTemporalContext,
   temporalWindowAttributeNames,
   temporalWindowAttributeVocabulary,
-} from "@hypit/hypit/temporal-markup";
+} from "@hypit/hypit/temporal/markup";
 import { timelineTypes } from "@hypit/hypit/timeline";
 import {
   appendVisualClip,
@@ -32,7 +25,7 @@ import {
   visualMaterialKeys,
   projectVisualTrack,
   visualTrackTypes,
-} from "@hypit/hypit/visual-track";
+} from "@hypit/visual-track";
 
 const input = (name) => ({ kind: "fragment-input", name });
 const operation = (id) => ({ kind: "fragment-operation", operation: id });
@@ -202,7 +195,7 @@ export function installPresenter(module, manifest, component) {
     inputs: Object.fromEntries(ordinaryInputs.map((port) => [port.name, input(port.name)])), result: { kind: "output", name: "visual" } }],
   exports: [{ name: "visual", type: compositionTypes.visualTrack, root: operation("render") }] });
 
-  const styleFacet = createMarkupSurfaceHostFacet({ module, declaration: {
+  const styleFacet = createMarkupSurfaceFacet({ module, declaration: {
     name: "presenter-frame-style", tag: "PresenterFrame", mode: "structured", outputs: [
       types.style,
       spatialTypes.fit,
@@ -212,13 +205,13 @@ export function installPresenter(module, manifest, component) {
     vocabulary: { summary: "Project presenter framing treatment.", attributes: [
       { name: "id", kind: "identifier", required: true, summary: "Treatment identity." },
       { name: "frame", kind: "reference", required: true, accepts: [spatialTypes.frame], summary: "Presenter viewport." },
-      { name: "appearance", kind: "reference", required: true, accepts: [svsRecipeType], summary: "Presenter media appearance." },
+      { name: "appearance", kind: "reference", required: true, accepts: [recipeType], summary: "Presenter media appearance." },
     ] },
   }, handler: ({ element, resolveReference }) => {
     assertAttributes(element, ["id", "frame", "appearance"]); assertEmptyElement(element);
     const id = textAttribute(element, "id");
     const frame = ref(element, "frame", spatialTypes.frame, resolveReference);
-    const recipeValue = authored(ref(element, "appearance", svsRecipeType, resolveReference), "Presenter appearance");
+    const recipeValue = authored(ref(element, "appearance", recipeType, resolveReference), "Presenter appearance");
     const records = [];
     const bind = (name, type, value) => {
       const recordId = `${id}.${name}`;
@@ -245,7 +238,7 @@ export function installPresenter(module, manifest, component) {
     return { records, components: [], fragments: [] };
   } });
 
-  const presenterFacet = createMarkupSurfaceHostFacet({ module, declaration: {
+  const presenterFacet = createMarkupSurfaceFacet({ module, declaration: {
     name: "presenter", tag: "Presenter", mode: "structured", outputs: [
       types.header,
       types.sourceSpec,

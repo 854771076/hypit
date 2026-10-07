@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@explainer/visual-language": "file:../visual-language",
-    "@hypit/hypit": "workspace:*"
+    "@hypit/hypit": "workspace:*",
+    "@hypit/studio-companion": "workspace:*"
   }
 }

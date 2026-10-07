@@ -1,6 +1,12 @@
-import { assertAttributes, assertEmptyElement, canonicalize, createMarkupSurfaceHostFacet, sameType,
-  sealGraphFragment, textAttribute } from "@hypit/hypit/author-kit";
-import type { ComponentPackage, ModuleManifest, StructuredSurfaceHandler, SurfaceResolvedReference, TypeRef } from "@hypit/hypit/author-kit";
+import { assertAttributes, assertEmptyElement, createMarkupSurfaceFacet, textAttribute } from "@hypit/hypit/markup";
+import { canonicalize, sameType } from "@hypit/hypit/protocol";
+import { sealGraphFragment } from "@hypit/hypit/author";
+import { createAdmissionPackageFacet } from "@hypit/hypit/admission";
+import { createProducerPackageFacet } from "@hypit/hypit/producer";
+import type { ProducerPackage } from "@hypit/hypit/producer";
+import type { AdmissionPackage } from "@hypit/hypit/admission";
+import type { ModuleManifest, TypeRef } from "@hypit/hypit/protocol";
+import type { StructuredSurfaceHandler, SurfaceResolvedReference } from "@hypit/hypit/markup";
 import { compositionTypes } from "@hypit/hypit/composition";
 import { mediaTypes } from "@hypit/hypit/media";
 import type { FontStackRef } from "@hypit/hypit/media";
@@ -12,8 +18,8 @@ import type { SpatialFrame } from "@hypit/hypit/spatial";
 import { temporalTypes } from "@hypit/hypit/temporal";
 import type { TemporalInstant, TemporalWindow } from "@hypit/hypit/temporal";
 import { createTemporalInstantConstruction, createTemporalWindowConstruction, temporalWindowAttributeNames,
-  temporalWindowAttributeVocabulary, resolveTemporalContext } from "@hypit/hypit/temporal-markup";
-import { temporalContextAttributeVocabulary } from "@hypit/hypit/temporal-markup";
+  temporalWindowAttributeVocabulary, resolveTemporalContext } from "@hypit/hypit/temporal/markup";
+import { temporalContextAttributeVocabulary } from "@hypit/hypit/temporal/markup";
 import { renderExplainer } from "./render.js";
 import type { ExplainerOptions } from "./render.js";
 
@@ -42,7 +48,7 @@ const inline = <T>(record: { value: { kind: string; value?: unknown } } | undefi
   if (record?.value.kind !== "inline") throw new Error("Explainer inputs must be inline values.");
   return record.value.value as T;
 };
-const component: ComponentPackage = { producers: [{ producer, handler: ({ inputs }) => ({ needs: {}, outputs: {
+const component: ProducerPackage & AdmissionPackage = { producers: [{ producer, handler: ({ inputs }) => ({ needs: {}, outputs: {
   visual: { kind: "inline", value: canonicalize(renderExplainer(inline<Timeline>(inputs.timeline),
     inline<SpatialFrame>(inputs.within), inline<TemporalWindow>(inputs.window), inline<TemporalInstant>(inputs.reveal),
     inline<SynchronizedMedia>(inputs.media), inline<TemporalWindow>(inputs.sourceWindow),
@@ -96,6 +102,7 @@ const declaration = { name: "scene", tag: "Scene", mode: "structured" as const,
     example: '<explainer:Scene id="scene" timeline={speech.timeline} within={within} font={font} media={presenter.media} source-window={speech.presenter} during="timeline" reveal={story-time.reveal} title="How it works" transition-frames="18" stack-order="0"/>',
   },
 };
-export const hypitPackage = { format: "hypit.node-package@1" as const, modules: [{ manifest }], components: [component],
-  hostFacets: [createMarkupSurfaceHostFacet({ module, declaration, handler: decodeSurface })] };
+export const hypitPackage = { format: "hypit.package@1" as const, modules: [{ manifest }],
+  facets: [createProducerPackageFacet(component), createAdmissionPackageFacet(component),
+    createMarkupSurfaceFacet({ module, declaration, handler: decodeSurface })] };
 export default hypitPackage;

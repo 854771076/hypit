@@ -1,5 +1,11 @@
-import { assertAttributes, assertEmptyElement, canonicalize, createMarkupSurfaceHostFacet, sameType, sealGraphFragment, textAttribute } from "@hypit/hypit/author-kit";
-import type { ComponentPackage, FragmentOperation, ModuleManifest, StructuredSurfaceHandler, SurfaceResolvedReference, TypeRef } from "@hypit/hypit/author-kit";
+import { assertAttributes, assertEmptyElement, createMarkupSurfaceFacet, textAttribute } from "@hypit/hypit/markup";
+import { canonicalize, sameType } from "@hypit/hypit/protocol";
+import { sealGraphFragment } from "@hypit/hypit/author";
+import type { ProducerPackage } from "@hypit/hypit/producer";
+import type { AdmissionPackage } from "@hypit/hypit/admission";
+import type { FragmentOperation } from "@hypit/hypit/author";
+import type { ModuleManifest, TypeRef } from "@hypit/hypit/protocol";
+import type { StructuredSurfaceHandler, SurfaceResolvedReference } from "@hypit/hypit/markup";
 import { compositionTypes } from "@hypit/hypit/composition";
 import { mediaTypes } from "@hypit/hypit/media";
 import type { FontStackRef } from "@hypit/hypit/media";
@@ -11,7 +17,7 @@ import { assertTemporalInstantFor, temporalTypes } from "@hypit/hypit/temporal";
 import type { TemporalInstant, TemporalWindow } from "@hypit/hypit/temporal";
 import { createTemporalInstantConstruction, createTemporalWindowConstruction, resolveTemporalContext,
   temporalContextAttributeVocabulary, temporalInstantAttributeNames, temporalInstantAttributeVocabulary,
-  temporalWindowAttributeNames, temporalWindowAttributeVocabulary } from "@hypit/hypit/temporal-markup";
+  temporalWindowAttributeNames, temporalWindowAttributeVocabulary } from "@hypit/hypit/temporal/markup";
 import { renderChat } from "./render.js";
 import type { ChatOptions, Message } from "./render.js";
 
@@ -34,7 +40,7 @@ const inline = <T>(record: { value: { kind: string; value?: unknown } } | undefi
   return record.value.value as T;
 };
 const value = (data: unknown) => ({ kind: "inline" as const, value: canonicalize(data) });
-const component: ComponentPackage = { producers: [
+const component: ProducerPackage & AdmissionPackage = { producers: [
   { producer: producers.empty, handler: () => ({ outputs: { messages: value([]) }, needs: {} }) },
   { producer: producers.append, handler: ({ inputs }) => {
     const message = inline<Omit<Message, "at">>(inputs.message), at = inline<TemporalInstant>(inputs.at);
@@ -104,6 +110,9 @@ const declaration = { name: "scene", tag: "Scene", mode: "structured" as const,
     example: '<chat:Scene id="chat" timeline={speech.timeline} within={within} font={font} during="timeline" title="Conversation"><chat:Message id="answer" sender="Maya" side="left" text="Here it is." at={story-time.answer}/></chat:Scene>',
   },
 };
-export const hypitPackage = { format: "hypit.node-package@1" as const, modules: [{ manifest }], components: [component],
-  hostFacets: [createMarkupSurfaceHostFacet({ module, declaration, handler: decodeSurface })] };
+export const hypitPackage = { format: "hypit.package@1" as const, modules: [{ manifest }],
+  facets: [createProducerPackageFacet(component), createAdmissionPackageFacet(component),
+    createMarkupSurfaceFacet({ module, declaration, handler: decodeSurface })] };
 export default hypitPackage;
+import { createAdmissionPackageFacet } from "@hypit/hypit/admission";
+import { createProducerPackageFacet } from "@hypit/hypit/producer";

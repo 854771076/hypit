@@ -1,7 +1,7 @@
 import { terminalSetup } from "./terminal.js";
 import { scene_styles } from "./scene-styles.js";
 import { sealVisualTrack } from "@hypit/hypit/composition";
-import { browserProgram } from "@hypit/hypit/hyperframes";
+import { htmlVisual } from "@hypit/hypit/html-program";
 import { assertTemporalWindowFor } from "@hypit/hypit/temporal";
 const styles = (o) => Object.entries(o).map(([name, value]) => ({ name, value }));
 export function scene(t, within, w, font, o, html, css, setup, events, entries, extra = {}) {
@@ -126,7 +126,7 @@ export function scene(t, within, w, font, o, html, css, setup, events, entries, 
             id: "scene",
             kind: "program",
             order: 0,
-            program: browserProgram({
+            program: htmlVisual({
               html: backHtml + html + '<div class="font-resource">{{font}}</div>',
               css: base + css,
               data: {

@@ -1,20 +1,14 @@
 import { palette } from "@explainer/visual-language";
 import { placedVisualMedia } from "./placed-visual-media.js";
-import {
-  assertAttributes,
-  assertEmptyElement,
-  textAttribute,
-  canonicalize,
-  sealGraphFragment,
-  createMarkupSurfaceHostFacet,
-  sameType,
-} from "@hypit/hypit/author-kit";
+import { assertAttributes, assertEmptyElement, textAttribute, createMarkupSurfaceFacet } from "@hypit/hypit/markup";
+import { canonicalize, sameType } from "@hypit/hypit/protocol";
+import { sealGraphFragment } from "@hypit/hypit/author";
 import { presenterStyle, presenterTypes } from "./presenter.js";
 import { sealVisualTrack, compositionTypes } from "@hypit/hypit/composition";
 import { timelineTypes } from "@hypit/hypit/timeline";
 import { spatialTypes } from "@hypit/hypit/spatial";
 import { temporalTypes } from "@hypit/hypit/temporal";
-import { browserProgram } from "@hypit/hypit/hyperframes";
+import { htmlVisual } from "@hypit/hypit/html-program";
 const styles = (o) =>
   Object.entries(o).map(([name, value]) => ({ name, value }));
 export function installPortraitInset(module, manifest, component) {
@@ -60,7 +54,7 @@ export function installPortraitInset(module, manifest, component) {
           Object.entries(inputs).map(([k, r]) => [k, r.value.value]),
         ),
         { clips, children } = placedVisualMedia(timeline, window, sources.sources);
-      const program = browserProgram({
+      const program = htmlVisual({
         html:
           '<div class="viewport"><div class="inner">' +
           children.map((v) => "{{" + v.id + "}}").join("") +
@@ -113,7 +107,7 @@ export function installPortraitInset(module, manifest, component) {
       };
     },
   });
-  return createMarkupSurfaceHostFacet({
+  return createMarkupSurfaceFacet({
     module,
     declaration: {
       name: "portrait-inset",

@@ -3,21 +3,17 @@ import { installPortraitInset } from "./portrait-inset.js";
 import { installReframe } from "./reframe.js";
 import { installPullback } from "./pullback.js";
 import { installPresenter } from "./presenter.js";
-import {
-  assertAttributes,
-  assertEmptyElement,
-  canonicalize,
-  createMarkupSurfaceHostFacet,
-  sameType,
-  sealGraphFragment,
-  textAttribute,
-} from "@hypit/hypit/author-kit";
+import { createAdmissionPackageFacet } from "@hypit/hypit/admission";
+import { createProducerPackageFacet } from "@hypit/hypit/producer";
+import { assertAttributes, assertEmptyElement, createMarkupSurfaceFacet, textAttribute } from "@hypit/hypit/markup";
+import { canonicalize, sameType } from "@hypit/hypit/protocol";
+import { sealGraphFragment } from "@hypit/hypit/author";
 import { compositionTypes } from "@hypit/hypit/composition";
 import { mediaTypes } from "@hypit/hypit/media";
 import { timelineTypes } from "@hypit/hypit/timeline";
 import { spatialTypes } from "@hypit/hypit/spatial";
 import { temporalTypes } from "@hypit/hypit/temporal";
-import { visualTrackModuleRef } from "@hypit/hypit/visual-track";
+import { visualTrackModuleRef } from "@hypit/visual-track";
 import {
   createTemporalWindowConstruction,
   createTemporalInstantConstruction,
@@ -25,7 +21,7 @@ import {
   temporalWindowAttributeNames,
   temporalWindowAttributeVocabulary,
   temporalContextAttributeVocabulary,
-} from "@hypit/hypit/temporal-markup";
+} from "@hypit/hypit/temporal/markup";
 import { renderTitle, renderTimer, renderFlag, renderStage, renderVeil } from "./render.js";
 import { module, defaults } from "./definition.js";
 import { studioFacet } from "./studio.js";
@@ -536,12 +532,13 @@ const portraitTransition = installPortraitTransition(module, manifest, component
 const portraitInset = installPortraitInset(module, manifest, component);
 const presenter = installPresenter(module, manifest, component);
 export const hypitPackage = {
-  format: "hypit.node-package@1",
+  format: "hypit.package@1",
   modules: [{ manifest }],
-  components: [component],
-  hostFacets: [
+  facets: [
+    createProducerPackageFacet(component),
+    createAdmissionPackageFacet(component),
     ...declarations.map((declaration) =>
-      createMarkupSurfaceHostFacet({
+      createMarkupSurfaceFacet({
         module,
         declaration,
         handler: decode(declaration.tag),

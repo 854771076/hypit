@@ -1,20 +1,16 @@
 import { renderComponentWorkshop } from "./scenes/components/index.js";
+import { createAdmissionPackageFacet } from "@hypit/hypit/admission";
+import { createProducerPackageFacet } from "@hypit/hypit/producer";
 import { renderSemanticWorkshop } from "./scenes/semantic-time/index.js";
 import { renderDeliveryWorkshop } from "./scenes/delivery/index.js";
 import { renderCodeJourney } from "./scenes/code-route/index.js";
 import { renderOutro } from "./scenes/outro/index.js";
 import { sceneCompanions } from "./studio.js";
-import { createStudioTrackCompanionHostFacet } from "@hypit/hypit/studio-adapter";
+import { createStudioTrackCompanionFacet } from "@hypit/studio-companion";
 import { renderRoad } from "./scenes/editor-route/index.js";
-import {
-  assertAttributes,
-  assertEmptyElement,
-  textAttribute,
-  canonicalize,
-  sameType,
-  sealGraphFragment,
-  createMarkupSurfaceHostFacet,
-} from "@hypit/hypit/author-kit";
+import { assertAttributes, assertEmptyElement, textAttribute, createMarkupSurfaceFacet } from "@hypit/hypit/markup";
+import { canonicalize, sameType } from "@hypit/hypit/protocol";
+import { sealGraphFragment } from "@hypit/hypit/author";
 import { compositionTypes } from "@hypit/hypit/composition";
 import { mediaTypes } from "@hypit/hypit/media";
 import { timelineTypes } from "@hypit/hypit/timeline";
@@ -29,7 +25,7 @@ import {
   temporalContextAttributeVocabulary,
   temporalInstantAttributeNames,
   temporalInstantAttributeVocabulary,
-} from "@hypit/hypit/temporal-markup";
+} from "@hypit/hypit/temporal/markup";
 import { renderIntro, renderComparison } from "./render.js";
 const module = { name: "@explainer/web-scenes", version: "1" },
   type = (name) => ({ module, name }),
@@ -412,13 +408,14 @@ function decode(tag) {
   };
 }
 export const hypitPackage = {
-  format: "hypit.node-package@1",
+  format: "hypit.package@1",
   modules: [{ manifest }],
-  components: [component],
-  hostFacets: [
-    createStudioTrackCompanionHostFacet(sceneCompanions(module, tags)),
+  facets: [
+    createProducerPackageFacet(component),
+    createAdmissionPackageFacet(component),
+    createStudioTrackCompanionFacet(sceneCompanions(module, tags)),
     ...Object.keys(tags).map((tag) =>
-      createMarkupSurfaceHostFacet({
+      createMarkupSurfaceFacet({
         module,
         declaration: {
           name: tags[tag].name,

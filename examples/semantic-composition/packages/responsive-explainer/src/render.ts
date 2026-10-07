@@ -1,6 +1,6 @@
 import { sealVisualTrack } from "@hypit/hypit/composition";
 import type { VisualElement } from "@hypit/hypit/composition";
-import { browserProgram } from "@hypit/hypit/hyperframes";
+import { htmlVisual } from "@hypit/hypit/html-program";
 import type { FontArtifactRef } from "@hypit/hypit/media";
 import type { SynchronizedMedia } from "@hypit/hypit/media";
 import type { Timeline } from "@hypit/hypit/timeline";
@@ -44,7 +44,7 @@ export function renderExplainer(timeline: Timeline, within: SpatialFrame, window
       { name: "white-space", value: "nowrap" }],
   }));
   // Exact fonts belong to the typed text children; the program supplies layout and behavior.
-  const program = browserProgram({
+  const program = htmlVisual({
     html: `<div class="diagram"><div class="heading">{{label-0}}</div>
       <svg viewBox="0 0 440 300"><path d="M60 60 H320 V150 H60 V240 H320"/></svg>
       <div class="step first">{{label-1}}</div><div class="step second">{{label-2}}</div>

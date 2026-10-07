@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@hypit/caption-fine": "workspace:*",
-    "@hypit/caption-fine-studio": "workspace:*",
-    "@hypit/hypit": "workspace:*"
+    "@hypit/hypit": "workspace:*",
+    "@hypit/studio-companion": "workspace:*"
   }
 }

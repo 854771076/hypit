@@ -1,5 +1,5 @@
 import { sealVisualTrack } from "@hypit/hypit/composition";
-import { browserProgram } from "@hypit/hypit/hyperframes";
+import { htmlVisual } from "@hypit/hypit/html-program";
 import { assertTemporalWindowFor } from "@hypit/hypit/temporal";
 const sty = (o) => Object.entries(o).map(([name, value]) => ({ name, value }));
 const esc = (s) =>
@@ -24,7 +24,7 @@ function seal(t, within, w, o, html, css, setup, data, children = []) {
             id: "scene",
             kind: "program",
             order: 0,
-            program: browserProgram({
+            program: htmlVisual({
               html: html + '<div class="font-resource">{{font}}</div>',
               css:
                 ":scope{pointer-events:none}.font-resource{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}" +
