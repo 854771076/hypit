@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compositionTypes } from "@hypit/composition";
-import type { StudioTrackCompanionContext } from "@hypit/studio-adapter";
-import { rankingStudioTrackCompanions } from "../src/index.js";
+import { compositionTypes } from "@hypit/hypit/composition";
+import type { StudioTrackCompanionContext } from "@hypit/studio-companion";
+import { rankingStudioTrackCompanions } from "../src/studio.js";
 
 test("each Ranking surface has independent visual and audio Companions", () => {
   for (const surface of ["column", "tier", "top-three"]) {

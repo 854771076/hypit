@@ -1,17 +1,17 @@
-import { timelineTypes, timelineDependency } from "@hypit/timeline";
-import { temporalContextAttributeVocabulary } from "@hypit/temporal-markup";
+import { timelineTypes, timelineDependency } from "@hypit/hypit/timeline";
+import { temporalContextAttributeVocabulary } from "@hypit/hypit/temporal/markup";
 import { readFile } from "node:fs/promises";
 
-import { artifactDependency } from "@hypit/artifact";
-import { compositionDependency, compositionTypes } from "@hypit/composition";
-import { mediaDependency, mediaTypes } from "@hypit/media";
+import { blobDependency } from "@hypit/hypit/blob";
+import { compositionDependency, compositionTypes } from "@hypit/hypit/composition";
+import { mediaDependency, mediaTypes } from "@hypit/hypit/media";
 
-import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/protocol";
-import { spatialDependency, spatialFrameSchema, spatialTypes } from "@hypit/spatial";
-import { svsRecipeType } from "@hypit/svs";
-import { temporalDependency, temporalInstantSchema, temporalTypes, temporalWindowSchema } from "@hypit/temporal";
-import { temporalInstantAttributeVocabulary } from "@hypit/temporal-markup";
-import { textDependency, textTypes } from "@hypit/text";
+import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/hypit/protocol";
+import { spatialDependency, spatialFrameSchema, spatialTypes } from "@hypit/hypit/spatial";
+import { recipeType } from "@hypit/hypit/recipe";
+import { temporalDependency, temporalInstantSchema, temporalTypes, temporalWindowSchema } from "@hypit/hypit/temporal";
+import { temporalInstantAttributeVocabulary } from "@hypit/hypit/temporal/markup";
+import { textDependency, textTypes } from "@hypit/hypit/text";
 
 const previewImage = (file: string, mediaType = "image/png") => ({
   mediaType,
@@ -142,7 +142,7 @@ function typedRecipeProperties<const T extends readonly {
   readonly required: boolean;
   readonly summary: string;
   readonly values?: readonly string[];
-  readonly fallback?: import("@hypit/protocol").CanonicalValue;
+  readonly fallback?: import("@hypit/hypit/protocol").CanonicalValue;
 }[]>(properties: T) {
   return properties.map((property) => {
     const schema = rankingRecipeSchemas[property.name as keyof typeof rankingRecipeSchemas];
@@ -251,7 +251,7 @@ const allRankingMarkupSurfaces = [
         attributes: [
           { name: "id", kind: "identifier", required: true,
             summary: "Names this Style so a TierBoard can reference it." },
-          { name: "recipe", kind: "reference", required: true, accepts: [svsRecipeType],
+          { name: "recipe", kind: "reference", required: true, accepts: [recipeType],
             summary: "Chooses the Recipe carrying the tier rows, board Paint, row and cell geometry, icon treatment and entrance motion.",
             recipe: typedRecipeProperties([
               { name: "rows", required: false, fallback: [
@@ -327,7 +327,7 @@ const allRankingMarkupSurfaces = [
         attributes: [
           { name: "id", kind: "identifier", required: true,
             summary: "Names this Style so a Column can reference it." },
-          { name: "recipe", kind: "reference", required: true, accepts: [svsRecipeType],
+          { name: "recipe", kind: "reference", required: true, accepts: [recipeType],
             summary: "Chooses the Recipe carrying the rank colors, board Paint, row geometry, icon treatment, staging pose and motion.",
             recipe: typedRecipeProperties([
               { name: "rank-colors", required: false, fallback: ["#facc15", "#d1d5db", "#fb923c", "#60a5fa", "#a78bfa"],
@@ -420,7 +420,7 @@ const allRankingMarkupSurfaces = [
         attributes: [
           { name: "id", kind: "identifier", required: true,
             summary: "Names this Style so a TopThree can reference it." },
-          { name: "recipe", kind: "reference", required: true, accepts: [svsRecipeType],
+          { name: "recipe", kind: "reference", required: true, accepts: [recipeType],
             summary: "Chooses the Recipe carrying the slot colors, podium geometry, ring and label spacing, board Paint and motion.",
             recipe: typedRecipeProperties([
               { name: "slot-colors", required: false, fallback: ["#facc15", "#d1d5db", "#fb923c"],
@@ -697,7 +697,7 @@ export const rankingMarkupSurfaces = allRankingMarkupSurfaces;
 
 export const rankingManifest: ModuleManifest = {
   format: "hypit.module@1", name: rankingModuleRef.name, version: rankingModuleRef.version,
-  dependencies: [artifactDependency, mediaDependency, timelineDependency, spatialDependency, temporalDependency, compositionDependency, textDependency],
+  dependencies: [blobDependency, mediaDependency, timelineDependency, spatialDependency, temporalDependency, compositionDependency, textDependency],
   types: [
     { name: rankingTypes.header.name },
     { name: rankingTypes.itemSpec.name },

@@ -4,12 +4,12 @@ import type {
   VisualTextFlow,
   VisualTextPaintLayer,
   VisualTextTypography,
-} from "@hypit/composition";
+} from "@hypit/hypit/composition";
 import type {
   VisualFrameTreatment,
   MediaLayerSet,
 } from "@hypit/visual-track";
-import type { SpatialFrame } from "@hypit/spatial";
+import type { SpatialFrame } from "@hypit/hypit/spatial";
 
 export type DepthStackVisibility = {
   readonly previous: number;

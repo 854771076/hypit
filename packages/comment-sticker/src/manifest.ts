@@ -1,17 +1,17 @@
-import { timelineTypes, timelineDependency } from "@hypit/timeline";
-import { temporalContextAttributeVocabulary } from "@hypit/temporal-markup";
+import { timelineTypes, timelineDependency } from "@hypit/hypit/timeline";
+import { temporalContextAttributeVocabulary } from "@hypit/hypit/temporal/markup";
 import { readFile } from "node:fs/promises";
 
-import { artifactDependency, artifactTypes } from "@hypit/artifact";
-import { compositionDependency, compositionTypes } from "@hypit/composition";
-import { fontArtifactSchema, mediaDependency, mediaTypes } from "@hypit/media";
+import { blobDependency, blobTypes } from "@hypit/hypit/blob";
+import { compositionDependency, compositionTypes } from "@hypit/hypit/composition";
+import { fontArtifactSchema, mediaDependency, mediaTypes } from "@hypit/hypit/media";
 
-import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/protocol";
-import { spatialDependency, spatialFrameSchema, spatialTypes } from "@hypit/spatial";
-import { svsRecipeType } from "@hypit/svs";
-import { temporalDependency, temporalTypes } from "@hypit/temporal";
-import { temporalWindowAttributeVocabulary } from "@hypit/temporal-markup";
-import { textDependency, textTypes } from "@hypit/text";
+import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/hypit/protocol";
+import { spatialDependency, spatialFrameSchema, spatialTypes } from "@hypit/hypit/spatial";
+import { recipeType } from "@hypit/hypit/recipe";
+import { temporalDependency, temporalTypes } from "@hypit/hypit/temporal";
+import { temporalWindowAttributeVocabulary } from "@hypit/hypit/temporal/markup";
+import { textDependency, textTypes } from "@hypit/hypit/text";
 
 const previewImage = (file: string) => ({
   mediaType: "image/png",
@@ -146,7 +146,7 @@ export const commentStickerMarkupSurfaces = [
         attributes: [
           { name: "id", kind: "identifier", required: true,
             summary: "Names the Style so a Sticker can reference it." },
-          { name: "recipe", kind: "reference", required: true, accepts: [svsRecipeType],
+          { name: "recipe", kind: "reference", required: true, accepts: [recipeType],
             summary: "Chooses the Recipe that decides the card's appearance and its enter, hold and exit motion.",
             recipe: [
               { name: "stack-order", required: false, fallback: "62",
@@ -294,7 +294,7 @@ export const commentStickerMarkupSurfaces = [
                 summary: "Supplies the card's header row." },
               { name: "meta", kind: "expression", required: false, accepts: [textTypes.text],
                 summary: "Supplies the card's metadata row, which is not rendered when it is absent." },
-              { name: "avatar", kind: "reference", required: false, accepts: [artifactTypes.blob],
+              { name: "avatar", kind: "reference", required: false, accepts: [blobTypes.blob],
                 summary: "Supplies the image Artifact drawn as the commenter's avatar." },
               ...temporalWindowAttributeVocabulary,
             ],
@@ -331,7 +331,7 @@ export const commentStickerManifest: ModuleManifest = {
   format: "hypit.module@1",
   name: commentStickerModuleRef.name,
   version: commentStickerModuleRef.version,
-  dependencies: [artifactDependency, timelineDependency, spatialDependency, temporalDependency, mediaDependency, compositionDependency, textDependency],
+  dependencies: [blobDependency, timelineDependency, spatialDependency, temporalDependency, mediaDependency, compositionDependency, textDependency],
   types: [
     { name: commentStickerTypes.header.name },
     { name: commentStickerTypes.style.name },
@@ -355,7 +355,7 @@ export const commentStickerManifest: ModuleManifest = {
     { name: commentStickerProducers.createSet.name, inputs: [], outputs: [{ name: "set", type: commentStickerTypes.set }], needs: [] },
     ...([
       [commentStickerProducers.appendItem, []],
-      [commentStickerProducers.appendItemAvatar, [{ name: "avatar", type: artifactTypes.blob }]],
+      [commentStickerProducers.appendItemAvatar, [{ name: "avatar", type: blobTypes.blob }]],
     ] as const).map(([producer, extra]) => ({
       name: producer.name,
       inputs: [...appendInputs, ...extra],

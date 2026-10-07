@@ -1,24 +1,17 @@
-import { resolveTemporalContext } from "@hypit/temporal-markup";
-import { artifactTypes } from "@hypit/artifact";
-import { mediaTypes } from "@hypit/media";
-import type { FontStackRef } from "@hypit/media";
+import { resolveTemporalContext } from "@hypit/hypit/temporal/markup";
+import { blobTypes } from "@hypit/hypit/blob";
+import { mediaTypes } from "@hypit/hypit/media";
+import type { FontStackRef } from "@hypit/hypit/media";
 import { visualTrackTypes } from "@hypit/visual-track";
-import type { TypeRef } from "@hypit/protocol";
-import { spatialTypes } from "@hypit/spatial";
-import { svsRecipeType } from "@hypit/svs";
-import { createTemporalInstantConstruction, temporalInstantAttributeNames } from "@hypit/temporal-markup";
-import type { SvsRecipe } from "@hypit/svs";
-import { sealText, textTypes } from "@hypit/text";
-import { sealGraphFragment } from "@hypit/elaborator";
-import type { AuthorValueRef } from "@hypit/elaborator";
-import type {
-  StructuredElement,
-  StructuredSurfaceHandler,
-  SurfaceComponentDraft,
-  SurfaceRecordDraft,
-  SurfaceResolvedReference,
-  MarkupAttributeValue,
-} from "@hypit/markup";
+import type { TypeRef } from "@hypit/hypit/protocol";
+import { spatialTypes } from "@hypit/hypit/spatial";
+import { recipeType } from "@hypit/hypit/recipe";
+import { createTemporalInstantConstruction, temporalInstantAttributeNames } from "@hypit/hypit/temporal/markup";
+import type { Recipe } from "@hypit/hypit/recipe";
+import { sealText, textTypes } from "@hypit/hypit/text";
+import { sealGraphFragment } from "@hypit/hypit/author";
+import type { AuthorValueRef } from "@hypit/hypit/author";
+import type { StructuredElement, StructuredSurfaceHandler, SurfaceComponentDraft, SurfaceRecordDraft, SurfaceResolvedReference, MarkupAttributeValue } from "@hypit/hypit/markup";
 
 import {
   decodeDepthStackCardSpec,
@@ -108,8 +101,8 @@ function recipe(
   raw: MarkupAttributeValue | undefined,
   label: string,
   resolve: (path: string) => SurfaceResolvedReference | undefined,
-): SvsRecipe {
-  return inline<SvsRecipe>(reference(raw, label, svsRecipeType, resolve), label);
+): Recipe {
+  return inline<Recipe>(reference(raw, label, recipeType, resolve), label);
 }
 
 function labelText(element: StructuredElement): string {
@@ -216,8 +209,8 @@ export const decodeDepthStackSurface: StructuredSurfaceHandler = ({ element, res
     cardIndex += 1;
     const suffix = String(cardIndex).padStart(4, "0");
     const cardId = text(child, "id");
-    const source = oneOfReference(child.attributes.source, `${child.name}.source`, [artifactTypes.blob, mediaTypes.synchronized, mediaTypes.compositableSurface], resolveReference);
-    const sourceKind = sameType(source.type, artifactTypes.blob) ? "still"
+    const source = oneOfReference(child.attributes.source, `${child.name}.source`, [blobTypes.blob, mediaTypes.synchronized, mediaTypes.compositableSurface], resolveReference);
+    const sourceKind = sameType(source.type, blobTypes.blob) ? "still"
       : sameType(source.type, mediaTypes.synchronized) ? "timed" : "surface";
     const extent = child.attributes.extent === undefined ? undefined
       : reference(child.attributes.extent, `${child.name}.extent`, spatialTypes.extent, resolveReference);

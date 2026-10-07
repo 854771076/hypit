@@ -1,5 +1,5 @@
-import type { BlobRef } from "@hypit/protocol";
-import type { TemporalInstant, TemporalWindow } from "@hypit/temporal";
+import type { BlobRef } from "@hypit/hypit/protocol";
+import type { TemporalInstant, TemporalWindow } from "@hypit/hypit/temporal";
 
 export type EmojiRevealHeader = { readonly id: string };
 

@@ -1,19 +1,19 @@
-import { assertTimelineIdentity, timelineFrameCount } from "@hypit/timeline";
-import type { Timeline } from "@hypit/timeline";
+import { assertTimelineIdentity, timelineFrameCount } from "@hypit/hypit/timeline";
+import type { Timeline } from "@hypit/hypit/timeline";
 import {
   assertFontArtifactRef,
-} from "@hypit/media";
+} from "@hypit/hypit/media";
 import {
   assertVisualFrameTreatment,
   assertMediaLayerSet,
 } from "@hypit/visual-track";
-import { canonicalize } from "@hypit/protocol";
-import { verifyText } from "@hypit/text";
-import type { Text } from "@hypit/text";
-import { assertSpatialFrame } from "@hypit/spatial";
-import type { SpatialFrame } from "@hypit/spatial";
-import { assertTemporalInstantFor } from "@hypit/temporal";
-import type { TemporalInstant } from "@hypit/temporal";
+import { canonicalize } from "@hypit/hypit/protocol";
+import { verifyText } from "@hypit/hypit/text";
+import type { Text } from "@hypit/hypit/text";
+import { assertSpatialFrame } from "@hypit/hypit/spatial";
+import type { SpatialFrame } from "@hypit/hypit/spatial";
+import { assertTemporalInstantFor } from "@hypit/hypit/temporal";
+import type { TemporalInstant } from "@hypit/hypit/temporal";
 
 import type {
   DeckCardTone,

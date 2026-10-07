@@ -5,29 +5,41 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./studio": "./src/studio.ts"
   },
+  "files": [
+    "dist",
+    "preview",
+    "README.md"
+  ],
   "hypit": {
     "activation": "./src/activation.ts"
   },
   "dependencies": {
-    "@hypit/artifact": "workspace:*",
-    "@hypit/component-kit": "workspace:*",
+    "@hypit/visual-track": "workspace:^"
+  },
+  "peerDependencies": {
+    "@hypit/hypit": "workspace:^",
+    "@hypit/studio-companion": "workspace:^"
+  },
+  "devDependencies": {
+    "@hypit/blob": "workspace:*",
+    "@hypit/producer": "workspace:*",
     "@hypit/composition": "workspace:*",
-    "@hypit/elaborator": "workspace:*",
+    "@hypit/author": "workspace:*",
     "@hypit/media": "workspace:*",
-    "@hypit/visual-track": "workspace:*",
     "@hypit/protocol": "workspace:*",
     "@hypit/timeline": "workspace:*",
     "@hypit/spatial": "workspace:*",
-    "@hypit/svs": "workspace:*",
+    "@hypit/recipe": "workspace:*",
     "@hypit/temporal": "workspace:*",
-    "@hypit/temporal-markup": "workspace:*",
     "@hypit/text": "workspace:*",
-    "@hypit/markup": "workspace:*"
-  },
-  "devDependencies": {
-    "@hypit/core": "workspace:*",
-    "@hypit/media-pipeline": "workspace:*"
+    "@hypit/markup": "workspace:*",
+    "@hypit/kernel": "workspace:*",
+    "@hypit/hypit": "workspace:*",
+    "@hypit/media-operations": "workspace:*",
+    "@hypit/studio-companion": "workspace:*",
+    "typescript": "5.9.3"
   }
 }

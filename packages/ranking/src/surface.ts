@@ -1,25 +1,13 @@
-import { resolveTemporalContext } from "@hypit/temporal-markup";
-import {
-  assertEmptyElement as empty,
-  assertAttributes as allowed,
-  localName,
-  textAttribute as text,
-  optionalTextAttribute as optionalText,
-  type StructuredElement,
-  type StructuredSurfaceHandler,
-  type SurfaceComponentDraft,
-  type SurfaceRecordDraft,
-  type SurfaceResolvedReference,
-  type MarkupAttributeValue,
-} from "@hypit/markup";
-import { sameType, type CanonicalValue, type TypeRef } from "@hypit/protocol";
-import { mediaTypes } from "@hypit/media";
-import type { FontArtifactRef, FontStackRef } from "@hypit/media";
-import { spatialTypes } from "@hypit/spatial";
-import { svsRecipeType } from "@hypit/svs";
-import type { SvsRecipe } from "@hypit/svs";
-import { textTypes } from "@hypit/text";
-import { createTemporalInstantConstruction, createTemporalWindowConstruction, temporalInstantAttributeNames } from "@hypit/temporal-markup";
+import { resolveTemporalContext } from "@hypit/hypit/temporal/markup";
+import { assertEmptyElement as empty, assertAttributes as allowed, localName, textAttribute as text, optionalTextAttribute as optionalText, type StructuredElement, type StructuredSurfaceHandler, type SurfaceComponentDraft, type SurfaceRecordDraft, type SurfaceResolvedReference, type MarkupAttributeValue } from "@hypit/hypit/markup";
+import { sameType, type CanonicalValue, type TypeRef } from "@hypit/hypit/protocol";
+import { mediaTypes } from "@hypit/hypit/media";
+import type { FontArtifactRef, FontStackRef } from "@hypit/hypit/media";
+import { spatialTypes } from "@hypit/hypit/spatial";
+import { recipeType } from "@hypit/hypit/recipe";
+import type { Recipe } from "@hypit/hypit/recipe";
+import { textTypes } from "@hypit/hypit/text";
+import { createTemporalInstantConstruction, createTemporalWindowConstruction, temporalInstantAttributeNames } from "@hypit/hypit/temporal/markup";
 
 import { createRankingFragment } from "./fragment.js";
 import type { RankingFragmentItem, RankingFragmentSound } from "./fragment.js";
@@ -91,15 +79,15 @@ function inline<T>(value: SurfaceResolvedReference, label: string): T {
 
 function styleSurface<T>(
   styleType: TypeRef,
-  decode: (recipe: SvsRecipe, font: FontArtifactRef | FontStackRef) => { readonly style: T; readonly sound: RankingSoundStyle },
+  decode: (recipe: Recipe, font: FontArtifactRef | FontStackRef) => { readonly style: T; readonly sound: RankingSoundStyle },
 ): StructuredSurfaceHandler {
   return ({ element, resolveReference }) => {
     allowed(element, ["id", "recipe", "font"]);
     empty(element);
     const id = text(element, "id");
-    const recipeRef = reference(element.attributes.recipe, `${element.name}.recipe`, svsRecipeType, resolveReference);
+    const recipeRef = reference(element.attributes.recipe, `${element.name}.recipe`, recipeType, resolveReference);
     const fontRef = oneOfReference(element.attributes.font, `${element.name}.font`, [mediaTypes.fontArtifact, mediaTypes.fontStack], resolveReference);
-    const decoded = decode(inline<SvsRecipe>(recipeRef, `${element.name}.recipe`), inline<FontArtifactRef | FontStackRef>(fontRef, `${element.name}.font`));
+    const decoded = decode(inline<Recipe>(recipeRef, `${element.name}.recipe`), inline<FontArtifactRef | FontStackRef>(fontRef, `${element.name}.font`));
     return {
       records: [
         { id, type: styleType, value: { kind: "inline", value: decoded.style as unknown as CanonicalValue }, range: element.range },

@@ -1,15 +1,15 @@
-import type { Timeline } from "@hypit/timeline";
+import type { Timeline } from "@hypit/hypit/timeline";
 import {
   assertVisualTrackIdentity,
   sealVisualTrack,
-} from "@hypit/composition";
+} from "@hypit/hypit/composition";
 import type {
   VisualAnimation,
   VisualElement,
   VisualSourceTimeMap,
   VisualStyleDeclaration,
   VisualTrack,
-} from "@hypit/composition";
+} from "@hypit/hypit/composition";
 import {
   lowerVisualClipElements,
   resolveMediaLayerPrograms,
@@ -19,7 +19,7 @@ import type {
   VisualClipProgram,
   MediaSampleLayer,
 } from "@hypit/visual-track";
-import type { SpatialFrame } from "@hypit/spatial";
+import type { SpatialFrame } from "@hypit/hypit/spatial";
 
 import {
   assertDepthStackProgramIdentity,

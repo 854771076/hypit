@@ -1,11 +1,12 @@
-import type { Timeline } from "@hypit/timeline";
-import type { ComponentPackage, ProducerHandlerContext } from "@hypit/component-kit";
-import type { SynchronizedMedia } from "@hypit/media";
-import { canonicalize } from "@hypit/protocol";
-import type { BlobRef, StoredValue } from "@hypit/protocol";
-import type { TemporalInstant, TemporalWindow } from "@hypit/temporal";
-import type { SpatialFrame } from "@hypit/spatial";
-import type { Text } from "@hypit/text";
+import type { Timeline } from "@hypit/hypit/timeline";
+import type { ProducerPackage, ProducerHandlerContext } from "@hypit/hypit/producer";
+import type { AdmissionPackage } from "@hypit/hypit/admission";
+import type { SynchronizedMedia } from "@hypit/hypit/media";
+import { canonicalize } from "@hypit/hypit/protocol";
+import type { BlobRef, StoredValue } from "@hypit/hypit/protocol";
+import type { TemporalInstant, TemporalWindow } from "@hypit/hypit/temporal";
+import type { SpatialFrame } from "@hypit/hypit/spatial";
+import type { Text } from "@hypit/hypit/text";
 
 import { rankingProducers, rankingTypes } from "./manifest.js";
 import { appendColumnItem, appendColumnWindow, appendRankingItemSpec, appendRankingSound, appendTierBoardItem, appendTierBoardWindow, appendTopThreeItem, appendTriggeredRankingCandidate, assertColumnProgram, assertRankingSchedule, assertRankingSoundEventPlan, assertTierBoardProgram, assertTopThreeProgram, buildColumnProgram, buildColumnSchedule, buildColumnSoundEvents, buildTriggeredRankingSchedule, buildTierBoardProgram, buildTierBoardSchedule, buildTierBoardSoundEvents, buildTopThreeProgram, buildTopThreeSoundEvents, createColumnItemSet, createColumnWindowSet, createRankingItemSpecSet, createRankingSoundSet, createTierBoardItemSet, createTierBoardWindowSet, createTopThreeItemSet, createTriggeredRankingCandidateSet, materializeRankingTextItem } from "./schedule.js";
@@ -268,4 +269,4 @@ export const rankingComponent = {
     { type: rankingTypes.soundEvents,
       handler: ({ value }) => assertRankingSoundEventPlan(inline<RankingSoundEventPlan>(value, "RankingSoundEventPlan")) },
   ],
-} satisfies ComponentPackage;
+} satisfies ProducerPackage & AdmissionPackage;

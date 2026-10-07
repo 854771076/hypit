@@ -1,11 +1,12 @@
-import type { Timeline } from "@hypit/timeline";
-import type { ComponentPackage, ProducerHandlerContext } from "@hypit/component-kit";
-import { canonicalize } from "@hypit/protocol";
-import type { StoredValue } from "@hypit/protocol";
-import type { SpatialFrame } from "@hypit/spatial";
-import type { TemporalInstant } from "@hypit/temporal";
+import type { Timeline } from "@hypit/hypit/timeline";
+import { canonicalize } from "@hypit/hypit/protocol";
+import type { ProducerPackage, ProducerHandlerContext } from "@hypit/hypit/producer";
+import type { AdmissionPackage } from "@hypit/hypit/admission";
+import type { StoredValue } from "@hypit/hypit/protocol";
+import type { SpatialFrame } from "@hypit/hypit/spatial";
+import type { TemporalInstant } from "@hypit/hypit/temporal";
 import type { MediaLayerSet } from "@hypit/visual-track";
-import type { Text } from "@hypit/text";
+import type { Text } from "@hypit/hypit/text";
 
 import { renderDepthStack } from "./lower.js";
 import { depthStackProducers, depthStackTypes } from "./manifest.js";
@@ -82,4 +83,4 @@ export const depthStackComponent = {
     type: depthStackTypes.program,
     handler: ({ value }) => assertDepthStackProgram(inline<DepthStackProgram>(value, "DepthStackProgram")),
   }],
-} satisfies ComponentPackage;
+} satisfies ProducerPackage & AdmissionPackage;

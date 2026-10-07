@@ -1,8 +1,8 @@
-import { commentStickerMarkupSurfaces, commentStickerModuleRef, commentStickerTypes } from "@hypit/comment-sticker";
-import type { CommentStickerProgram } from "@hypit/comment-sticker";
-import { compositionTypes } from "@hypit/composition";
-import type { StudioTrackCompanion, StudioTrackCompanionContext, StudioEntityDraft, StudioInspectorFieldDeclaration, StudioSourceBindingDeclaration } from "@hypit/studio-adapter";
-import { artifactPreview, childEntities, previewLayer, requiredSurfaceValue, temporalLineageFor, temporalDomainSource, textLayer } from "@hypit/studio-adapter";
+import { commentStickerMarkupSurfaces, commentStickerModuleRef, commentStickerTypes } from "./index.js";
+import type { CommentStickerProgram } from "./index.js";
+import { compositionTypes } from "@hypit/hypit/composition";
+import type { StudioTrackCompanion, StudioTrackCompanionContext, StudioEntityDraft, StudioInspectorFieldDeclaration, StudioSourceBindingDeclaration } from "@hypit/studio-companion";
+import { artifactPreview, childEntities, previewLayer, requiredSurfaceValue, temporalLineageFor, temporalDomainSource, textLayer } from "@hypit/studio-companion";
 
 const frameParameters: readonly StudioSourceBindingDeclaration[] = [
   { name: "within" },

@@ -1,13 +1,13 @@
-import { timelineTypes } from "@hypit/timeline";
+import { timelineTypes } from "@hypit/hypit/timeline";
 
-import { artifactTypes } from "@hypit/artifact";
-import { compositionTypes } from "@hypit/composition";
-import { sealGraphFragment } from "@hypit/elaborator";
-import type { FragmentOperation, GraphFragment } from "@hypit/elaborator";
-import { mediaTypes } from "@hypit/media";
+import { blobTypes } from "@hypit/hypit/blob";
+import { compositionTypes } from "@hypit/hypit/composition";
+import { sealGraphFragment } from "@hypit/hypit/author";
+import type { FragmentOperation, GraphFragment } from "@hypit/hypit/author";
+import { mediaTypes } from "@hypit/hypit/media";
 import { visualTrackProducers, visualTrackTypes } from "@hypit/visual-track";
-import { spatialTypes } from "@hypit/spatial";
-import { temporalTypes } from "@hypit/temporal";
+import { spatialTypes } from "@hypit/hypit/spatial";
+import { temporalTypes } from "@hypit/hypit/temporal";
 
 import { depthStackProducers, depthStackTypes } from "./manifest.js";
 
@@ -29,7 +29,7 @@ export type DepthStackFragmentCard = {
 
 function sourceInput(card: DepthStackFragmentCard): GraphFragment["inputs"][number] {
   const type = card.sourceKind === "still"
-    ? artifactTypes.blob
+    ? blobTypes.blob
     : card.sourceKind === "timed" ? mediaTypes.synchronized : mediaTypes.compositableSurface;
   return { name: card.sourceName, type };
 }

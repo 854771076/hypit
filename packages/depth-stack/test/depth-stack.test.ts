@@ -7,7 +7,7 @@ import { timelineFixture } from "../../../test/timeline-fixture.js";
 
 import { compositionDependency, compositionTypes } from "@hypit/composition";
 import type { VisualElement, VisualSourceTimeMap } from "@hypit/composition";
-import { createResolvedClosure } from "@hypit/core";
+import { createResolvedClosure } from "@hypit/kernel";
 import {
   decodeDepthStackLabelSurface,
   decodeDepthStackSurface,
@@ -35,22 +35,22 @@ import type {
 } from "@hypit/depth-stack";
 import type { FontArtifactRef } from "@hypit/media";
 import { mediaTypes } from "@hypit/media";
-import { mediaPipelineManifest } from "@hypit/media-pipeline";
+import { mediaOperationsManifest } from "@hypit/media-operations";
 import type { MediaLayerSet } from "@hypit/visual-track";
 import type { ModuleManifest } from "@hypit/protocol";
 import { temporalTypes } from "@hypit/temporal";
 import type { TemporalInstant } from "@hypit/temporal";
 import { canvasFrame, sealCanvas, sealSpatialFrame, spatialTypes } from "@hypit/spatial";
-import { svsRecipeType } from "@hypit/svs";
+import { recipeType } from "@hypit/recipe";
 import { sealText, textManifest, textTypes } from "@hypit/text";
-import type { SvsRecipe } from "@hypit/svs";
+import type { Recipe } from "@hypit/recipe";
 import type {
   StructuredElement,
   StructuredNode,
   SurfaceResolvedReference,
   MarkupAttributeValue,
 } from "@hypit/markup";
-import { artifactTypes } from "@hypit/artifact";
+import { blobTypes } from "@hypit/blob";
 import { visualTrackManifest, visualTrackTypes } from "@hypit/visual-track";
 
 const space = sealTimeline({ id: "test-space", frameCount: 60, frameRate: { numerator: 30, denominator: 1 },
@@ -411,15 +411,15 @@ test("the author Surface keeps every source, trigger, terminal, Frame and option
   const ref = (path: string): MarkupAttributeValue => ({ kind: "reference", path });
   const node = (name: string, attributes: Record<string, MarkupAttributeValue>, children: StructuredNode[] = []): StructuredElement => ({ kind: "element", name, attributes, children, range });
   const plain = (path: string, type: SurfaceResolvedReference["type"]): SurfaceResolvedReference => ({ path, ref: { kind: "record", id: path }, type });
-  const appearance = (path: string, properties: SvsRecipe["properties"]): SurfaceResolvedReference => ({
-    path, ref: { kind: "record", id: path }, type: svsRecipeType,
+  const appearance = (path: string, properties: Recipe["properties"]): SurfaceResolvedReference => ({
+    path, ref: { kind: "record", id: path }, type: recipeType,
     record: { value: { kind: "inline", value: { path, properties } } } as never,
   });
   const references = new Map<string, SurfaceResolvedReference>([
     ["timeline", plain("timeline", timelineTypes.timeline)],
     ["within", plain("within", spatialTypes.frame)],
     ["frame", plain("frame", spatialTypes.frame)],
-    ["first", plain("first", artifactTypes.blob)], ["first-extent", plain("first-extent", spatialTypes.extent)],
+    ["first", plain("first", blobTypes.blob)], ["first-extent", plain("first-extent", spatialTypes.extent)],
     ["second", plain("second", mediaTypes.synchronized)], ["one", plain("one", temporalTypes.instant)],
     ["two", plain("two", temporalTypes.instant)], ["terminal", plain("terminal", temporalTypes.instant)],
     ["deck-style", appearance("deck-style", { "visible-previous": 1, "visible-next": 1, "reflow-frames": 4, fit: "cover", "stack-order": 30 })],
@@ -514,7 +514,7 @@ test("another Deck family can coexist by contributing only the existing VisualTr
   };
   const closure = createResolvedClosure([
     ...videoContractManifests,
-    mediaPipelineManifest,
+    mediaOperationsManifest,
     visualTrackManifest,
     textManifest,
     depthStackManifest,

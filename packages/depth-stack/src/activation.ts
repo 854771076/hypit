@@ -1,4 +1,7 @@
-import { createMarkupSurfaceHostFacet } from "@hypit/markup";
+import { createAdmissionPackageFacet } from "@hypit/hypit/admission";
+import { createProducerPackageFacet } from "@hypit/hypit/producer";
+import { createMarkupSurfaceFacet } from "@hypit/hypit/markup";
+import { createStudioTrackCompanionFacet } from "@hypit/studio-companion";
 
 import {
   decodeDepthStackLabelSurface,
@@ -8,24 +11,26 @@ import {
   depthStackModuleRef,
   depthStackMarkupSurfaces,
 } from "./index.js";
+import { depthStackStudioTrackCompanions } from "./studio.js";
 
 export const hypitPackage = {
-  format: "hypit.node-package@1" as const,
+  format: "hypit.package@1" as const,
   modules: [{
     manifest: depthStackManifest,
   }],
-  components: [depthStackComponent],
-  hostFacets: [
-    createMarkupSurfaceHostFacet({
+  facets: [
+    ...[depthStackComponent].flatMap((component) => [createProducerPackageFacet(component), createAdmissionPackageFacet(component)]),
+    createMarkupSurfaceFacet({
       module: depthStackModuleRef,
     declaration: depthStackMarkupSurfaces.find((item) => item.name === "label")!,
       handler: decodeDepthStackLabelSurface,
     }),
-    createMarkupSurfaceHostFacet({
+    createMarkupSurfaceFacet({
       module: depthStackModuleRef,
     declaration: depthStackMarkupSurfaces.find((item) => item.name === "track")!,
       handler: decodeDepthStackSurface,
     }),
+    createStudioTrackCompanionFacet(depthStackStudioTrackCompanions),
   ],
 };
 

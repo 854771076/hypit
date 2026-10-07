@@ -1,13 +1,23 @@
-import { openFontStudioFields } from "@hypit/fonts-open/studio";
-import { rankingMarkupSurfaces, rankingModuleRef, rankingTypes } from "@hypit/ranking";
-import type { RankingProgram, RankingSchedule, RankingSoundEventPlan } from "@hypit/ranking";
-import { compositionTypes } from "@hypit/composition";
-import type { AudioTrack } from "@hypit/composition";
-import type { StudioTrackCompanion, StudioTrackCompanionContext, StudioEntityDraft, StudioInspectorFieldDeclaration, StudioSourceBindingDeclaration } from "@hypit/studio-adapter";
-import { artifactPreview, authoredChildFor, previewLayer, requiredSurfaceValue, temporalLineageFor, temporalDomainSource } from "@hypit/studio-adapter";
+import { rankingMarkupSurfaces, rankingModuleRef, rankingTypes } from "./index.js";
+import type { RankingProgram, RankingSchedule, RankingSoundEventPlan } from "./index.js";
+import { compositionTypes } from "@hypit/hypit/composition";
+import type { AudioTrack } from "@hypit/hypit/composition";
+import type { StudioTrackCompanion, StudioTrackCompanionContext, StudioEntityDraft, StudioInspectorFieldDeclaration, StudioSourceBindingDeclaration } from "@hypit/studio-companion";
+import { artifactPreview, authoredChildFor, previewLayer, requiredSurfaceValue, temporalLineageFor, temporalDomainSource } from "@hypit/studio-companion";
 
 
-const fontInspector = openFontStudioFields("style");
+const fontInspector: {
+  readonly binding: StudioSourceBindingDeclaration;
+  readonly fields: readonly StudioInspectorFieldDeclaration[];
+} = {
+  binding: { name: "font", referenced: [{ name: "family", writable: true }] },
+  fields: [{
+    binding: "style.font.family", label: "Font Family", domain: "how",
+    page: { id: "font", label: "Font" }, section: { id: "face", label: "Primary Face" },
+    summary: "Changes the authored primary font family reference.",
+    control: "text",
+  }],
+};
 
 const frameParameters: readonly StudioSourceBindingDeclaration[] = [
   { name: "within" },

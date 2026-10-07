@@ -1,8 +1,8 @@
-import { timelineTypes, timelineDependency } from "@hypit/timeline";
-import { temporalContextAttributeVocabulary } from "@hypit/temporal-markup";
+import { timelineTypes, timelineDependency } from "@hypit/hypit/timeline";
+import { temporalContextAttributeVocabulary } from "@hypit/hypit/temporal/markup";
 import { readFile } from "node:fs/promises";
 
-import { artifactTypes } from "@hypit/artifact";
+import { blobTypes } from "@hypit/hypit/blob";
 import {
   compositionDependency,
   compositionTypes,
@@ -10,8 +10,8 @@ import {
   visualTextFlowSchema,
   visualTextPaintSchema,
   visualTextTypographySchema,
-} from "@hypit/composition";
-import { mediaDependency, mediaTypes } from "@hypit/media";
+} from "@hypit/hypit/composition";
+import { mediaDependency, mediaTypes } from "@hypit/hypit/media";
 import {
   visualFrameTreatmentSchema,
   mediaLayerSetSchema,
@@ -19,12 +19,12 @@ import {
   visualTrackTypes,
 } from "@hypit/visual-track";
 
-import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/protocol";
-import { spatialDependency, spatialFrameSchema, spatialTypes } from "@hypit/spatial";
-import { svsRecipeType } from "@hypit/svs";
-import { temporalDependency, temporalTypes } from "@hypit/temporal";
-import { temporalInstantAttributeVocabulary } from "@hypit/temporal-markup";
-import { textDependency, textTypes } from "@hypit/text";
+import type { ModuleManifest, ProducerRef, TypeRef, ValueSchema } from "@hypit/hypit/protocol";
+import { spatialDependency, spatialFrameSchema, spatialTypes } from "@hypit/hypit/spatial";
+import { recipeType } from "@hypit/hypit/recipe";
+import { temporalDependency, temporalTypes } from "@hypit/hypit/temporal";
+import { temporalInstantAttributeVocabulary } from "@hypit/hypit/temporal/markup";
+import { textDependency, textTypes } from "@hypit/hypit/text";
 
 const previewImage = (file: string) => ({
   mediaType: "image/png",
@@ -170,7 +170,7 @@ export const depthStackMarkupSurfaces = [
           ...temporalContextAttributeVocabulary,
           { name: "frame", kind: "reference", required: true, accepts: [spatialTypes.frame],
             summary: "Chooses the Frame the whole stack occupies." },
-          { name: "appearance", kind: "reference", required: true, accepts: [svsRecipeType],
+          { name: "appearance", kind: "reference", required: true, accepts: [recipeType],
             summary: "Chooses the Recipe for visibility, depth poses, frame Paint, motion and reflow, and the Recipe every Card falls back to.",
             recipe: [
               { name: "visible-previous", required: false, fallback: "2",
@@ -288,12 +288,12 @@ export const depthStackMarkupSurfaces = [
               { name: "id", kind: "identifier", required: true,
                 summary: "Names this Card within the deck." },
               { name: "source", kind: "reference", required: true,
-                accepts: [artifactTypes.blob, mediaTypes.synchronized, mediaTypes.compositableSurface],
+                accepts: [blobTypes.blob, mediaTypes.synchronized, mediaTypes.compositableSurface],
                 summary: "Chooses the picture the Card shows, as a still image Artifact, a Synchronized Medium or a Compositable Surface." },
               { name: "extent", kind: "reference", required: false, accepts: [spatialTypes.extent],
                 summary: "Gives a still image its pixel Extent, which timed and surface sources already carry." },
               ...temporalInstantAttributeVocabulary,
-              { name: "appearance", kind: "reference", required: false, accepts: [svsRecipeType],
+              { name: "appearance", kind: "reference", required: false, accepts: [recipeType],
                 summary: "Chooses this Card's own Recipe in place of the deck's, adding explicit future and past playback.",
                 recipe: [
                   { name: "fit", required: false, values: ["contain", "cover", "fit-width", "fit-height", "native", "scale-down", "stretch"], fallback: "contain",

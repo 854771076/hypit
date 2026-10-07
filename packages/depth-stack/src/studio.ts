@@ -1,8 +1,8 @@
-import { depthStackMarkupSurfaces, depthStackModuleRef } from "@hypit/depth-stack";
-import type { DepthStackProgram } from "@hypit/depth-stack";
-import { compositionTypes } from "@hypit/composition";
-import type { StudioTrackCompanion, StudioTrackCompanionContext, StudioEntityDraft, StudioInspectorFieldDeclaration } from "@hypit/studio-adapter";
-import { requiredSurfaceValue, temporalLineageFor, temporalDomainSource } from "@hypit/studio-adapter";
+import { depthStackMarkupSurfaces, depthStackModuleRef } from "./index.js";
+import type { DepthStackProgram } from "./index.js";
+import { compositionTypes } from "@hypit/hypit/composition";
+import type { StudioTrackCompanion, StudioTrackCompanionContext, StudioEntityDraft, StudioInspectorFieldDeclaration } from "@hypit/studio-companion";
+import { requiredSurfaceValue, temporalLineageFor, temporalDomainSource } from "@hypit/studio-companion";
 
 const deckProperties = (depthStackMarkupSurfaces
   .find((surface) => surface.name === "track")?.vocabulary.attributes
@@ -107,7 +107,7 @@ function projectDeck(context: StudioTrackCompanionContext): readonly StudioEntit
   });
 }
 
-export const deckTrackStudioTrackCompanions: readonly StudioTrackCompanion[] = [
+export const depthStackStudioTrackCompanions: readonly StudioTrackCompanion[] = [
   {
     id: "track", role: "track",
     output: { type: compositionTypes.visualTrack, surface: "track", modules: [depthStackModuleRef] },
