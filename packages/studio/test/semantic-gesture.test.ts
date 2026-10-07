@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { StudioEditHandle, StudioTemporalDomainAnchor, StudioTemporalInstantProjection } from "@hypit/studio-adapter";
+import type { StudioEditHandle, StudioTemporalDomainAnchor, StudioTemporalInstantProjection } from "@hypit/studio-companion";
 import { adjustScriptSelection, parseScript } from "@hypit/script";
 import { projectProgramInstant } from "@hypit/temporal";
-import { parseTemporalInstant } from "@hypit/temporal-markup";
+import { parseTemporalInstant } from "@hypit/temporal/markup";
 import { chooseDomainGesture, formatTemporalPointEdit, domainGestureSpan } from "../src/temporal-edit.js";
 
 const source = '<one><HOST>@{proof} One two @{/proof} three.</one>';

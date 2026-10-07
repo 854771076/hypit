@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { compositionTypes } from "@hypit/composition";
-import type { StudioFilmCompanion, StudioPlacement } from "@hypit/studio-adapter";
+import type { StudioFilmCompanion, StudioPlacement } from "@hypit/studio-companion";
 
 import type { CompiledSource } from "../src/compile.js";
 import type { RunPlan } from "../src/run.js";

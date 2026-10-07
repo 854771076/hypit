@@ -1,4 +1,4 @@
-import type { StudioEditHandle, StudioTemporalDomainAnchor, StudioTemporalDomainEditTarget, StudioTemporalInstantProjection } from "@hypit/studio-adapter";
+import type { StudioEditHandle, StudioTemporalDomainAnchor, StudioTemporalDomainEditTarget, StudioTemporalInstantProjection } from "@hypit/studio-companion";
 
 export type DomainTarget = StudioTemporalDomainEditTarget;
 

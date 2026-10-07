@@ -1,7 +1,7 @@
-import type { Candidate } from "@hypit/protocol";
-import { sameType } from "@hypit/protocol";
-import type { StudioFilmCompanion } from "@hypit/studio-adapter";
-import { timelineTypes } from "@hypit/timeline";
+import type { Candidate } from "@hypit/hypit/protocol";
+import { sameType } from "@hypit/hypit/protocol";
+import type { StudioFilmCompanion } from "@hypit/studio-companion";
+import { timelineTypes } from "@hypit/hypit/timeline";
 
 import type { CompiledSource } from "./compile.js";
 import type { Placement } from "./observe.js";

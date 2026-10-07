@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { parseStructuredElement } from "@hypit/markup";
 import { audioTrackModuleRef } from "@hypit/audio-track";
-import type { StudioPlacement, StudioEntityDraft, StudioTrackCompanion } from "@hypit/studio-adapter";
-import { audioTrackStudioTrackCompanions } from "../../audio-track-studio/src/index.js";
+import type { StudioPlacement, StudioEntityDraft, StudioTrackCompanion } from "@hypit/studio-companion";
+import { audioTrackStudioTrackCompanions } from "../../audio-track/src/studio.js";
 import { sourceBindingsForDraft, inspectorFieldsForBindings } from "../src/parameters.js";
 import { serializeAttributeGroup, validateParameterValue } from "../src/parameter-values.js";
 

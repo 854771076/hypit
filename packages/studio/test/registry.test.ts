@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { compositionTypes } from "@hypit/composition";
-import type { StudioTrackCompanion } from "@hypit/studio-adapter";
+import type { StudioTrackCompanion } from "@hypit/studio-companion";
 
 import { StudioCompanionRegistry } from "../src/studio-registry.js";
 

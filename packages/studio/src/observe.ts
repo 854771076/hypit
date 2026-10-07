@@ -9,9 +9,9 @@
  */
 import type {
   MarkupSurfaceRegistryLike, RegisteredSurface, StructuredElement, StructuredSurfaceInput, SurfaceDecodeOutput,
-} from "@hypit/markup";
-import type { ModuleRef } from "@hypit/protocol";
-import type { StudioObservedValue, StudioPlacement, StudioTemporalDomainSourceMap } from "@hypit/studio-adapter";
+} from "@hypit/hypit/markup";
+import type { ModuleRef } from "@hypit/hypit/protocol";
+import type { StudioObservedValue, StudioPlacement, StudioTemporalDomainSourceMap } from "@hypit/studio-companion";
 
 import type { Range } from "./shared.js";
 import type { StudioCompanionRegistry } from "./studio-registry.js";

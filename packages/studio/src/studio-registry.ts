@@ -14,17 +14,17 @@ import type {
   StudioTemporalDomainSourceMap,
   StudioSourceBindingDeclaration,
   StudioSpan,
-} from "@hypit/studio-adapter";
-import { studioParameterControls } from "@hypit/studio-adapter";
+} from "@hypit/studio-companion";
+import { studioParameterControls } from "@hypit/studio-companion";
 import { parameterOption } from "./parameter-values.js";
-import { compositionTypes } from "@hypit/composition";
-import { sameModule, sameType } from "@hypit/protocol";
-import type { ModuleRef, TypeRef } from "@hypit/protocol";
+import { compositionTypes } from "@hypit/hypit/composition";
+import { sameModule, sameType } from "@hypit/hypit/protocol";
+import type { ModuleRef, TypeRef } from "@hypit/hypit/protocol";
 
 import type { Placement } from "./observe.js";
 import type { Clip, StudioTrackBinding } from "./shared.js";
 
-export type { StudioEntityDraft, StudioViewRole, StudioSpan } from "@hypit/studio-adapter";
+export type { StudioEntityDraft, StudioViewRole, StudioSpan } from "@hypit/studio-companion";
 
 const flatLane = {
   heightPx: 52,

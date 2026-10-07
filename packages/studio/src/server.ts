@@ -7,9 +7,9 @@ import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
 import type { Plugin, ViteDevServer } from "vite";
-import type { BuildResultFileRange } from "@hypit/build-result";
-import type { StudioTemporalInstantProjection } from "@hypit/studio-adapter";
-import { sameType } from "@hypit/protocol";
+import type { BuildResultFileRange } from "@hypit/hypit/result";
+import type { StudioTemporalInstantProjection } from "@hypit/studio-companion";
+import { sameType } from "@hypit/hypit/protocol";
 
 import type { StudioBuildLibrary } from "./build-library.js";
 import type { ServedFile } from "./compile.js";
@@ -83,7 +83,7 @@ class StudioMutationRejected extends Error {}
 export function studioPlugin(options: StudioPluginOptions): Plugin {
   let snapshot: StudioSnapshot | undefined;
   let visualHtml: string | undefined;
-  let visualDocument: import("@hypit/hyperframes").HyperframesDocument | undefined;
+  let visualDocument: import("@hypit/hypit/html-program").HtmlProgram | undefined;
   let failure: StudioFailure | undefined;
   let material: ReadonlyMap<string, ServedFile> = new Map();
   let revision = 0;

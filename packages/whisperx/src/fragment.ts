@@ -1,10 +1,10 @@
-import { narrativeTypes } from "@hypit/narrative";
-import { narrativeTemporalProducers, narrativeTemporalTypes } from "@hypit/narrative-temporal";
-import { mediaTypes } from "@hypit/media";
-import { sealGraphFragment } from "@hypit/elaborator";
-import { mediaPipelineProducers } from "@hypit/media-pipeline";
-import { speechAlignmentProducers } from "@hypit/speech-alignment";
-import { temporalTypes } from "@hypit/temporal";
+import { narrativeTypes } from "@hypit/hypit/narrative";
+import { narrativeTemporalProducers, narrativeTemporalTypes } from "@hypit/hypit/narrative-temporal";
+import { mediaTypes } from "@hypit/hypit/media";
+import { sealGraphFragment } from "@hypit/hypit/author";
+import { speechEvidenceProducers } from "@hypit/hypit/speech-evidence";
+import { speechAlignmentProducers } from "@hypit/narrative-speech-alignment";
+import { temporalTypes } from "@hypit/hypit/temporal";
 
 import { whisperXProducers, whisperXTypes } from "./manifest.js";
 
@@ -16,7 +16,7 @@ export const whisperXAlignmentFragment = sealGraphFragment({
     { name: "media", type: mediaTypes.synchronized }, { name: "domain", type: temporalTypes.localDomain },
     { name: "language", type: whisperXTypes.language }],
   operations: [
-    { id: "prepare-evidence-audio", producer: mediaPipelineProducers.projectSpeechEvidenceAudio,
+    { id: "prepare-evidence-audio", producer: speechEvidenceProducers.projectAudio,
       inputs: { media: input("media"), domain: input("domain") }, result: { kind: "need", name: "evidenceAudio" } },
     { id: "request-whisperx", producer: whisperXProducers.request,
       inputs: { evidence: operation("prepare-evidence-audio"), language: input("language") }, result: { kind: "need", name: "alignment" } },

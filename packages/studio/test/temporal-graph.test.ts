@@ -75,3 +75,57 @@ test("Studio reads Instant lineage and author authority from executed graph edge
     }],
   });
 });
+
+test("Studio reads author parameter authority declared by the Temporal Spec", () => {
+  const program = [
+    record("timeline", "@hypit/timeline", "Timeline", {
+      id: "main", frameRate: { numerator: 30, denominator: 1 }, frameCount: 100,
+    }),
+    record("point-spec", "@hypit/temporal", "TemporalInstantSpec", {
+      id: "card.activation", subjectId: "card",
+      projection: { ref: "absolute", at: { unit: "frames", value: 42 } },
+      author: { binding: "at", relation: "direct" },
+    }),
+    record("card-spec", "@hypit/depth-stack", "DepthStackCardSpec", { id: "card" }),
+  ];
+  const executed = [
+    record("point", "@hypit/temporal", "TemporalInstant", {
+      id: "card.activation", subjectId: "card", timelineId: "main", frame: 42,
+    }),
+    record("cards", "@hypit/depth-stack", "DepthStackCardSet", { cards: [{ id: "card", activationFrame: 42 }] }),
+    record("track", "@hypit/composition", "VisualTrack", { presents: [] }),
+  ];
+  const steps = [
+    step("project", "@hypit/temporal", "project-program-instant", { timeline: "timeline", spec: "point-spec" }, { instant: "point" }),
+    step("append", "@hypit/depth-stack", "append-depth-stack-card", { set: "empty", spec: "card-spec", activation: "point" }, { set: "cards" }),
+    step("render", "@hypit/depth-stack", "render-depth-stack", { program: "cards" }, { track: "track" }),
+  ];
+  const state = {
+    format: "hypit.build@1",
+    program: { closure: { modules: [] }, records: program },
+    targets: [{ output: "visual" }],
+    plan: {
+      format: "hypit.plan@1", steps,
+      goals: [{ record: "track", type: type("@hypit/composition", "VisualTrack") }],
+      outputBindings: [{ output: "visual", record: "track", type: type("@hypit/composition", "VisualTrack") }],
+    },
+    status: "complete", records: executed, steps: steps.map(({ id }) => ({ id, status: "complete" as const })),
+    needs: [], outstanding: [], diagnostics: [],
+  } as unknown as BuildState;
+
+  const bindings = executedTemporalBindings(state, "visual");
+  assert.equal(bindings.length, 1);
+  assert.deepEqual(bindings[0]?.projection, {
+    kind: "instant",
+    expression: "42f",
+    reference: "absolute",
+    frame: 42,
+    source: {
+      timelineId: "main",
+      type: type("@hypit/timeline", "Timeline"),
+      kind: "timeline",
+      id: "main",
+    },
+    authority: { kind: "parameter", binding: "at", relation: "direct" },
+  });
+});

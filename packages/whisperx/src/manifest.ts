@@ -1,11 +1,10 @@
-import { mediaDependency, mediaTypes } from "@hypit/media";
-import { narrativeDependency, narrativeTypes } from "@hypit/narrative";
-import { narrativeTemporalDependency, narrativeTemporalTypes } from "@hypit/narrative-temporal";
-import { speechEvidenceDependency, speechEvidenceTypes } from "@hypit/speech-evidence";
-import type { CapabilityRef, ModuleManifest, ProducerRef, TypeRef } from "@hypit/protocol";
-import { mediaPipelineManifest, mediaPipelineModuleRef } from "@hypit/media-pipeline";
-import { speechAlignmentModuleRef } from "@hypit/speech-alignment";
-import { temporalDependency, temporalTypes } from "@hypit/temporal";
+import { mediaDependency, mediaTypes } from "@hypit/hypit/media";
+import { narrativeDependency, narrativeTypes } from "@hypit/hypit/narrative";
+import { narrativeTemporalDependency, narrativeTemporalTypes } from "@hypit/hypit/narrative-temporal";
+import { speechEvidenceDependency, speechEvidenceTypes } from "@hypit/hypit/speech-evidence";
+import type { CapabilityRef, ModuleManifest, ProducerRef, TypeRef } from "@hypit/hypit/protocol";
+import { speechAlignmentModuleRef } from "@hypit/narrative-speech-alignment";
+import { temporalDependency, temporalTypes } from "@hypit/hypit/temporal";
 
 export const whisperXModuleRef = { name: "@hypit/whisperx", version: "1" } as const;
 export const whisperXTypes = {
@@ -70,7 +69,6 @@ export const whisperXManifest: ModuleManifest = {
     mediaDependency,
     narrativeDependency,
     narrativeTemporalDependency,
-    { module: mediaPipelineModuleRef },
     { module: speechAlignmentModuleRef },
     temporalDependency,
   ],

@@ -14,13 +14,13 @@ import type {
   StudioTemporalInstantProjection,
   StudioTemporalLineage,
   StudioTimelineGesture,
-} from "@hypit/studio-adapter";
-import { parseSvs } from "@hypit/svs";
-import { parseOpeningTag } from "@hypit/markup";
-import { prepareAuthorSource } from "@hypit/elaborator";
+} from "@hypit/studio-companion";
+import { parseRecipe } from "@hypit/hypit/recipe";
+import { parseOpeningTag } from "@hypit/hypit/markup";
+import { maskSourceHeader, parseSourceHeader } from "@hypit/hypit/source/text";
 import { parameterControlForSchema, parameterRecordSchema } from "./parameter-values.js";
-import { sameType } from "@hypit/protocol";
-import type { CanonicalValue } from "@hypit/protocol";
+import { sameType } from "@hypit/hypit/protocol";
+import type { CanonicalValue } from "@hypit/hypit/protocol";
 
 import type { StudioCompanionRegistry } from "./studio-registry.js";
 
@@ -172,8 +172,8 @@ function recipeParameters(input: {
   const source = sourceFor(input.root, imported.source, input.files, input.current.path);
   if (source === undefined || source.language !== "svs") return [];
   const recipePath = parts.join(".");
-  const prepared = prepareAuthorSource({ id: source.path, name: source.path, text: source.text });
-  const parsed = parseSvs(source.path, prepared.text);
+  const header = parseSourceHeader(source.path, source.text);
+  const parsed = parseRecipe(source.path, maskSourceHeader(source.text, header));
   const recipe = parsed.recipes.find((item) => item.value.path === recipePath);
   if (recipe === undefined) return [];
   return input.recipe.bindings.flatMap((declaration): readonly StudioSourceBinding[] => {
