@@ -6,7 +6,7 @@ import type { Narrative } from "@hypit/narrative";
 import { captionUnitsForNarrativeSelection, projectNarrativeCaptionTiming } from "@hypit/narrative-caption";
 import { captionDocument, narrativeCaptionBinding, narrativeValue, parseScript } from "@hypit/script";
 import { createNarrativeProjection, projectNarrativeAlignment, selectionFrameSpan } from "@hypit/narrative-temporal";
-import { alignNarrative } from "@hypit/speech-alignment";
+import { alignNarrative } from "@hypit/narrative-speech-alignment";
 import type { Timeline } from "@hypit/timeline";
 import { interpretWhisperXTranscript } from "@hypit/whisperx";
 
