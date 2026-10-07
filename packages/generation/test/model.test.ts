@@ -11,7 +11,7 @@ import {
   createExactModelPrimaryGenerationFragment,
   defineExactModelModule,
   plannedExactModelRequest,
-} from "@hypit/model-kit";
+} from "@hypit/generation/model";
 import type { BuildState } from "@hypit/protocol";
 import { sealText } from "@hypit/text";
 
