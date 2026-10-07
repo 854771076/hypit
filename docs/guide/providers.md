@@ -59,12 +59,13 @@ deployment and executing a video Build have separate lifetimes.
 
 ## Add a Model
 
-Develop a project package against `@hypit/hypit/model-kit`, `@hypit/hypit/generation` and `@hypit/hypit/author-kit`.
+Develop a project package against `@hypit/hypit/generation/model`, `@hypit/hypit/generation`,
+`@hypit/hypit/author`, `@hypit/hypit/producer`, `@hypit/hypit/admission` and `@hypit/hypit/markup`.
 Declare the exact request ports, parameter values, result type and capability. Its author Surface
 connects prompt Text and reference media to the request, then publishes the resulting media as a
 normal graph Output.
 
-The [Model SDK](https://github.com/hypit-ai/hypit/blob/main/packages/model-kit/README.md) includes a
+The [Generation Model authoring API](https://github.com/hypit-ai/hypit/blob/main/packages/generation/README.md#exact-model-authoring) includes a
 request definition and explains activation. The package owns the model interface; credentials and
 HTTP mapping belong to the Provider.
 
@@ -73,8 +74,8 @@ HTTP mapping belong to the Provider.
 Use the selected `@hypit/hypit` release as a development dependency and import the public SDK:
 
 ```ts
-import { defineEndpointPackage } from "@hypit/hypit/endpoint-kit";
-import type { AsyncEndpoint, CredentialRef, EndpointRequest } from "@hypit/hypit/endpoint-kit";
+import { defineEndpointPackage } from "@hypit/hypit/endpoint";
+import type { AsyncEndpoint, CredentialRef, EndpointRequest } from "@hypit/hypit/endpoint";
 ```
 
 Implement the exact capabilities and result types the service supports. Map request ports to the
@@ -85,7 +86,7 @@ Concurrency and action limits belong to the Endpoint's resource declarations.
 A genuine failure ends that execution attempt. Build Results preserve completed Outputs and public
 task receipts. Further work uses a new Run and Build with suitable existing Outputs selected for reuse.
 
-The [Endpoint SDK](https://github.com/hypit-ai/hypit/blob/main/packages/endpoint-kit/README.md)
+The [Endpoint SDK](https://github.com/hypit-ai/hypit/blob/main/packages/endpoint/README.md)
 owns the handler interfaces, activation, resource declarations and pricing API. Compile the package
 to JavaScript and install it in the project through its package manager. Configure its Endpoint
 under `endpoints` and select it in `bindings` in the [Runtime Profile](./runtime.md).
