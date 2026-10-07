@@ -84,14 +84,14 @@ retain the chosen settings or merge this fragment if HypiHub is the newly select
 ```json
 {
   "credentials": {
-    "platform": { "use": "@hypit/credential-store-platform" }
+    "local": { "use": "@hypit/credential-store-local" }
   },
   "endpoints": {
     "hypihub.default": {
       "use": "@hypit/provider-hypihub",
       "config": {
         "baseUrl": "https://hypit.ai",
-        "apiKey": { "store": "platform", "key": "hypihub.oauth" }
+        "apiKey": { "store": "local", "key": "hypihub.oauth" }
       }
     }
   }
@@ -176,14 +176,14 @@ its Profile fragment has this shape:
 ```json
 {
   "credentials": {
-    "platform": { "use": "@hypit/credential-store-platform" }
+    "local": { "use": "@hypit/credential-store-local" }
   },
   "endpoints": {
     "videos.personal": {
       "use": "@example/provider-videos",
       "config": {
         "baseUrl": "https://videos.example",
-        "apiKey": { "store": "platform", "key": "videos.personal" }
+        "apiKey": { "store": "local", "key": "videos.personal" }
       }
     }
   },
@@ -250,11 +250,11 @@ silently changing an author's request.
 
 | Public import | Accurate interface owner |
 | --- | --- |
-| `@hypit/hypit/model-kit` | Model ports and Producer/Need construction |
+| `@hypit/hypit/generation/model` | Model ports and Producer/Need construction |
 | `@hypit/hypit/generation` | Generated-media values and request/mapping helpers |
-| `@hypit/hypit/endpoint-kit` | Execution, resources, credentials, support, receipts and capacity |
-| `@hypit/hypit/runtime-kit` | Profile activation, diagnostics and Managed Programs |
-| `@hypit/hypit/author-kit` | Author Module, Surface and Fragment declarations |
+| `@hypit/hypit/endpoint` | Execution, resources, credentials, support, receipts and capacity |
+| `@hypit/runtime-local/extension` | Profile activation, diagnostics and Managed Programs for the official local Runtime |
+| `@hypit/hypit/author`, `producer`, `admission`, `markup` | Author graphs, deterministic Producers, Type admission and Markup Surfaces respectively |
 
 These packages' READMEs ship with the Distribution and own precise APIs. Use the selected
 `@hypit/hypit` release as the extension's development dependency; ship compiled JavaScript and normal

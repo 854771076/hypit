@@ -2,7 +2,7 @@ import { sealVisualTrack } from "@hypit/hypit/composition";
 import type { FrameSpan } from "@hypit/hypit/composition";
 import type { FontArtifactRef } from "@hypit/hypit/media";
 import type { Timeline } from "@hypit/hypit/timeline";
-import { VISUAL_IR_V1 } from "@hypit/hypit/visual-ir";
+import { VISUAL_IR_V1 } from "@hypit/hypit/composition";
 
 // The caller supplies its projected Window, resolved Frame and selected font faces.
 export function renderCard(input: {

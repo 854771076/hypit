@@ -81,7 +81,7 @@ inside its raw body, as described in [Script syntax](script-syntax.md).
 ## Recipes are named values
 
 ```svs
-<?svml using="@hypit/svs@1"?>
+<?svml using="@hypit/recipe@1"?>
 <sheet version="1">
   media.cover {
     fit: cover;
@@ -145,7 +145,7 @@ axes can be added when they express reusable direction; `@hypit/text` owns that 
 For the Text example saved as `main.svml`, beside `direction.svs`:
 
 ```svml
-<?svml using="@hypit/run-markup@1"?>
+<?svml using="@hypit/markup/run@1"?>
 <svrun version="1">
   <author source="./main.svml"/>
   <target output="prompt"/>
