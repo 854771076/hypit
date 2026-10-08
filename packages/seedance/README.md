@@ -82,9 +82,8 @@ reference classification explicitly; if its contents are uncertain, generate and
 material before using it downstream.
 
 Direct requests require the same boolean in `fields.personReference`. Providers interpret it through
-their service's media handling; it is not a prompt sentence or a Core-level identity. HypiHub sends it as
-`is_person_reference` when uploading the file, then uses the returned URL in the ordinary video
-request. A project Provider maps it according to its own API.
+their service's media handling; it is not a prompt sentence or a Core-level identity. A Provider maps
+it according to its own upload and request API.
 
 Video references can carry motion or camera behavior while image references carry the target
 appearance. Request duration and reference-clip duration are different limits. Check the selected

@@ -60,9 +60,9 @@ provides the words and their timing so the Agent can relate the picture to what 
 If it needs preparation, the Agent explains the local effort and hosted option before you choose.
 Cached weights can reduce setup time; they do not choose a service for you.
 
-[HypiHub](https://hypit.ai) offers hosted WhisperX and image, video and voice models through one
-account. You can also use your own keys through existing or project-written Providers, and combine
-local and hosted capabilities. The Agent connects what the next part of the work needs, explains
+[Linghu Studio](https://ai-short-studio.vvicat.dev/en) exposes the image and video models in
+the user's configured catalogue; StarRouter and RunningHub provide their documented video routes.
+WhisperX can run through the bundled local Provider. The Agent connects what the next part of the work needs, explains
 progress and shows its reference understanding before developing the material plan. Generation
 accounts can be chosen when that plan establishes the models you need.
 
@@ -78,7 +78,7 @@ estimated cost, including anything still unknown. Agree on the scope and budget;
 that agreement can then proceed together. A change of account, scope or budget gives you a new decision.
 
 ```text
-Use my HypiHub account for this video, within the budget we agreed. Go ahead.
+Use my Linghu Studio project for this video, within the scope we agreed. Go ahead.
 ```
 
 The Agent prepares the script, performance direction and image references to get the material right

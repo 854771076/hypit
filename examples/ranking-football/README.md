@@ -24,7 +24,7 @@ parody UI. It does not automatically inherit the host's iPhone capture paragraph
 
 ## Work with the example
 
-The example Profiles use local media/rendering and HypiHub for hosted capabilities. They illustrate
+The example Profiles use local media/rendering and StarRouter for hosted capabilities. They illustrate
 execution choices; connect the intended account or select project Providers before paid work.
 Existing production projects can retain their own Providers independently of these example defaults.
 

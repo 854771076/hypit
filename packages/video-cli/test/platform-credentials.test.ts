@@ -29,7 +29,7 @@ test("the interview example authenticates on Linux, without editing its Profile"
       cwd: project, env: { ...process.env, HYPIT_STATE_HOME: state }, timeout: 60_000, windowsHide: true,
     });
     const auth = (action: string, ...args: string[]) =>
-      run("auth", action, "hypihub.default", "--runtime", profile, ...args);
+      run("auth", action, "starrouter.default", "--runtime", profile, ...args);
 
     const before = JSON.parse((await auth("status")).stdout).credentials[0];
     assert.equal(before.configured, false, "the committed Profile opens, so nothing here rewrites it");
@@ -64,16 +64,16 @@ test("the Profile runtime init writes authenticates on Linux, without editing it
       "a starter that selects a Store Linux cannot open fails every command that follows");
 
     // Everything below resolves the Profile the starter just wrote and selected, with no flags.
-    const status = async () => JSON.parse((await run("auth", "status", "hypihub.default")).stdout).credentials[0];
+    const status = async () => JSON.parse((await run("auth", "status", "starrouter.default")).stdout).credentials[0];
     assert.equal((await status()).configured, false);
     assert.equal((await status()).writable, true);
     const input = join(root, "secret.txt");
     await writeFile(input, "starter-secret-never-displayed");
-    const login = await run("auth", "login", "hypihub.default", "--from", input);
+    const login = await run("auth", "login", "starrouter.default", "--from", input);
     assert.doesNotMatch(login.stdout, /starter-secret-never-displayed/u);
     assert.equal((await status()).configured, true);
     assert.equal((await readdir(join(state, "credentials"))).length, 1);
-    await run("auth", "logout", "hypihub.default");
+    await run("auth", "logout", "starrouter.default");
     assert.equal((await status()).configured, false);
     assert.deepEqual(await readdir(join(state, "credentials")), []);
   });

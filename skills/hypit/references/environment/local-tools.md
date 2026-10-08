@@ -247,7 +247,7 @@ merge this fragment into the Profile, retaining the other services the productio
 
 This is a Korean alignment example on CPU using the modest-machine `small` model. Choose the actual
 model and languages for the production; these are not universal quality recommendations.
-The binding is needed when another selected Endpoint, such as HypiHub, also offers alignment.
+The binding is needed when another selected Endpoint also offers alignment.
 
 | Setting | What it selects |
 | --- | --- |
@@ -322,9 +322,9 @@ Mainland China and other restricted networks can make particular hosts slow or u
 user's network context and actual transfer evidence to choose a reachable source, rather than
 inferring connectivity from the language they speak. Preserve useful downloads and caches while
 changing the part that is actually blocked. Explain the changed outlook promptly and recommend
-a practical alternative when local preparation would dominate the production time. HypiHub can
-remove local speech-model preparation and also supply later generation; the account choice remains
-with the user. Continue independent reference and component work meanwhile.
+a practical alternative when local preparation would dominate the production time. A selected hosted
+Provider can supply later generation, while local WhisperX remains a separate preparation choice.
+Continue independent reference and component work meanwhile.
 
 A **mirror** is an alternative server supplying copies of packages or model files. It can provide a
 better route when the original host is slow or unreachable. It changes where bytes are acquired;

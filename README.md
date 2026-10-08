@@ -66,8 +66,8 @@ This installs the Skill. On first use, your agent checks for the Hypit executabl
 it if needed. Your video project can live anywhere.
 
 Hypit is free to use; your Coding Agent and model services have their own accounts and charges.
-HypiHub is our recommended hosted model service. You can also use your own API or local models;
-tell your agent the service name and API documentation so it can set up the appropriate connection.
+The bundled hosted routes are Linghu Studio, StarRouter and RunningHub. You can also use local models
+or connect another API through a project Provider.
 
 [Agent environments and entry partners](./docs/guide/agents.md) ·
 [Model and deployment services](./docs/guide/service-partners.md)
@@ -230,17 +230,6 @@ commands and the repository layout.
   </tr>
   <tr>
     <td width="220" align="center">
-      <a href="https://tokendance.space/?utm_source=hypit">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="./docs/public/tokendance-dark.png">
-          <img alt="TokenDance" src="./docs/public/tokendance-light.png" width="165">
-        </picture>
-      </a>
-    </td>
-    <td><a href="https://tokendance.space/?utm_source=hypit">TokenDance</a> offers builders a unified multi-model gateway with optimized inference costs. Through programs like the Billion-Token Subsidy and the Developer Program, TokenDance helps early-stage builders cut costs so they can focus on product validation and growth.</td>
-  </tr>
-  <tr>
-    <td width="220" align="center">
       <a href="https://autoclaw.z.ai"><img alt="AutoClaw" src="./docs/public/autoclaw.png" width="180"></a>
     </td>
     <td><a href="https://autoclaw.z.ai">AutoClaw</a> is Z.ai’s desktop AI assistant for work, deeply optimized for GLM models and integrated with specialized knowledge bases and workflows for legal, finance, design, and more.</td>
@@ -250,35 +239,6 @@ commands and the repository layout.
       <a href="https://openagents.org/blog/posts/2026-09-08-pilot-user-program-zh-hypit"><img alt="OpenAgents" src="./docs/public/openagents.png" width="180"></a>
     </td>
     <td><a href="https://openagents.org">OpenAgents Workspace</a> is a product that helps you manage AI agents, allowing you to invoke agents running on any device (whether on a mobile phone or computer) anytime, anywhere. Agents can collaborate within the platform to help you complete tasks and boost efficiency. It currently supports integration with over 20 types of agents, including Claude, Codex, OpenClaw, and Hermes.</td>
-  </tr>
-  <tr>
-    <td width="220" align="center">
-      <a href="https://monid.ai?fpr=alvin-45480b">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="./docs/public/monid-logo-white.svg">
-          <img alt="Monid" src="./docs/public/monid-logo-blue.svg" width="150">
-        </picture>
-      </a>
-    </td>
-    <td><a href="https://monid.ai?fpr=alvin-45480b">Monid</a> is the OpenRouter for agent tools: one key, one wallet, hundreds of tools, billed per call. Hypit can route Seedance video, images, speech and word-level transcription to Monid.</td>
-  </tr>
-  <tr>
-    <td width="220" align="center">
-      <a href="https://www.hiapi.ai/invite/hypit"><img alt="HiAPI" src="./docs/public/hiapi.png" width="165"></a>
-    </td>
-    <td><a href="https://www.hiapi.ai/invite/hypit">HiAPI</a> is a unified API platform for AI image, video, audio, and language models. Connect GPT Image 2.5, Seedance 2.0, Veo 3.1, Kling, Wan, and other popular models through one platform. Pay as you go with no monthly fee, with free trial credits available for new users.</td>
-  </tr>
-  <tr>
-    <td width="220" align="center">
-      <a href="https://api.pollo.ai/?utm_source=hypit"><img alt="Pollo API" src="./docs/public/pollo.jpg" width="120"></a>
-    </td>
-    <td><a href="https://api.pollo.ai/?utm_source=hypit">Pollo API</a> gives developers access to 300+ AI image and video models through a single API, with competitive rates. One API key connects you to multiple model providers and scales from 10 to 10,000+ requests.</td>
-  </tr>
-  <tr>
-    <td width="220" align="center">
-      <a href="https://beatapi.io/sign-up?aff=hypit"><img alt="BeatAPI" src="./docs/public/beatapi.png" width="165"></a>
-    </td>
-    <td><a href="https://beatapi.io/sign-up?aff=hypit">BeatAPI</a> is the professional capability layer for any agent. We provide AI models, real-world data, task-ready capabilities, and professional workspaces that help agents complete real-world tasks.</td>
   </tr>
 </table>
 

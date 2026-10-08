@@ -857,7 +857,7 @@ function commandHelp(topic: string, colors: Palette): readonly string[] | undefi
       "All runtime actions accept --workspace <project>; operational actions also accept --runtime <profile>.",
       "For up, repeat --endpoint <instance> to prepare only chosen services; omission prepares the Profile.",
       "No Profile filename discovery or parent-project inheritance is performed.",
-      "Remote Endpoints such as HypiHub are not started by this command; use doctor to test them.",
+      "Remote Endpoints are not started by this command; use doctor to test them.",
     ],
     packages: [
       colors.accent(colors.strong("hypit packages")),

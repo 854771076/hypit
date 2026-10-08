@@ -139,7 +139,7 @@ and platform rules, including filesystem permissions.
 To select a Store explicitly, name it under `credentials` and use that name in the Endpoint's
 credential reference. A credential-free Endpoint needs no auth command; prepare its tools directly.
 
-For example, these are the Store declaration and credential reference used by a HypiHub Endpoint:
+For example, these are the Store declaration and credential reference used by a Linghu Studio Endpoint:
 
 ```json
 {
@@ -147,10 +147,13 @@ For example, these are the Store declaration and credential reference used by a 
     "platform": { "use": "@hypit/credential-store-platform" }
   },
   "endpoints": {
-    "hypihub.default": {
-      "use": "@hypit/provider-hypihub",
+    "linghu-studio.default": {
+      "use": "@hypit/provider-linghu-studio",
+      "pool": "linghu-studio.default",
       "config": {
-        "apiKey": { "store": "platform", "key": "hypihub.oauth" }
+        "apiKey": { "store": "platform", "key": "linghu-studio.api-key" },
+        "projectId": "project-id",
+        "models": { "@hypit/seedance@1#seedance-2": "catalogue-model-key" }
       }
     }
   }
@@ -160,7 +163,7 @@ For example, these are the Store declaration and credential reference used by a 
 After the user has chosen that account connection:
 
 ```bash
-hypit auth login hypihub.default
+hypit auth login linghu-studio.default
 ```
 
 A Provider declaring browser acquisition uses that flow immediately. Otherwise, a writable Store
@@ -178,20 +181,23 @@ selected Endpoint's credential reference accordingly:
     "env": { "use": "@hypit/credential-store-env" }
   },
   "endpoints": {
-    "hypihub.default": {
-      "use": "@hypit/provider-hypihub",
+    "linghu-studio.default": {
+      "use": "@hypit/provider-linghu-studio",
+      "pool": "linghu-studio.default",
       "config": {
-        "apiKey": { "store": "env", "key": "HYPIT_HUB_API_KEY" }
+        "apiKey": { "store": "env", "key": "LINGHU_STUDIO_API_KEY" },
+        "projectId": "project-id",
+        "models": { "@hypit/seedance@1#seedance-2": "catalogue-model-key" }
       }
     }
   }
 }
 ```
 
-Here `HYPIT_HUB_API_KEY` is the explicitly selected variable name. Supply it securely to both
+Here `LINGHU_STUDIO_API_KEY` is the explicitly selected variable name. Supply it securely to both
 the CLI commands that need it and the Worker process at startup. `auth login` cannot write an
 environment Store. Changing a terminal's environment does not change an already running Worker.
-Other services use their own Endpoint, credential slot and variable, not this HypiHub example.
+Other services use their own Endpoint, credential slot and variable, not this Linghu Studio example.
 
 Use distinct Endpoint names and credential keys for separate accounts. Binding selects which one
 serves the requested capability; entering another service's key does not change the Provider.

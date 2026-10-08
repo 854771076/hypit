@@ -8,7 +8,7 @@ several candidate previews; the Surface exposes the primary member of the shared
 as `<id>.reference`.
 
 It contains no API URL, credential, retry, queue or ElevenLabs wire encoding. Those belong to a
-Runtime Endpoint such as `@hypit/provider-hypihub`.
+Runtime Endpoint that implements the exact voice-design capability.
 
 ```xml
 <import as="eleven" from="@hypit/elevenlabs-speech@1"/>

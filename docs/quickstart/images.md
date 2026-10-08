@@ -102,7 +102,7 @@ rather than in a box.
 
 For a presenter over another picture, process the generated or supplied video with
 [`@hypit/volcengine-matting`](https://github.com/hypit-ai/hypit/blob/main/packages/volcengine-matting/README.md),
-served by a supporting HypiHub Endpoint:
+served by a project Endpoint that implements this capability:
 
 ```svml
 <import as="matte" from="@hypit/volcengine-matting@1"/>

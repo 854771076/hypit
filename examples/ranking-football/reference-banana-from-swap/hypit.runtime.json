@@ -27,12 +27,12 @@
         "defaultConcurrency": 1
       }
     },
-    "hypihub.default": {
-      "use": "@hypit/provider-hypihub",
+    "starrouter.default": {
+      "use": "@hypit/provider-starrouter",
       "config": {
         "apiKey": {
           "store": "platform",
-          "key": "hypihub.default"
+          "key": "starrouter.api-key"
         }
       }
     }

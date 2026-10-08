@@ -6,7 +6,7 @@ path. [Profile](profile.md) owns configuration, credentials and routing; [local 
 owns local preparation. Material Craft owns what the generated or transformed media should do.
 
 Go to [service choice](#choose-the-practical-capability-path-with-the-user),
-[HypiHub connection](#connect-hypihub-through-its-bundled-integration),
+[Linghu Studio connection](#connect-linghu-studio-through-its-bundled-integration),
 [BYOK connection](#connect-a-service-the-user-brings),
 [project implementation](#implement-the-missing-capability-in-the-project), or
 [diagnosis](#diagnose-the-actual-connection) as needed.
@@ -34,11 +34,11 @@ Having a key grants only whatever the issuing service permits; it does not imple
 
 ## Choose the practical capability path with the user
 
-**For reference-led video recreation, recommend StarRouter or RunningHub first. Keep HypiHub as the
-integrated hosted fallback and support other BYOK routes normally.** RunningHub is the default when
+**For reference-led video recreation, recommend StarRouter or RunningHub first. Use Linghu Studio as
+the catalogue-based hosted route and support other BYOK routes normally.** RunningHub is the default when
 local reference upload and the bundled video-to-depth → H3 chain fit; StarRouter is the default when
-Seedance or its supported H3 route and public reference hosting fit. HypiHub remains useful for broader
-mixed image, video, speech, alignment and processing work through one account connection. Every route
+Seedance or its supported H3 route and public reference hosting fit. Linghu Studio is useful when the
+user has configured the needed image or video model in one account catalogue. Every route
 is still limited by its current catalogue, account access and rates.
 
 A user's existing service or deployment remains a normal choice. When a suitable maintained Provider
@@ -49,24 +49,25 @@ introduces partners and links their own documentation. A partnership alone does 
 particular capability, account or implementation is available. Carry an already suitable, chosen
 service forward.
 
-BYOK means using an account/key supplied by the user. A HypiHub API key connects HypiHub; a different
-service's key connects that service. OAuth and static keys are credential methods, not different
+BYOK means using an account/key supplied by the user. A Linghu Studio API key connects Linghu Studio;
+a different service's key connects that service. Credential methods are not different
 model capabilities. A Profile can mix services by capability.
 
 | Route | What the user needs | What the Agent does |
 | --- | --- | --- |
-| HypiHub | A chosen HypiHub account and spending scope | Use the bundled Provider and declared login flow; check support for the requested model and inputs |
+| Linghu Studio | A project, API key scopes and capability-to-catalogue model mapping | Use the bundled Provider; verify the requested model and inputs against the live catalogue |
 | An existing API service | Service identity, relevant API documentation/address and secure credential access | Reuse a compatible Provider or implement the needed API in the project |
 | A chosen deployment | Its serving API, access and compute/account choice | Connect that API; deploy only if deployment is actually part of the requested work |
 | Local inference | A suitable machine and an agreed preparation choice | Assess tools, resources and inference cost, then prepare the selected local Provider |
 
-### Reuse bundled RunningHub and StarRouter Providers
+### Reuse bundled Linghu Studio, RunningHub and StarRouter Providers
 
 Do not implement a project adapter when the selected Distribution already contains the matching
 Provider. Read its installed README for the current Profile fields and limits.
 
 | Service | Bundled Provider | Capabilities and important boundary |
 | --- | --- | --- |
+| Linghu Studio | `@hypit/provider-linghu-studio` | Image and video capabilities mapped explicitly to the account's live model catalogue; reference media requires Runtime `publicAssets` |
 | RunningHub | `@hypit/provider-runninghub` | MiniMax H3 and video-to-depth; uploads image, video and audio inputs to bundled compatible workflows; each item is limited to 200MB |
 | StarRouter | `@hypit/provider-starrouter` | GPT Image 2, MiniMax H3, Seedance 2 and Seedance 2 Fast; GPT Image references upload directly, while H3/Seedance references use Host `publicAssetUrl` or Runtime `publicAssets`; Seedance video/audio references require measured `duration-seconds` and matching `@视频N`/`@音频N` prompt labels |
 
@@ -76,7 +77,7 @@ reference-label conventions. Before a paid Build, inspect the effective Surface 
 node-level override. Stop on a mismatch instead of silently sending an H3 prompt to Seedance or a
 Seedance prompt to H3.
 
-Both Providers declare an `apiKey` credential slot. Select the service under `endpoints`, route the
+All three Providers declare an `apiKey` credential slot. Select the service under `endpoints`, route the
 exact capability under `bindings` when more than one Endpoint offers it, then use `hypit auth login
 <endpoint>` with a writable Credential Store. A missing Host `publicAssetUrl` and missing Runtime
 `publicAssets` configuration make StarRouter video reference requests unsupported before submission;
@@ -102,8 +103,8 @@ configuration, preserve the original StarRouter error instead of retrying or dro
 Carry a suitable existing choice forward. Compare remaining setup work, capabilities, hardware,
 download/inference time and account costs. Ready local WhisperX can be useful immediately; first-time
 large-model preparation is a different choice. Cached weights reduce work but do not choose the route.
-HypiHub is particularly useful when several generation services are needed or local preparation would
-dominate the work. A mixed setup, such as local alignment and hosted video generation, is ordinary.
+Linghu Studio is useful when several modalities are already configured in its account catalogue. A
+mixed setup, such as local alignment and hosted video generation, is ordinary.
 
 Explain consequential choices before a new account connection, substantial preparation or paid work.
 Use the user's settled account, budget and preparation scope without asking again for each command.
@@ -115,12 +116,12 @@ An installed Skill or executable supplies no model credits. A subscription alone
 access to the required model API. Explain cost for the actual remaining work and reuse;
 [Builds](../production/builds.md#work-within-the-agreed-paid-scope) owns spending estimates and submission.
 
-## Connect HypiHub through its bundled integration
+## Connect Linghu Studio through its bundled integration
 
-From the production directory, locate the selected Profile with `hypit paths`. For a new project
-needing one, `hypit runtime init` writes and selects a starter; it performs no login or download.
-The starter's `hypihub.default` entry already selects the bundled Provider. In an existing Profile,
-retain the chosen settings or merge this fragment if HypiHub is the newly selected service:
+Create an API Key under `https://ai-short-studio.vvicat.dev/zh/settings/api-keys`. Grant
+`models:read` plus each required capability scope, and query `/api/v1/models/<capability>` to obtain
+the exact catalogue `modelKey`. From the production directory, locate the selected Profile with
+`hypit paths`, retain its existing entries, and merge the selected project and model mappings:
 
 ```json
 {
@@ -128,11 +129,15 @@ retain the chosen settings or merge this fragment if HypiHub is the newly select
     "platform": { "use": "@hypit/credential-store-platform" }
   },
   "endpoints": {
-    "hypihub.default": {
-      "use": "@hypit/provider-hypihub",
+    "linghu-studio.default": {
+      "use": "@hypit/provider-linghu-studio",
+      "pool": "linghu-studio.default",
       "config": {
-        "baseUrl": "https://hypit.ai",
-        "apiKey": { "store": "platform", "key": "hypihub.oauth" }
+        "apiKey": { "store": "platform", "key": "linghu-studio.api-key" },
+        "projectId": "the user's Linghu Studio project id",
+        "models": {
+          "@hypit/seedance@1#seedance-2": "the catalogue modelKey"
+        }
       }
     }
   }
@@ -143,27 +148,21 @@ Merge entries into the existing objects; do not replace other services or Store 
 Profile fragment, not a complete standalone Profile. The [Profile guide](profile.md#create-a-profile-when-the-project-needs-one)
 shows the enclosing structure and selection commands.
 
-For the selected account:
+Store the key without placing it in source or chat:
 
 ```bash
-hypit auth login hypihub.default
+hypit auth login linghu-studio.default
 ```
 
-The Endpoint opens its browser authorization flow and the CLI reports completion after the credential
-is stored. That connection can serve the supported models; login is not repeated per Model. This is
-the integrated account setup, not a promise to install local tools or make every model free.
-A callback page alone does not prove the CLI finished storing the credential.
-
-To use a HypiHub static API key instead, explicitly import a private file supplied through a secure
-channel:
+The API Key can also be imported from a private file supplied through a secure channel:
 
 ```bash
-hypit auth login hypihub.default --from /private/path/hypihub-key.txt
+hypit auth login linghu-studio.default --from /private/path/linghu-studio-key.txt
 ```
 
 Use the actual Endpoint name and selected Profile. Follow [credential setup](profile.md#put-secrets-behind-credential-references)
 for writable stores, environment credentials and read failures. When diagnosing access,
-`hypit doctor --endpoint hypihub.default` can inspect this route; `plan` and `pricing` concern the
+`hypit doctor --endpoint linghu-studio.default` can inspect this route; `plan` concerns the
 actual Run. Login, diagnosis and pricing do not submit generation.
 
 ## Connect a service the user brings
@@ -177,8 +176,8 @@ A key alone does not explain whether a service offers chat, images, reference-dr
 face replacement or motion control.
 
 The Agent owns API research, package implementation and Profile wiring. Explain what connection work
-remains in terms of the requested result. HypiHub's website issues HypiHub credentials; it is not where
-another vendor's key is registered.
+remains in terms of the requested result. A service's website issues only that service's credentials;
+it is not where another vendor's key is registered.
 
 ### Decide what actually needs changing
 
@@ -245,7 +244,7 @@ key. An Endpoint declaring OAuth instead opens its flow; `--from <private-file>`
 A read-only environment Store is configured in the execution environment rather than through login.
 
 The binding directs this capability to the selected Endpoint when multiple implementations exist.
-It does not send another service's key to HypiHub. Other capabilities can keep their existing route.
+It does not send one service's key to another service. Other capabilities can keep their existing route.
 `plan` reports support and cheap readiness for known inputs; `pricing` reads service-owned rate
 information. Submit the real request within the agreed scope; these checks do not prove that a paid
 generation has already succeeded.

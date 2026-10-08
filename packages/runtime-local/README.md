@@ -111,7 +111,7 @@ The Worker yields to sockets and timers between graph reads. Resource waiters ar
 becomes available; known Operations are polled from their own lightweight records. Graph hydration is
 serialized, while network actions and local work remain concurrent under their declared limits.
 
-HypiHub can be the explicitly selected gateway for users without their own service keys. A bound
+Linghu Studio, StarRouter or RunningHub can be the explicitly selected gateway. A bound
 Provider's authentication, quota or transport error never changes that selection. Separate accounts use separate pools even when they implement the same model.
 
 Without `hypit.results.json`, the official video Distribution selects the filesystem adapter at the

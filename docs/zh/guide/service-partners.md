@@ -1,78 +1,32 @@
 ---
 title: 模型与部署服务
-description: 托管模型 API、自有模型部署，以及独立服务合作方。
+description: 内置模型 API Provider 与自有模型部署。
 ---
 
-根据视频需要的素材选择服务。这与[在哪个 Agent 中工作](./agents.md)是不同的选择。
+根据作品需要的模型和参考素材选择服务。这与[在哪个 Agent 中工作](./agents.md)是不同的选择。发行包内置灵狐工作室、StarRouter 与 RunningHub 三个第三方模型 Provider；本地媒体、渲染和转写 Provider 不受影响。
 
-HypiHub 是 Hypit 推荐的集成托管服务，提供已支持的生成与 WhisperX 能力，Provider 随 Hypit
-维护。本地能力仍可通过本地 Provider 使用，用户自己的服务通过项目 Provider 接入。
+这些服务各自拥有独立账户、条款、价格与模型可用性。Hypit 的制作计划只展示将使用的 Provider 和请求，不代替服务商账户的额度管理。
 
-下方“模型与工具 API 合作方”章节中的合作方是独立服务，各有自己的账户、条款、价格、模型可用性和 API。
-合作关系提供一个了解服务的入口，不共用 HypiHub 账户。
-发行包为下面每个服务内置了一个使用 API Key 的 Provider，覆盖该服务提供的已安装模型，
-并按该服务的输入限制报告不支持的请求；具体清单见各 Provider 的 README。
-服务提供、但不在这个范围内的模型，通过普通的 [Model 与 Provider](./providers.md) 扩展方式连接。
+## 灵狐工作室
 
-## 模型与工具 API 合作方
+[`@hypit/provider-linghu-studio`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-linghu-studio/README.md) 通过[灵狐工作室](https://ai-short-studio.vvicat.dev/zh) Model API 调用当前账户模型目录中的图片和视频模型。
 
-### TokenDance
+需要先在[设置 → API Keys](https://ai-short-studio.vvicat.dev/zh/settings/api-keys)创建以 `vvk_` 开头的 API Key，并授予 `models:read` 及实际使用的 `models:image`、`models:video` 权限。完整的 `projectId`、模型映射、凭据和参考素材配置见 [Provider README](https://github.com/hypit-ai/hypit/blob/main/packages/provider-linghu-studio/README.md)。
 
-[TokenDance](https://tokendance.space) 是多模型网关。
-[`@hypit/provider-tokendance`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-tokendance/README.md)
-按 TokenDance 文档中的方舟与 MiniMax 协议提供 Seedance 2.0、2.5 系列、Seedream 5.0 lite 和 MiniMax H3。
-其他模型见它的[文档索引](https://tokendance.space/llms.txt)和实时模型目录。
+## RunningHub
 
-### HiAPI
+[`@hypit/provider-runninghub`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-runninghub/README.md) 通过兼容的 RunningHub 工作流提供 MiniMax H3 和视频转深度，并上传图片、视频和音频素材。每项上传素材上限为 200MB。
 
-[HiAPI](https://www.hiapi.ai) 通过一个异步任务接口提供图片、视频和音频模型。
-[`@hypit/provider-hiapi`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-hiapi/README.md)
-提供发行包已描述的 Seedance、Seedream 5.0 lite、MiniMax H3、GPT Image 2、Nano Banana 和 Grok Imagine 模型。
-其余模型见它的[模型索引](https://www.hiapi.ai/docs/models.json)。
+## StarRouter
 
-### Pollo
+[`@hypit/provider-starrouter`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-starrouter/README.md) 提供 GPT Image 2、MiniMax H3、Seedance 2 和 Seedance 2 Fast。参考素材可使用 Runtime Profile 中的 S3 兼容 `publicAssets` 对象存储发布；Seedance 2 人物图还可选用 BytePlus Ark 素材审核链路。
 
-[Pollo AI](https://docs.pollo.ai) 按模型路径提供视频和图片生成。
-[`@hypit/provider-pollo`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-pollo/README.md)
-提供 MiniMax H3、Grok Imagine 1.5、GPT Image 2 和 Nano Banana。
-Pollo 只接受公网 URL 形式的参考素材，带参考素材的请求需要由嵌入方提供 URL。
+## 本地 Provider
 
-### BeatAPI
-
-[BeatAPI](https://docs.beatapi.io/quick-guide) 通过一个异步任务接口提供视频和图片模型。
-[`@hypit/provider-beatapi`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-beatapi/README.md)
-提供 Seedance 2.0、2.5 系列、MiniMax H3、Grok Imagine 1.5、GPT Image 2 和 Nano Banana，
-并通过 BeatAPI 的文件接口上传参考素材。
-其余模型见它的[视频](https://docs.beatapi.io/video-api)与[图片](https://docs.beatapi.io/image-api)模型索引。
-
-### Monid
-
-[Monid](https://monid.ai) 是 Hypit 的服务合作方。
-[它的文档](https://monid.ai/docs)介绍了工具发现、输入与价格查询，以及调用方式。
-[`@hypit/provider-monid`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-monid/README.md)
-提供 Seedance 2.0、2.5 系列端点、MiniMax H3 与 Wan 2.7 图像模型，并通过 Monid 的工作区文件系统上传参考素材。
-使用 Monid 的其他工具时，[HTTP API 文档](https://monid.ai/docs/api/overview)提供接入依据，
-Agent 可以在项目包中实现这次所需的请求与结果映射。
-
-## 其他内置 BYOK Provider
-
-以下内置接入不表示服务合作关系，使用用户在对应服务的独立账户和 API Key。
-
-### RunningHub
-
-[`@hypit/provider-runninghub`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-runninghub/README.md)
-通过兼容的 RunningHub 工作流提供 MiniMax H3 和视频转深度，并上传图片、视频和音频素材。每项上传素材上限为 200MB。
-
-### StarRouter
-
-[`@hypit/provider-starrouter`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-starrouter/README.md)
-提供 GPT Image 2、MiniMax H3、Seedance 2 和 Seedance 2 Fast。GPT Image 参考图可直接上传；Runtime Profile 可配置 S3 兼容的 `publicAssets` 对象存储，使 H3 与 Seedance 的图片、视频、音频参考在原生 Build 生命周期内发布，不再由插件侧厂商脚本提交。Seedance 2 人物图可选用 BytePlus Ark 素材审核：当 StarRouter 返回已知的隐私或取图错误时审核素材并重试一次；Endpoint 需要单独配置 BytePlus 凭据和素材组。
+本地媒体处理、HyperFrames 渲染、OpenCV 图像处理和 WhisperX 转写继续作为发行包能力使用。它们不是第三方模型商，不需要上述服务的 API Key。
 
 ## 自己部署模型
 
-部署平台提供运行模型的地方，部署得到的推理服务沿用 Model–Provider–Endpoint 的关系接入。
-完整协议兼容时复用 Provider，否则在项目包中实现该服务的 API。算力和部署费用属于所选云账户，
-HypiHub 额度不支付这份部署。
+自有推理服务仍沿用 Model–Provider–Endpoint 关系接入。协议完全兼容时复用现有 Provider，否则在项目包中实现对应的请求与结果映射。算力和部署费用属于所选云账户。
 
-[使用自有模型部署](./providers.md#使用自有模型部署)说明自己管理服务环境时需要处理什么。
-没有合作关系、没有官方内置 Provider，也可以使用一份合适的部署。
+[使用自有模型部署](./providers.md#使用自有模型部署)说明自己管理服务环境时需要处理的配置。

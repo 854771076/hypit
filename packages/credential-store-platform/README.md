@@ -17,11 +17,10 @@ remain selectable directly for a deployment with a different storage choice.
     "platform": { "use": "@hypit/credential-store-platform" }
   },
   "endpoints": {
-    "hypihub.default": {
-      "use": "@hypit/provider-hypihub",
+    "starrouter.default": {
+      "use": "@hypit/provider-starrouter",
       "config": {
-        "baseUrl": "https://hypit.ai",
-        "apiKey": { "store": "platform", "key": "hypihub.oauth" }
+        "apiKey": { "store": "platform", "key": "starrouter.api-key" }
       }
     }
   }
@@ -31,9 +30,9 @@ remain selectable directly for a deployment with a different storage choice.
 The Endpoint still owns its acquisition flow and the Store only persists the result:
 
 ```bash
-hypit auth login hypihub.default --runtime <profile>
-hypit auth status hypihub.default --runtime <profile>
-hypit auth logout hypihub.default --runtime <profile>
+hypit auth login starrouter.default --runtime <profile>
+hypit auth status starrouter.default --runtime <profile>
+hypit auth logout starrouter.default --runtime <profile>
 ```
 
 ## What it does not do

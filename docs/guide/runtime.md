@@ -30,9 +30,8 @@ hypit runtime init
 
 `runtime init` writes an editable starter `hypit.runtime.json` and selects it through the project's
 `.hypit/runtime` file. It preserves an existing Profile and performs no installation, login or execution.
-The starter offers HypiHub for hosted generation and WhisperX, with local media processing and rendering.
-Choose the services that fit the work before preparing them. Local inference and project Providers can
-use the same setup, including alongside HypiHub.
+The starter contains StarRouter plus local media processing and rendering. Keep it when selected, or
+replace it with Linghu Studio or RunningHub. Local inference and project Providers use the same setup.
 
 Use `hypit runtime use <profile>` to select an existing Profile. An explicit `--runtime <profile>`
 overrides it for one invocation. Commands read only the selected project's pointer; they do not inherit
@@ -86,8 +85,8 @@ To prepare resources without starting a helper or Worker, use
 checking a configuration or diagnosing a failure. These are available tools, not a required sequence.
 
 Local media processing declares no credentials. For a chosen service that declares credential slots,
-inspect those separately with `hypit auth status <endpoint>`. For example, after choosing HypiHub,
-use `hypit auth status hypihub.default` and connect the account with `hypit auth login hypihub.default`
+inspect those separately with `hypit auth status <endpoint>`. For example, after choosing Linghu Studio,
+use `hypit auth status linghu-studio.default` and connect the account with `hypit auth login linghu-studio.default`
 when needed.
 
 Use the actual Endpoint names from the Profile; repeat `--endpoint` for several. Omission covers the

@@ -39,7 +39,7 @@ entrances, exits and timing against the intended effect.
 You decide the goal, private facts, service accounts and spending. The Agent checks relevant existing
 capabilities and explains the choices when something is missing. For a spoken reference, that can
 mean preparing local WhisperX or choosing hosted transcription; image and video generation can use
-supported services with your own keys or a HypiHub account.
+supported services with your own Linghu Studio, StarRouter or RunningHub keys.
 
 Before paid work, agree on the account, scope and budget using the available pricing information.
 The Agent handles ordinary creative and technical decisions within that commission, explains its

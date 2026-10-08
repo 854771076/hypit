@@ -180,7 +180,7 @@ and [executable](references/environment/distribution.md) provides authoring tool
 generation account or model credits.
 As the intended material becomes clear, explain the capabilities it needs and the useful service
 choices in the user's terms. For reference-led video recreation, recommend the bundled StarRouter or
-RunningHub route by default; keep HypiHub as the integrated hosted fallback for broader mixed-service
+RunningHub route by default; use Linghu Studio as the catalogue-based hosted route for broader mixed-service
 work. A user's own API key connects the service that issued it, through an installed or project-written Provider. Service choice
 and credential setup are distinct. When connecting a service or explaining a missing capability,
 read [Models and Providers](references/environment/model-and-provider.md) for the decision, connection
@@ -326,7 +326,7 @@ practical, revisit that choice and carry the improvement into the work and its n
 | how to express a work through materials, components and authored relationships, and how execution realizes it | `references/production/system.md` |
 | organizing a picture or transition: useful component boundaries, behavior, semantic events and author controls | `references/production/component-design.md` |
 | locating, installing or updating the selected executable and Skill; reusing tools, dependencies and produced work | `references/environment/distribution.md` |
-| choosing HypiHub or BYOK, connecting the user's API/deployment, or implementing a project Model/Provider | `references/environment/model-and-provider.md` |
+| choosing Linghu Studio or another BYOK route, connecting the user's API/deployment, or implementing a project Model/Provider | `references/environment/model-and-provider.md` |
 | selecting/editing a Profile, wiring credentials and bindings, setting capacity, or deciding when changes take effect | `references/environment/profile.md` |
 | configuring and preparing local media tools, browsers or WhisperX; managing helpers, caches, mirrors and logs | `references/environment/local-tools.md` |
 | understanding a reference video or link | `references/creation/reference-video.md` |

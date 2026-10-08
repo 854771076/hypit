@@ -18,7 +18,7 @@ image BlobRef with transparency. The Provider owns its service's request mapping
 A service-specific author Model is unnecessary when the operation has this same meaning.
 
 For a moving portrait, [Volcengine Matting](../volcengine-matting/README.md) provides
-`<matte:Portrait source={performance.video}/>` through HypiHub. Normalize its processed video
+`<matte:Portrait source={performance.video}/>` through a compatible project Provider. Normalize its processed video
 before using it in a track.
 
 This capability handles still images. Moving-person background removal requires a video-capable

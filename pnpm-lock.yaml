@@ -189,39 +189,24 @@ importers:
       '@hypit/protocol':
         specifier: workspace:*
         version: link:packages/protocol
-      '@hypit/provider-beatapi':
-        specifier: workspace:*
-        version: link:packages/provider-beatapi
-      '@hypit/provider-hiapi':
-        specifier: workspace:*
-        version: link:packages/provider-hiapi
       '@hypit/provider-hyperframes-local':
         specifier: workspace:*
         version: link:packages/provider-hyperframes-local
-      '@hypit/provider-hypihub':
-        specifier: workspace:*
-        version: link:packages/provider-hypihub
       '@hypit/provider-image-opencv-local':
         specifier: workspace:*
         version: link:packages/provider-image-opencv-local
+      '@hypit/provider-linghu-studio':
+        specifier: workspace:*
+        version: link:packages/provider-linghu-studio
       '@hypit/provider-media-local':
         specifier: workspace:*
         version: link:packages/provider-media-local
-      '@hypit/provider-monid':
-        specifier: workspace:*
-        version: link:packages/provider-monid
-      '@hypit/provider-pollo':
-        specifier: workspace:*
-        version: link:packages/provider-pollo
       '@hypit/provider-runninghub':
         specifier: workspace:*
         version: link:packages/provider-runninghub
       '@hypit/provider-starrouter':
         specifier: workspace:*
         version: link:packages/provider-starrouter
-      '@hypit/provider-tokendance':
-        specifier: workspace:*
-        version: link:packages/provider-tokendance
       '@hypit/provider-whisperx-local':
         specifier: workspace:*
         version: link:packages/provider-whisperx-local
@@ -2279,77 +2264,6 @@ importers:
 
   packages/protocol: {}
 
-  packages/provider-beatapi:
-    dependencies:
-      '@hypit/endpoint-kit':
-        specifier: workspace:*
-        version: link:../endpoint-kit
-      '@hypit/generation':
-        specifier: workspace:*
-        version: link:../generation
-      '@hypit/protocol':
-        specifier: workspace:*
-        version: link:../protocol
-      '@hypit/runtime':
-        specifier: workspace:*
-        version: link:../runtime
-      '@hypit/runtime-kit':
-        specifier: workspace:*
-        version: link:../runtime-kit
-    devDependencies:
-      '@hypit/gpt-image':
-        specifier: workspace:*
-        version: link:../gpt-image
-      '@hypit/grok-imagine':
-        specifier: workspace:*
-        version: link:../grok-imagine
-      '@hypit/minimax-h3':
-        specifier: workspace:*
-        version: link:../minimax-h3
-      '@hypit/nano-banana':
-        specifier: workspace:*
-        version: link:../nano-banana
-      '@hypit/seedance':
-        specifier: workspace:*
-        version: link:../seedance
-
-  packages/provider-hiapi:
-    dependencies:
-      '@hypit/endpoint-kit':
-        specifier: workspace:*
-        version: link:../endpoint-kit
-      '@hypit/generation':
-        specifier: workspace:*
-        version: link:../generation
-      '@hypit/protocol':
-        specifier: workspace:*
-        version: link:../protocol
-      '@hypit/runtime':
-        specifier: workspace:*
-        version: link:../runtime
-      '@hypit/runtime-kit':
-        specifier: workspace:*
-        version: link:../runtime-kit
-    devDependencies:
-      '@hypit/gpt-image':
-        specifier: workspace:*
-        version: link:../gpt-image
-      '@hypit/grok-imagine':
-        specifier: workspace:*
-        version: link:../grok-imagine
-      '@hypit/minimax-h3':
-        specifier: workspace:*
-        version: link:../minimax-h3
-      '@hypit/nano-banana':
-        specifier: workspace:*
-        version: link:../nano-banana
-      '@hypit/seedance':
-        specifier: workspace:*
-        version: link:../seedance
-      '@hypit/seedream':
-        specifier: workspace:*
-        version: link:../seedream
-
   packages/provider-hyperframes-local:
     dependencies:
       '@hyperframes/engine':
@@ -2402,55 +2316,6 @@ importers:
         specifier: workspace:*
         version: link:../program-space
 
-  packages/provider-hypihub:
-    dependencies:
-      '@hypit/endpoint-kit':
-        specifier: workspace:*
-        version: link:../endpoint-kit
-      '@hypit/generation':
-        specifier: workspace:*
-        version: link:../generation
-      '@hypit/protocol':
-        specifier: workspace:*
-        version: link:../protocol
-      '@hypit/runtime':
-        specifier: workspace:*
-        version: link:../runtime
-      '@hypit/runtime-kit':
-        specifier: workspace:*
-        version: link:../runtime-kit
-      '@hypit/speech-evidence':
-        specifier: workspace:*
-        version: link:../speech-evidence
-      '@hypit/text':
-        specifier: workspace:*
-        version: link:../text
-      '@hypit/whisperx':
-        specifier: workspace:*
-        version: link:../whisperx
-    devDependencies:
-      '@hypit/driver-node':
-        specifier: workspace:*
-        version: link:../driver-node
-      '@hypit/elevenlabs-speech':
-        specifier: workspace:*
-        version: link:../elevenlabs-speech
-      '@hypit/fishaudio-speech':
-        specifier: workspace:*
-        version: link:../fishaudio-speech
-      '@hypit/mimo-speech':
-        specifier: workspace:*
-        version: link:../mimo-speech
-      '@hypit/seedance':
-        specifier: workspace:*
-        version: link:../seedance
-      '@hypit/speech':
-        specifier: workspace:*
-        version: link:../speech
-      '@hypit/volcengine-matting':
-        specifier: workspace:*
-        version: link:../volcengine-matting
-
   packages/provider-image-opencv-local:
     dependencies:
       '@hypit/artifact':
@@ -2484,6 +2349,52 @@ importers:
       '@hypit/image-transform':
         specifier: workspace:*
         version: link:../image-transform
+
+  packages/provider-linghu-studio:
+    dependencies:
+      '@aws-sdk/client-s3':
+        specifier: 3.1103.0
+        version: 3.1103.0
+      '@hypit/endpoint-kit':
+        specifier: workspace:*
+        version: link:../endpoint-kit
+      '@hypit/generation':
+        specifier: workspace:*
+        version: link:../generation
+      '@hypit/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+      '@hypit/runtime':
+        specifier: workspace:*
+        version: link:../runtime
+      '@hypit/runtime-kit':
+        specifier: workspace:*
+        version: link:../runtime-kit
+    devDependencies:
+      '@hypit/driver-node':
+        specifier: workspace:*
+        version: link:../driver-node
+      '@hypit/gpt-image':
+        specifier: workspace:*
+        version: link:../gpt-image
+      '@hypit/grok-imagine':
+        specifier: workspace:*
+        version: link:../grok-imagine
+      '@hypit/minimax-h3':
+        specifier: workspace:*
+        version: link:../minimax-h3
+      '@hypit/nano-banana':
+        specifier: workspace:*
+        version: link:../nano-banana
+      '@hypit/pixverse':
+        specifier: workspace:*
+        version: link:../pixverse
+      '@hypit/seedance':
+        specifier: workspace:*
+        version: link:../seedance
+      '@hypit/seedream':
+        specifier: workspace:*
+        version: link:../seedream
 
   packages/provider-media-local:
     dependencies:
@@ -2521,65 +2432,6 @@ importers:
       '@hypit/driver-node':
         specifier: workspace:*
         version: link:../driver-node
-
-  packages/provider-monid:
-    dependencies:
-      '@hypit/endpoint-kit':
-        specifier: workspace:*
-        version: link:../endpoint-kit
-      '@hypit/generation':
-        specifier: workspace:*
-        version: link:../generation
-      '@hypit/minimax-h3':
-        specifier: workspace:*
-        version: link:../minimax-h3
-      '@hypit/protocol':
-        specifier: workspace:*
-        version: link:../protocol
-      '@hypit/runtime':
-        specifier: workspace:*
-        version: link:../runtime
-      '@hypit/runtime-kit':
-        specifier: workspace:*
-        version: link:../runtime-kit
-      '@hypit/wan':
-        specifier: workspace:*
-        version: link:../wan
-    devDependencies:
-      '@hypit/seedance':
-        specifier: workspace:*
-        version: link:../seedance
-
-  packages/provider-pollo:
-    dependencies:
-      '@hypit/endpoint-kit':
-        specifier: workspace:*
-        version: link:../endpoint-kit
-      '@hypit/generation':
-        specifier: workspace:*
-        version: link:../generation
-      '@hypit/protocol':
-        specifier: workspace:*
-        version: link:../protocol
-      '@hypit/runtime':
-        specifier: workspace:*
-        version: link:../runtime
-      '@hypit/runtime-kit':
-        specifier: workspace:*
-        version: link:../runtime-kit
-    devDependencies:
-      '@hypit/gpt-image':
-        specifier: workspace:*
-        version: link:../gpt-image
-      '@hypit/grok-imagine':
-        specifier: workspace:*
-        version: link:../grok-imagine
-      '@hypit/minimax-h3':
-        specifier: workspace:*
-        version: link:../minimax-h3
-      '@hypit/nano-banana':
-        specifier: workspace:*
-        version: link:../nano-banana
 
   packages/provider-runninghub:
     dependencies:
@@ -2642,34 +2494,6 @@ importers:
       '@hypit/seedance':
         specifier: workspace:*
         version: link:../seedance
-
-  packages/provider-tokendance:
-    dependencies:
-      '@hypit/endpoint-kit':
-        specifier: workspace:*
-        version: link:../endpoint-kit
-      '@hypit/generation':
-        specifier: workspace:*
-        version: link:../generation
-      '@hypit/protocol':
-        specifier: workspace:*
-        version: link:../protocol
-      '@hypit/runtime':
-        specifier: workspace:*
-        version: link:../runtime
-      '@hypit/runtime-kit':
-        specifier: workspace:*
-        version: link:../runtime-kit
-    devDependencies:
-      '@hypit/minimax-h3':
-        specifier: workspace:*
-        version: link:../minimax-h3
-      '@hypit/seedance':
-        specifier: workspace:*
-        version: link:../seedance
-      '@hypit/seedream':
-        specifier: workspace:*
-        version: link:../seedream
 
   packages/provider-whisperx-local:
     dependencies:
@@ -3734,21 +3558,15 @@ importers:
       '@hypit/protocol':
         specifier: workspace:*
         version: link:../protocol
-      '@hypit/provider-hiapi':
+      '@hypit/provider-linghu-studio':
         specifier: workspace:*
-        version: link:../provider-hiapi
-      '@hypit/provider-hypihub':
+        version: link:../provider-linghu-studio
+      '@hypit/provider-runninghub':
         specifier: workspace:*
-        version: link:../provider-hypihub
-      '@hypit/provider-monid':
+        version: link:../provider-runninghub
+      '@hypit/provider-starrouter':
         specifier: workspace:*
-        version: link:../provider-monid
-      '@hypit/provider-pollo':
-        specifier: workspace:*
-        version: link:../provider-pollo
-      '@hypit/provider-tokendance':
-        specifier: workspace:*
-        version: link:../provider-tokendance
+        version: link:../provider-starrouter
       '@hypit/render-hyperframes':
         specifier: workspace:*
         version: link:../render-hyperframes

@@ -32,9 +32,9 @@ hypit measure main.svml --segment hook --language en
 When the work needs execution, the project selects a Runtime Profile. `hypit runtime init` creates
 an editable starter; its Endpoint entries describe available routes, not choices made by the user.
 Keep an existing chosen service, or configure the chosen local or hosted Provider and its capability
-bindings. HypiHub is the recommended integrated hosted route in the official Distribution; other
-services use project Provider packages. If the user chooses HypiHub,
-`hypit auth login hypihub.default` connects that account after choosing its CredentialStore.
+bindings. The official Distribution includes Linghu Studio, StarRouter and RunningHub hosted routes.
+If the user chooses Linghu Studio, `hypit auth login linghu-studio.default` stores its API Key after
+choosing a CredentialStore.
 The starter selects the [platform CredentialStore](../credential-store-platform/README.md#select-it):
 macOS Keychain or Windows Credential Locker on those two platforms, and an owner-private file on
 Linux, so the Profile it writes needs no edit on any of them. Name another Store in `credentials` and

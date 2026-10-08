@@ -9,7 +9,7 @@ The package owns two distinct speech operations:
 - `voice-clone` uses one accepted audio voice reference to create independent speech.
 
 It contains no API URL, credential, retry, queue or Fish Audio wire encoding. Those belong to a
-Runtime Endpoint such as `@hypit/provider-hypihub`. Both models return the shared
+Runtime Endpoint that implements the exact voice-design or voice-clone capability. Both models return the shared
 `GeneratedAudioSet`; the author Surfaces expose its primary member as an ordinary audio Resource.
 
 ```xml

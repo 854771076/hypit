@@ -88,7 +88,7 @@ description: 在图片流向生成器或 Track 之前，对它做合成、校正
 
 ## 移动人物抠像
 
-人物需要出现在其他画面之上时，可以将生成或已有视频交给 [`@hypit/volcengine-matting`](https://github.com/hypit-ai/hypit/blob/main/packages/volcengine-matting/README.md)，由支持该能力的 HypiHub Endpoint 执行：
+人物需要出现在其他画面之上时，可以将生成或已有视频交给 [`@hypit/volcengine-matting`](https://github.com/hypit-ai/hypit/blob/main/packages/volcengine-matting/README.md)，由实现该能力的项目 Endpoint 执行：
 
 ```svml
 <import as="matte" from="@hypit/volcengine-matting@1"/>

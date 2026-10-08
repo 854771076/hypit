@@ -32,11 +32,10 @@ export const videoCliDistribution: CliDistribution = {
       platform: { use: "@hypit/credential-store-platform" },
     },
     endpoints: {
-      "hypihub.default": {
-        use: "@hypit/provider-hypihub",
+      "starrouter.default": {
+        use: "@hypit/provider-starrouter",
         config: {
-          baseUrl: "https://hypit.ai",
-          apiKey: { store: "platform", key: "hypihub.oauth" },
+          apiKey: { store: "platform", key: "starrouter.api-key" },
         },
       },
       "media.local": {

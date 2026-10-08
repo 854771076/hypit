@@ -19,11 +19,10 @@ Replace its credential-store selection and the chosen Endpoint's credential refe
     "file": { "use": "@hypit/credential-store-file" }
   },
   "endpoints": {
-    "hypihub.default": {
-      "use": "@hypit/provider-hypihub",
+    "starrouter.default": {
+      "use": "@hypit/provider-starrouter",
       "config": {
-        "baseUrl": "https://hypit.ai",
-        "apiKey": { "store": "file", "key": "hypihub.oauth" }
+        "apiKey": { "store": "file", "key": "starrouter.api-key" }
       }
     }
   }
@@ -35,9 +34,9 @@ existing Profile, edit only the selected references and use `hypit runtime use <
 The Endpoint still owns its acquisition flow; the Store only persists its result:
 
 ```bash
-hypit auth login hypihub.default
-hypit auth status hypihub.default
-hypit auth logout hypihub.default
+hypit auth login starrouter.default
+hypit auth status starrouter.default
+hypit auth logout starrouter.default
 ```
 
 No existing OS credential is migrated and no failed lookup tries another Store. A damaged document

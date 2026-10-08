@@ -23,12 +23,12 @@ test("an explicitly selected file Store supports CLI login, repair and logout wi
   assert.equal(profile.credentials.platform.use, "@hypit/credential-store-platform", "initialization preserves the existing starter choice");
   const directory = join(root, "chosen-credentials");
   profile.credentials = { file: { use: "@hypit/credential-store-file", config: { path: directory } } };
-  profile.endpoints = { "hypihub.default": { ...profile.endpoints["hypihub.default"], config: {
-    ...profile.endpoints["hypihub.default"].config,
+  profile.endpoints = { "starrouter.default": { ...profile.endpoints["starrouter.default"], config: {
+    ...profile.endpoints["starrouter.default"].config,
     apiKey: { store: "file", key: "test.oauth" },
   } } };
   await writeFile(profilePath, JSON.stringify(profile));
-  const auth = (action: string, ...args: string[]) => run("auth", action, "hypihub.default", "--runtime", profilePath, ...args);
+  const auth = (action: string, ...args: string[]) => run("auth", action, "starrouter.default", "--runtime", profilePath, ...args);
   assert.equal(JSON.parse((await auth("status")).stdout).credentials[0].configured, false);
   const input = join(root, "input.txt");
   await writeFile(input, "test-secret-never-display");

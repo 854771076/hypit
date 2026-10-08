@@ -252,19 +252,19 @@ credential references are present. Before `doctor` or a paid/external `build`, c
 credentials referenced by the selected Runtime Profile. First inspect the existing selection:
 
 ```bash
-hypit auth status hypihub.default
+hypit auth status starrouter.default
 ```
 
 If a needed service is not ready, choose whether to configure that service or another supported
-local or hosted option. For example, WhisperX can run locally or through HypiHub. A starter Endpoint
+local or hosted option. For example, WhisperX can run locally while generation uses a hosted Provider. A starter Endpoint
 is a configuration starting point, not evidence that an account was chosen.
 
 After choosing a service, connect its credential:
 
-For a chosen HypiHub account:
+For the starter's chosen StarRouter account:
 
 ```bash
-hypit auth login hypihub.default
+hypit auth login starrouter.default
 ```
 
 For another selected Endpoint, use its declared secure input, such as

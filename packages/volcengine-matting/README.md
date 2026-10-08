@@ -66,23 +66,19 @@ The capability is `@hypit/volcengine-matting@1#matte-portrait-video`, returning 
 The Portrait Surface publishes its first video as `.video`. Its model ports are `source`
 (one video) and optional `format` (`WEBM` or `MOV`). It takes no generation prompt or duration.
 
-[HypiHub Provider](../provider-hypihub/README.md) maps it to `POST /v1/videos` with
-`model: "matte-portrait-video"`, `ref_video_url` and `format`. Account availability and credentials
-belong to the selected Runtime Endpoint. Submission, job polling, collection and Result storage
-use that Provider's existing video operation.
-
-To select this route explicitly in a Runtime Profile, bind the capability to an existing
-HypiHub Endpoint:
+The official Distribution does not bundle a remote adapter for this capability. A project Provider
+can map it to a compatible portrait-matting service, including submission, polling, collection and
+Result storage. Bind the capability to that configured Endpoint:
 
 ```json
 {
   "bindings": {
-    "@hypit/volcengine-matting@1#matte-portrait-video": "hypihub.default"
+    "@hypit/volcengine-matting@1#matte-portrait-video": "matting.personal"
   }
 }
 ```
 
-Here `hypihub.default` is the Endpoint ID from that profile. The Model describes the operation;
+Here `matting.personal` is the Endpoint ID from that profile. The Model describes the operation;
 the Provider translates it to the service; the Endpoint supplies the account and execution settings.
 No source duration or resolution needs to be copied into the Source or Runtime Profile.
 

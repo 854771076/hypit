@@ -29,8 +29,8 @@ hypit runtime init
 
 `runtime init` 写入可编辑的起始 `hypit.runtime.json`，通过项目的 `.hypit/runtime`
 文件选择它。已有 Profile 会保留；此操作不安装、不登录、不执行。
-起始配置提供 HypiHub 托管生成和 WhisperX，以及本地媒体处理、渲染。先按作品需要选择服务，
-再准备它们。本地推理、项目 Provider 可以走同一条路径，也可以与 HypiHub 混合使用。
+起始配置提供 StarRouter，以及本地媒体处理和渲染。作品选定托管路线后，可以保留它，或替换为
+灵狐工作室、RunningHub。本地推理和项目 Provider 使用同一套配置方式。
 
 `hypit runtime use <profile>` 选择已有配置；`--runtime <profile>` 只覆盖当前命令。
 命令只读取当前项目的选择，不继承其他项目的 Runtime。命令行相对路径以当前目录为基准。
@@ -81,8 +81,8 @@ hypit runtime status
 使用 `hypit doctor --endpoint media.local`。按当前问题选择命令，不必依次执行所有检查。
 
 本地媒体处理没有凭据要求。选中的服务若声明了凭据槽，再单独使用
-`hypit auth status <endpoint>` 检查。例如，选择 HypiHub 后使用
-`hypit auth status hypihub.default`，需要连接账户时执行 `hypit auth login hypihub.default`。
+`hypit auth status <endpoint>` 检查。例如，选择灵狐工作室后使用
+`hypit auth status linghu-studio.default`，需要连接账户时执行 `hypit auth login linghu-studio.default`。
 
 使用 Profile 里的实际 Endpoint 名称，可重复 `--endpoint` 选择多个；省略时覆盖整个 Profile。
 `doctor` 读取配置、运行 Provider 的诊断，不提交生成。除了错误，也要阅读警告：有凭据或能读取

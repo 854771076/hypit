@@ -8,14 +8,13 @@ A **Provider** knows how to fulfill that request through a particular service. A
 configured instance of that Provider, with its service address, credential reference and capacity.
 The Runtime Profile binds the requested capability to an Endpoint.
 
-Hypit's official Distribution includes local Providers, the HypiHub Provider, and API-key Providers
-for TokenDance, HiAPI, Pollo, Monid, RunningHub and StarRouter that serve the installed models each
-service offers. Other services connect through packages owned by the production or their authors. The Agent can implement a new
+Hypit's official Distribution includes local Providers plus API-key Providers for Linghu Studio,
+RunningHub and StarRouter. Other services connect through packages owned by the production or their authors. The Agent can implement a new
 service through the public SDK, just as it can create a visual component for a video.
 [Model and deployment services](./service-partners.md) introduces independent partners through that
 same path. Choosing a service is separate from [choosing an Agent environment](./agents.md).
 
-HypiHub is the recommended integrated hosted service. **BYOK** means bringing an account's own
+Linghu Studio is the bundled catalogue-based hosted route. **BYOK** means bringing an account's own
 API key: the key connects to the service that issued it, through a compatible Provider. Tell the
 Agent which service you already use and provide its API documentation; the Agent can handle the
 connection and project package. A key authorizes requests but does not implement that API. One

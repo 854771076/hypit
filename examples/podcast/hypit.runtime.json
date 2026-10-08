@@ -10,13 +10,12 @@
     }
   },
   "endpoints": {
-    "hypihub.default": {
-      "use": "@hypit/provider-hypihub",
+    "starrouter.default": {
+      "use": "@hypit/provider-starrouter",
       "config": {
-        "baseUrl": "https://hypit.ai",
         "apiKey": {
           "store": "platform",
-          "key": "hypihub.oauth"
+          "key": "starrouter.api-key"
         },
         "defaultConcurrency": 4,
         "requestTimeoutMs": 120000

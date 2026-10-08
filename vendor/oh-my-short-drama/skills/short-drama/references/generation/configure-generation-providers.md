@@ -1,6 +1,6 @@
 # 配置生成 Provider
 
-先调用 `list_generation_providers` 查看模态能力，再让用户为图片、视频、语音和音乐分别选择 Provider；不得假设所有模态使用同一家。复刻视频默认优先推荐 StarRouter 或 RunningHub：要用 Seedance 多模态全参考时选 StarRouter，要本地直传参考素材、RunningHub 深度预处理或 H3 Ref2VA 时选 RunningHub。Hypit/HypiHub 不作为本插件复刻视频的默认生成 Provider。文本资产默认由 Codex 直接完成，不需要外部文本 Provider。
+先调用 `list_generation_providers` 查看模态能力，再让用户为图片、视频、语音和音乐分别选择 Provider；不得假设所有模态使用同一家。复刻视频默认优先推荐 StarRouter 或 RunningHub：要用 Seedance 多模态全参考时选 StarRouter，要本地直传参考素材、RunningHub 深度预处理或 H3 Ref2VA 时选 RunningHub。灵狐工作室可作为 Hypit Runtime 的图片/视频 Provider，但不替代本插件已经验证的复刻默认路由。文本资产默认由 Codex 直接完成，不需要外部文本 Provider。
 
 `viral-recreation` 项目打开 Dashboard 后必须在正式参考分析前完成此 Skill。Dashboard 精确项目路由会在图片、视频或音频配置缺失时主动打开“生成配置”；密钥由用户在自己的 Dashboard 中输入，不要求用户把密钥发到聊天。保存至少图片、视频、音频三类配置后运行：
 

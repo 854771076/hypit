@@ -130,9 +130,9 @@ test("plan presents the production work without price material", () => {
       request: "seedance:one",
       capability: "@hypit/seedance@1#seedance-2-mini",
       status: "resolved",
-      endpoint: "hypihub.default",
-      use: "@hypit/provider-hypihub",
-      pricing: { kind: "page", url: "https://hypit.ai/commercial/pricing/" },
+      endpoint: "starrouter.default",
+      use: "@hypit/provider-starrouter",
+      pricing: { kind: "page", url: "https://starrouter.io" },
     },
     { request: "media:one", capability: "@hypit/media@1#inspect", status: "resolved", endpoint: "media.local", use: "@hypit/provider-media-local", pricing: { kind: "local" } },
     { request: "whisper:one", capability: "@hypit/whisperx@1#whisperx-alignment", status: "resolved", endpoint: "whisperx.remote", use: "@hypit/provider-example" },
@@ -140,10 +140,10 @@ test("plan presents the production work without price material", () => {
       request: "image:one",
       capability: "@hypit/gpt-image@1#gpt-image-2",
       status: "unsupported",
-      endpoint: "hypihub.default",
-      use: "@hypit/provider-hypihub",
+      endpoint: "starrouter.default",
+      use: "@hypit/provider-starrouter",
       rejections: [{
-        endpoint: "hypihub.default",
+        endpoint: "starrouter.default",
         message: "transparent background is available only at 1K; requested 2K",
       }],
     },
@@ -156,32 +156,32 @@ test("plan presents the production work without price material", () => {
     pending: [{ input: "referenceImages", record: "presenter:image", sourceStep: "presenter.generate", kind: "image" }],
   }] } });
   assert.match(output, /Production plan/u);
-  assert.match(output, /@hypit\/seedance#seedance-2-mini\n\s+hypihub\.default \(@hypit\/provider-hypihub\)/u);
+  assert.match(output, /@hypit\/seedance#seedance-2-mini\n\s+starrouter\.default \(@hypit\/provider-starrouter\)/u);
   assert.match(output, /media\.local/u);
   assert.match(output, /whisperx\.remote/u);
   assert.doesNotMatch(output, /price|pricing|commercial\/pricing/iu);
   assert.match(output, /Unsupported\s+1/u);
-  assert.match(output, /gpt-image#gpt-image-2\n\s+hypihub\.default: transparent background is available only at 1K; requested 2K\n/u);
+  assert.match(output, /gpt-image#gpt-image-2\n\s+starrouter\.default: transparent background is available only at 1K; requested 2K\n/u);
   assert.match(output, /prompt 42 chars · duration 10 · resolution 720p · 1 image reference · input produced during Build/u);
   assert.doesNotMatch(output, /Pass --runtime/u);
   assert.doesNotMatch(output, /seedance@1#/u);
   const machine = createPlanOutput({ ...base, providers: [{
     request: "seedance:one", capability: "@hypit/seedance@1#seedance-2-mini", status: "resolved",
-    endpoint: "hypihub.default", pricing: { kind: "page", url: "https://hypit.ai/commercial/pricing/" },
+    endpoint: "starrouter.default", pricing: { kind: "page", url: "https://starrouter.io" },
   }] }, { verbose: false, limit: 20 });
   assert.equal("pricing" in machine.providers![0]!, false);
 
   const verbose = capture({ ...human, verbose: true }, { kind: "plan", machine: { ...base, providers: [
-    { request: "seedance:one", capability: "@hypit/seedance@1#seedance-2-mini", status: "ambiguous", endpoints: ["hypihub.default", "images.personal"] },
+    { request: "seedance:one", capability: "@hypit/seedance@1#seedance-2-mini", status: "ambiguous", endpoints: ["starrouter.default", "images.personal"] },
   ] } });
-  assert.match(verbose, /@hypit\/seedance@1#seedance-2-mini\n\s+hypihub\.default, images\.personal all offer it/u);
+  assert.match(verbose, /@hypit\/seedance@1#seedance-2-mini\n\s+starrouter\.default, images\.personal all offer it/u);
 });
 
 test("pricing presents Provider-owned material beside the corresponding Needs", () => {
   const presentation = { kind: "pricing", machine: createPricingOutput("/project/build.svrun", [{
       request: "seedance:one", capability: "@hypit/seedance@1#seedance-2", status: "resolved",
-      endpoint: "hypihub.default", use: "@hypit/provider-hypihub",
-      pricing: { kind: "page", url: "https://hypit.ai/commercial/pricing/" },
+      endpoint: "starrouter.default", use: "@hypit/provider-starrouter",
+      pricing: { kind: "page", url: "https://starrouter.io" },
       pricingDocuments: [{
         source: "https://hypit.ai/v1/pricing?model=seedance-2",
         data: { model: "seedance-2", pricing: { mode: "per_second", per_second_usd: 0.1045 } },
@@ -192,7 +192,7 @@ test("pricing presents Provider-owned material beside the corresponding Needs", 
       pricing: { kind: "page", url: "https://images.example/pricing" },
     }], [{
       request: "seedance:one", step: "video::component::presenter.generate", port: "generation",
-      capability: "@hypit/seedance@1#seedance-2", endpoint: "hypihub.default",
+      capability: "@hypit/seedance@1#seedance-2", endpoint: "starrouter.default",
       summary: { fields: { duration: 5, resolution: "720p" }, references: {} }, pending: [],
     }, {
       request: "image:one", step: "video::component::portrait.generate", port: "generation",
