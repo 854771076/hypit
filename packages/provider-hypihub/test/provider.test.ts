@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { encodeOAuth2Credential } from "@hypit/runtime";
 
@@ -17,6 +18,10 @@ import { whisperXCapabilities, whisperXRequestForEvidenceAudio } from "@hypit/wh
 import { portraitMattingEndpoint, sealPortraitMattingRequest } from "@hypit/volcengine-matting";
 
 import { createHypiHubProvider, diagnoseHypiHubProvider } from "../src/provider.js";
+
+const packageVersion = (JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+) as { readonly version: string }).version;
 
 function need(constraints: CanonicalValue): Need {
   return {
@@ -239,7 +244,7 @@ test("HypiHub returns its current model-pricing document", async () => {
       assert.equal(String(input), "https://hypit.ai/v1/pricing?model=seedance-2");
       assert.equal((init?.headers as Record<string, string>).authorization, "Bearer test-key");
       assert.equal((init?.headers as Record<string, string>)["user-agent"],
-        "hypit-provider-hypihub/0.1.0");
+        `hypit-provider-hypihub/${packageVersion}`);
       return Response.json({
         object: "model_pricing",
         model: "seedance-2",
