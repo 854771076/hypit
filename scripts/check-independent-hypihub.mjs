@@ -10,7 +10,7 @@ import {
   loadNodePackageSelection,
 } from "../packages/loader/src/node/index.ts";
 
-import { packIndependentPackage } from "./pack-independent-package.mjs";
+import { packIndependentPackage, releasedPackageDependencyMap } from "./pack-independent-package.mjs";
 
 const repositoryRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const npmCli = process.env.npm_execpath;
@@ -64,12 +64,10 @@ try {
   assert.equal(providerManifest.private, undefined);
   assert.equal(providerManifest.exports["."], "./dist/index.js");
   assert.equal(providerManifest.hypit.activation, "./dist/activation.js");
-  assert.deepEqual(providerManifest.dependencies, {});
-  assert.deepEqual(providerManifest.peerDependencies, {
-    "@hypit/hypit": "^0.3.0",
-    "@hypit/runtime-local": "0.0.0-dev",
-    "@hypit/whisperx": "0.0.0-dev",
-  });
+  assert.deepEqual(providerManifest.dependencies,
+    await releasedPackageDependencyMap("packages/provider-hypihub", "dependencies"));
+  assert.deepEqual(providerManifest.peerDependencies,
+    await releasedPackageDependencyMap("packages/provider-hypihub", "peerDependencies"));
   await access(join(providerRoot, "dist", "activation.js"));
   await access(join(providerRoot, "LICENSE"));
   await assert.rejects(access(join(providerRoot, "src", "activation.ts")));
@@ -78,11 +76,10 @@ try {
   const whisperXManifest = JSON.parse(await readFile(join(whisperXRoot, "package.json"), "utf8"));
   assert.equal(whisperXManifest.private, undefined);
   assert.equal(whisperXManifest.exports["."], "./dist/index.js");
-  assert.deepEqual(whisperXManifest.dependencies, {
-    "@hypit/media-local": "0.0.0-dev",
-    "@hypit/narrative-speech-alignment": "0.0.0-dev",
-  });
-  assert.deepEqual(whisperXManifest.peerDependencies, { "@hypit/hypit": "^0.3.0" });
+  assert.deepEqual(whisperXManifest.dependencies,
+    await releasedPackageDependencyMap("packages/whisperx", "dependencies"));
+  assert.deepEqual(whisperXManifest.peerDependencies,
+    await releasedPackageDependencyMap("packages/whisperx", "peerDependencies"));
   await access(join(whisperXRoot, "dist", "activation.js"));
 
   await mkdir(join(distribution, "packages"), { recursive: true });
@@ -110,11 +107,9 @@ try {
     && item.contribution.modules?.[0]?.manifest.name === "@hypit/whisperx"));
 
   const lock = await readFile(join(consumer, "package-lock.json"), "utf8");
-  assert.match(lock, /hypit-provider-hypihub-0\.0\.0-dev\.tgz/u);
-  assert.match(lock, /hypit-whisperx-0\.0\.0-dev\.tgz/u);
-  assert.match(lock, /hypit-media-local-0\.0\.0-dev\.tgz/u);
-  assert.match(lock, /hypit-media-operations-0\.0\.0-dev\.tgz/u);
-  assert.match(lock, /hypit-narrative-speech-alignment-0\.0\.0-dev\.tgz/u);
+  for (const tarball of [provider, whisperx, mediaLocal, mediaOperations, narrativeSpeechAlignment]) {
+    assert.ok(lock.includes(tarball.split(/[\\/]/u).at(-1)));
+  }
   passed = true;
   console.log(`Independent HypiHub consumer passed: ${provider}, ${whisperx}`);
 } finally {
