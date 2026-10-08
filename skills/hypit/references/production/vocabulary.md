@@ -85,7 +85,8 @@ owner's scope; `@hypit/*` is the Hypit project's publishing namespace, not a sco
 
 TypeScript imports use public SDK paths such as `@hypit/hypit/author`, `@hypit/hypit/producer`,
 `@hypit/hypit/admission`, `@hypit/hypit/markup`, `@hypit/hypit/composition`,
-`@hypit/hypit/text`, `@hypit/hypit/caption` or `@hypit/hypit/studio-companion`. Source imports instead name logical Modules,
+`@hypit/hypit/text` or `@hypit/hypit/caption`; Studio Companions use the independent
+`@hypit/studio-companion` package. Source imports instead name logical Modules,
 such as `@hypit/caption@1`. When learning from installed official source, translate its internal
 workspace imports to the corresponding public SDK paths in the project package.
 
@@ -109,8 +110,9 @@ with a drawing example. [System relationships](system.md) places it in the compl
 
 The project's package manager installs and versions components. Hypit loads only packages selected
 by Source or Run imports and their declared dependencies. Project packages resolve from the project;
-exact packages embedded in the selected Distribution come from that Distribution, while independently
-published packages—including `@hypit/*` packages—follow ordinary project-first package resolution.
+embedded Core comes from the selected Distribution, while its product-selected default packages are
+ordinary dependencies installed with it. Independently published project packages—including
+`@hypit/*` packages—follow ordinary project-first package resolution.
 Hypit does not scan the dependency tree for possible components.
 
 Keep a new component project-local while it serves this work. If its owner later wants to use it
