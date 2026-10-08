@@ -14,20 +14,20 @@ import { designVoice, cloneVoice, deleteVoice, importExternalAudio, listVoices }
 import { createRequestSnapshot, getDubbingAttemptContext, getTask, listTasks, recordDubbingAttemptOutcome, reserveTask, settleReservedTask } from '../task-ledger.mjs'
 import { validateGenerationDocumentReference } from '../document-reference.mjs'
 import { mediaHostCatalog, mediaHostNames, mediaHostExpiries } from '../media-hosting/providers.mjs'
-import { listReferenceUploads, publishReferenceImage } from '../media-hosting/publish.mjs'
+import { listReferenceUploads, publishReferenceImage, publishReferenceMedia } from '../media-hosting/publish.mjs'
 import { selfCheck as checkLitterbox } from '../media-hosting/litterbox.mjs'
 import { selfCheck as checkTempfile } from '../media-hosting/tempfile.mjs'
 import { selfCheck as checkTmpfiles } from '../media-hosting/tmpfiles.mjs'
 import { selfCheck as checkUguu } from '../media-hosting/uguu.mjs'
-import { validatePreviousTailBinding, validateRequiredVideoReferences, validateVideoReferenceBindings } from '../reference-bindings.mjs'
+import { deriveMotionReferenceMode, validateDepthReferenceBinding, validatePreviousTailBinding, validateRequiredVideoReferences, validateShotGenerationContract, validateVideoReferenceBindings } from '../reference-bindings.mjs'
 import { preparePreviousTail } from '../previous-tail.mjs'
-import { inspectStage, missingPrevizAssets, missingPrevizReviews, missingStoryboardAssets, missingStoryboardReviews, storyboardMedium } from '../workflow-gates.mjs'
+import { inspectStage, missingDepthReviews, missingPrevizAssets, missingPrevizReviews, missingStoryboardAssets, missingStoryboardReviews, storyboardMedium } from '../workflow-gates.mjs'
 import { validateMotionReferenceBinding } from '../previz-contract.mjs'
 import { stages } from '../workflow-stages.mjs'
 import { validateProject, validateVideoPrompts } from '../project-store.mjs'
 import { syncTaskResult } from '../task-sync.mjs'
 import { detectMedia, hasPanelBoardClaim } from '../grid-detect.mjs'
-import { importAssetFile, selectedAssetVersion, verifiedAssetVersion } from '../asset-ledger.mjs'
+import { importAssetFile, putAsset, selectedAssetVersion, verifiedAssetVersion } from '../asset-ledger.mjs'
 import { operationCapability, validateMediaOperation } from '../media-operation-contract.mjs'
 import { executeLocalMediaOperation } from '../media-operations.mjs'
 import { putMediaOperationReview } from '../review-ledger.mjs'
@@ -46,6 +46,8 @@ import { buildSubtitlesFromAudio } from '../subtitles-from-audio.mjs'
 
 const SEEDVR25_MODEL = 'seedvr2.5-video-upscale'
 const SEEDVR25_WORKFLOW_ID = '2099866760106491906'
+const DEPTH_MODEL = 'depth-video'
+const DEPTH_WORKFLOW_ID = '2098674379113979905'
 const SEEDVR25_MAPPING = JSON.parse(await readFile(new URL('./seedvr2.5-video-upscale.mapping.json', import.meta.url), 'utf8'))
 const TRUSTED_AUDIO_FALLBACK = Symbol('trusted-audio-fallback')
 
@@ -104,6 +106,17 @@ const referenceManifestItem = {
       type: 'object',
       properties: { age_class: { type: 'string', enum: ['adult', 'child', 'not-applicable'] }, grooming_and_makeup: { type: 'string' }, costume_signature: { type: 'string' }, memory_anchors: { type: 'array', minItems: 1, maxItems: 3, items: { type: 'string', minLength: 1 } } },
       required: ['age_class', 'grooming_and_makeup', 'costume_signature', 'memory_anchors'], additionalProperties: false,
+    },
+    performance_constraints: {
+      type: 'object',
+      properties: {
+        center_of_gravity: { type: 'string', minLength: 1 }, gait: { type: 'string', minLength: 1 },
+        habitual_actions: { type: 'array', maxItems: 8, items: { type: 'string', minLength: 1 } },
+        eyeline_behavior: { type: 'string', minLength: 1 }, blink_rhythm: { type: 'string', minLength: 1 },
+        stress_response: { type: 'string', minLength: 1 },
+        forbidden_performance: { type: 'array', maxItems: 8, items: { type: 'string', minLength: 1 } },
+      },
+      required: ['center_of_gravity', 'gait', 'habitual_actions', 'eyeline_behavior', 'blink_rhythm', 'stress_response', 'forbidden_performance'], additionalProperties: false,
     },
   },
   required: ['type', 'order', 'asset_key', 'version_id', 'role'],
@@ -242,8 +255,14 @@ export const tools = [
   ['submit_video', '使用用户选择的 Provider 提交异步视频任务。', {
     provider, model: { type: 'string' }, prompt_profile: { type: 'string', enum: ['seedance2', 'h3', 'generic'] }, input_mode: { type: 'string', enum: ['first-last-frame', 'full-reference', 'T2VA', 'I2VA', 'FL2VA', 'L2VA', 'Ref2VA', 'generic'] }, prompt_version: { type: 'string' }, prompt: { type: 'string' }, frame_url: { type: 'string' }, images: { type: 'array', maxItems: 9, items: { type: 'string' } }, input_reference: { type: 'string' }, reference_urls: { type: 'array', items: { type: 'string' } }, reference_image_urls: { type: 'array', maxItems: 9, items: { type: 'string' } }, reference_video_urls: { type: 'array', maxItems: 3, items: { type: 'string' } }, reference_audio_urls: { type: 'array', maxItems: 3, items: { type: 'string' } }, reference_manifest: { type: 'array', maxItems: 12, items: referenceManifestItem }, reference_only: { type: 'boolean' }, duration: { type: 'integer', minimum: 1, maximum: 15 }, size: { type: 'string', enum: ['480P', '768P', '2K'] }, resolution: { type: 'string', enum: ['480p', '720p', '1080p', '480P', '768P', '1K', '2K'] }, ratio: { type: 'string', enum: ['21:9', '16:9', '9:16', '1:1', '4:3', '3:4'] }, generate_audio: { type: 'boolean' }, watermark: { type: 'boolean' }, seed: { type: 'integer', minimum: 1 }, fps: { type: 'integer', minimum: 1 }, n: { type: 'integer', minimum: 1 }, response_format: { type: 'string' }, user: { type: 'string' }, metadata: { type: 'object' }, extra_options: { type: 'object' }, confirmed: { const: true }, ...workflow, ...projectTracking,
   }, ['provider', 'prompt_profile', 'input_mode', 'prompt_version', 'prompt', 'confirmed', 'project_root', 'target', 'prompt_document']],
+  ['submit_depth_video', '按当前 selected 制作计划，把单镜 selected 时间参考提交到固定 RunningHub 深度工作流。confirmed=false 只展示来源、目标和请求，不计算价格。', {
+    project_root: { type: 'string' }, episode_key: { type: 'string', pattern: '^ep-\\d{3}$' }, shot_number: { type: 'integer', minimum: 1 }, confirmed: { type: 'boolean' },
+  }, ['project_root', 'episode_key', 'shot_number', 'confirmed']],
+  ['submit_episode_depth_videos', '整集逐镜深度视频：confirmed=false 一次展示全部独立来源、目标和请求数，不计算价格；确认后才按镜头独立提交固定 RunningHub 工作流。', {
+    project_root: { type: 'string' }, episode_key: { type: 'string', pattern: '^ep-\\d{3}$' }, shot_numbers: { type: 'array', uniqueItems: true, items: { type: 'integer', minimum: 1 } }, confirmed: { type: 'boolean' },
+  }, ['project_root', 'episode_key', 'confirmed']],
   ['get_generation_task', '查询指定 Provider 的异步任务；完成时自动下载为本地候选版本并回写任务账本。', { provider, task_id: { type: 'string' }, media_type: mediaType, project_root: { type: 'string' } }, ['provider', 'task_id', 'media_type', 'project_root']],
-  ['ensure_reference_urls', '整集一次确认：把当前 selected 视频提示词中、需要公网 URL 的图片参考批量临时发布（有效收据自动复用，不重复上传）；RunningHub 走本地路径不需要发布。', {
+  ['ensure_reference_urls', '整集一次确认：把当前 selected 视频提示词中、需要公网 URL 的图片、视频和音频参考批量临时发布（有效收据自动复用，不重复上传）；RunningHub 走本地路径不需要发布。', {
     project_root: { type: 'string' }, episode_key: { type: 'string', pattern: '^ep-\\d{3}$' },
     service: { type: 'string', enum: mediaHostNames, default: 'tempfile' }, expires_in: { type: 'string', enum: mediaHostExpiries, default: '24h' }, usage_scope: { type: 'string', enum: ['non-commercial', 'commercial-authorized'] }, force_reupload: { type: 'boolean' },
     confirmed: { const: true }, rights_confirmed: { const: true }, public_exposure_confirmed: { const: true }, usage_terms_confirmed: { const: true },
@@ -325,16 +344,24 @@ async function validateProjectInputs(projectRoot, type, target, promptDocument, 
   const planSelection = JSON.parse(await readFile(resolve(root, 'episodes', promptDocument.episode_key, 'production-plan', 'selected.json'), 'utf8'))
   const storyboardSelection = JSON.parse(await readFile(resolve(root, 'episodes', promptDocument.episode_key, 'storyboard', 'selected.json'), 'utf8'))
   const plan = JSON.parse(await readFile(resolve(root, planSelection.path), 'utf8'))
+  const storyboard = JSON.parse(await readFile(resolve(root, storyboardSelection.path), 'utf8'))
   const planShot = plan.shots?.find((item) => item.shot_number === promptDocument.shot_number)
   if (!planShot) throw new Error('制作计划中不存在当前视频镜头')
+  const storyboardPanel = storyboard.panels?.find((item) => item.shot_number === promptDocument.shot_number)
+  if (!storyboardPanel) throw new Error('结构化分镜中不存在当前视频镜头')
+  const referenceMode = deriveMotionReferenceMode(planShot)
   const plannedShots = [planShot]
   const assets = JSON.parse(await readFile(resolve(root, '.short-drama/assets.json'), 'utf8'))
   validateMotionReferenceBinding(promptDocument.episode_key, planShot, shot, assets)
   const missingBoards = await missingStoryboardAssets(root, promptDocument.episode_key, storyboardSelection.versionId, plannedShots, assets)
-  if (missingBoards.length) throw new Error(`视频生成前必须先完成图片分镜镜头的生成与选版：${missingBoards.join('；')}`)
+  if (missingBoards.length) throw new Error(`视频生成前必须先完成每镜时间故事版和镜头分镜板的生成与选版：${missingBoards.join('；')}`)
   const reviews = JSON.parse(await readFile(resolve(root, '.short-drama/shot-reviews.json'), 'utf8'))
   const missingBoardReviews = missingStoryboardReviews(promptDocument.episode_key, plannedShots, assets, reviews)
-  if (missingBoardReviews.length) throw new Error(`视频生成前必须先通过图片分镜镜头的多维审计：${missingBoardReviews.join('；')}`)
+  if (missingBoardReviews.length) throw new Error(`视频生成前必须先通过每镜双分镜板的八维审计：${missingBoardReviews.join('；')}`)
+  if (referenceMode === 'depth') {
+    const missingDepthReview = await missingDepthReviews(root, promptDocument.episode_key, plannedShots, assets, reviews)
+    if (missingDepthReview.length) throw new Error(`视频生成前必须先通过每镜深度视频专项审核：${missingDepthReview.join('；')}`)
+  }
   const missingPreviz = await missingPrevizAssets(root, promptDocument.episode_key, storyboardSelection.versionId, plannedShots, assets, planSelection.versionId)
   if (missingPreviz.length) throw new Error(`视频生成前必须先完成已启用的 Blender 白模分镜：${missingPreviz.join('；')}`)
   const missingPrevizReview = missingPrevizReviews(promptDocument.episode_key, plannedShots, assets, reviews)
@@ -346,7 +373,9 @@ async function validateProjectInputs(projectRoot, type, target, promptDocument, 
   if (nativeAudio && (!providerSupports(providerName, 'video.native-audio') || args.generate_audio !== true)) throw new Error('原生音频镜头必须使用声明 video.native-audio 能力的 Provider 并显式 generate_audio=true')
   if (!nativeAudio && args.generate_audio === true) throw new Error('非原生音频镜头不得静默开启 generate_audio')
   const manifest = Array.isArray(args.reference_manifest) ? args.reference_manifest : []
-  validateRequiredVideoReferences(manifest)
+  validateRequiredVideoReferences(manifest, { referenceMode })
+  validateShotGenerationContract({ planShot, storyboardPanel, manifest, audioPolicy: shot.audio_policy })
+  if (referenceMode === 'depth') validateDepthReferenceBinding(planShot, manifest, assets)
   // 多参考 Provider 可把整张分镜板当语义参考；Comfly 单参考模式在下方强制改用可追溯的单格裁图。
   validatePanelBoardReference(planShot, manifest, args.prompt)
   const expectedReferences = providerName === 'comfly'
@@ -370,7 +399,7 @@ async function validateProjectInputs(projectRoot, type, target, promptDocument, 
     // 只硬拦 high：门框/地平线类误报为 medium 时放行，成片侧 A4 检测仍会兜底标记 grid_suspect
     if (grid.detected && grid.confidence === 'high') throw new Error(`参考素材疑似宫格/分屏，已阻止提交：${reference.asset_key}@${reference.version_id} 命中 ${grid.lines.map((line) => `${line.line}(${line.frames}/${grid.total_frames}帧)`).join('、')}；请重新生成单格素材，或按流程裁格/登记 other-refpack-* 合板`)
   }
-  await validateVideoReferenceBindings(root, providerName, args, manifest)
+  await validateVideoReferenceBindings(root, providerName, args, manifest, { referenceMode })
 }
 
 export function compileGeneratedAudioArguments({ providerArgs, line, audioPlan, audioPlanVersion, previousCompilerSnapshot, previousAttemptOutcome }) {
@@ -553,30 +582,28 @@ export function planSummary(plan) {
     version_id: plan.version_id,
     shot_count: plan.plans.length,
     total_duration_seconds: plan.plans.reduce((sum, item) => sum + (item.ok ? item.production.duration : 0), 0),
-    material_count: { depth_videos: count('depth_reference'), temporal_storyboards: count('temporal_storyboard'), shot_boards: count('shot_board'), asset_boards: count('asset_board'), audio_references: count('audio_reference') },
+    material_count: { depth_videos: count('depth_reference'), blender_previz_videos: count('reference_video'), temporal_storyboards: count('temporal_storyboard'), shot_boards: count('shot_board'), asset_boards: count('asset_board'), audio_references: count('audio_reference') },
     shots: plan.plans.map((item) => item.ok
       ? { shot_number: item.shot_number, target: item.target, provider: item.provider, missing_urls: item.missing_urls, ...item.production }
       : { shot_number: item.shot_number, target: item.target, provider: item.provider, error: item.error }),
   }
 }
 
-function publishableImageReferences(document, episodeKey, assetsLedger, productionPlan) {
+function publishableReferences(document, episodeKey, assetsLedger, productionPlan) {
   const unique = new Map()
-  const skippedNonImage = []
   for (const shot of document.shots || []) {
     if (shot.provider === 'runninghub') continue
     if (shot.provider === 'comfly') {
       // Comfly 只有一个参考槽；预发布必须复用正式提交的派生清单，避免整板上传与实际单格输入分叉。
       const effective = comflyStoryboardOnly(shot, episodeKey, assetsLedger, productionPlan.shots?.find((item) => item.shot_number === shot.shot_number))
-      for (const reference of effective.references || []) unique.set(`${reference.asset_key}@${reference.version_id}`, { asset_key: reference.asset_key, version_id: reference.version_id })
+      for (const reference of effective.references || []) unique.set(`${reference.asset_key}@${reference.version_id}`, { asset_key: reference.asset_key, version_id: reference.version_id, media_type: reference.type })
       continue
     }
     for (const reference of shot.references || []) {
-      if (reference.type !== 'image') { skippedNonImage.push({ shot_number: shot.shot_number, asset_key: reference.asset_key, type: reference.type, reason: '批量发布仅支持图片；视频/音频参考请在单次 submit_video 中传已授权公网 URL' }); continue }
-      unique.set(`${reference.asset_key}@${reference.version_id}`, { asset_key: reference.asset_key, version_id: reference.version_id })
+      unique.set(`${reference.asset_key}@${reference.version_id}`, { asset_key: reference.asset_key, version_id: reference.version_id, media_type: reference.type })
     }
   }
-  return { references: [...unique.values()], skippedNonImage }
+  return [...unique.values()]
 }
 
 async function ensureReferenceUrls(args) {
@@ -587,16 +614,16 @@ async function ensureReferenceUrls(args) {
   const planSelection = JSON.parse(await readFile(resolve(root, 'episodes', episodeKey, 'production-plan', 'selected.json'), 'utf8'))
   const productionPlan = JSON.parse(await readFile(resolve(root, planSelection.path), 'utf8'))
   const assetsLedger = JSON.parse(await readFile(resolve(root, '.short-drama', 'assets.json'), 'utf8'))
-  const { references, skippedNonImage } = publishableImageReferences(document, episodeKey, assetsLedger, productionPlan)
+  const references = publishableReferences(document, episodeKey, assetsLedger, productionPlan)
   const results = await Promise.all(references.map(async (input) => {
     try {
-      const receipt = await publishReferenceImage(root, { ...publishInput, ...input })
+      const receipt = await publishReferenceMedia(root, { ...publishInput, ...input }, input.media_type)
       return { ok: true, ...input, url: receipt.url, reused: receipt.reused === true, expires_at: receipt.expires_at }
     } catch (error) {
       return { ok: false, ...input, error: error.message }
     }
   }))
-  return { episode_key: episodeKey, published: results.filter((item) => item.ok), failed: results.filter((item) => !item.ok), skipped_non_image: skippedNonImage }
+  return { episode_key: episodeKey, published: results.filter((item) => item.ok), failed: results.filter((item) => !item.ok) }
 }
 
 async function submitEpisodeVideos(args) {
@@ -662,15 +689,10 @@ async function awaitEpisodeTasks(args) {
   }
 }
 
-// 单镜提交的唯一实现路径：单工具 submit_video 与整集批量提交都走这里。
-async function submitVideoOnce(projectRoot, target, promptDocument, providerArgs) {
+async function submitTrackedVideo(projectRoot, target, promptDocument, providerArgs, modelOrWorkflow = providerArgs.model || providerArgs.workflow_id) {
   const providerName = providerArgs.provider
-  if (typeof providerArgs.confirmed !== 'boolean') providerArgs.confirmed = true
-  await enforceGenerationStage(projectRoot, 'submit_video', target)
-  applyRunninghubVideoDefaults(providerArgs)
-  await validateProjectInputs(projectRoot, 'video', target, promptDocument, providerName, providerArgs)
   const selectedAdapter = adapter(providerName)
-  const snapshot = await createRequestSnapshot(projectRoot, { tool: 'submit_video', target, type: 'video', provider: providerName, modelOrWorkflow: providerArgs.model || providerArgs.workflow_id, promptDocument, arguments: providerArgs })
+  const snapshot = await createRequestSnapshot(projectRoot, { tool: 'submit_video', target, type: 'video', provider: providerName, modelOrWorkflow, promptDocument, arguments: providerArgs })
   await reserveTask(projectRoot, { taskId: snapshot.requestId, target, type: 'video', provider: providerName, requestPath: snapshot.requestPath })
   let result
   try {
@@ -683,6 +705,72 @@ async function submitVideoOnce(projectRoot, target, promptDocument, providerArgs
   await settleReservedTask(projectRoot, snapshot.requestId, { taskId, status: result.status === 'submitted' ? 'queued' : 'running' })
   const tracked = { ...result, task_id: taskId, request_id: snapshot.requestId, request_path: snapshot.requestPath, request_sha256: snapshot.requestSha256 }
   return result.status === 'completed' ? syncTaskResult(projectRoot, taskId, tracked) : tracked
+}
+
+// 单镜与整集最终镜头共用同一校验和任务提交路径。
+async function submitVideoOnce(projectRoot, target, promptDocument, providerArgs) {
+  const providerName = providerArgs.provider
+  if (providerArgs.confirmed !== true) throw new Error('视频提交必须先展示制作计划并显式 confirmed=true')
+  await enforceGenerationStage(projectRoot, 'submit_video', target)
+  applyRunninghubVideoDefaults(providerArgs)
+  await validateProjectInputs(projectRoot, 'video', target, promptDocument, providerName, providerArgs)
+  return submitTrackedVideo(projectRoot, target, promptDocument, providerArgs)
+}
+
+async function submitDepthVideo(args) {
+  if (!/^ep-\d{3}$/.test(args.episode_key || '') || !Number.isInteger(args.shot_number) || args.shot_number < 1) throw new Error('episode_key/shot_number 无效')
+  if (typeof args.confirmed !== 'boolean') throw new Error('confirmed 必须是布尔值')
+  const root = await realpath(resolve(args.project_root))
+  await enforceGenerationStage(root, 'submit_video', `shot-${args.episode_key.replace('-', '')}-depth-${String(args.shot_number).padStart(3, '0')}`)
+  const selection = JSON.parse(await readFile(resolve(root, 'episodes', args.episode_key, 'production-plan', 'selected.json'), 'utf8'))
+  const plan = JSON.parse(await readFile(resolve(root, selection.path), 'utf8'))
+  const shot = plan.approved === true && !plan.unresolved?.length && plan.shots?.find((item) => item.shot_number === args.shot_number && item.status === 'ready')
+  if (!shot) throw new Error('深度视频必须引用当前 approved、无未决项且镜头 ready 的制作计划')
+  const contract = shot.video_strategy?.depth_reference
+  const expectedTarget = `shot-${args.episode_key.replace('-', '')}-depth-${String(args.shot_number).padStart(3, '0')}`
+  if (contract?.mode !== 'generate' || contract.provider !== 'runninghub' || contract.workflow_id !== DEPTH_WORKFLOW_ID || contract.expected_output_asset_key !== expectedTarget) throw new Error('当前镜头缺少固定 RunningHub 深度视频合同')
+  const source = await selectedAssetVersion(root, contract.source_asset_key)
+  if (source.asset.type !== 'video' || source.version.id !== contract.source_version_id) throw new Error('深度来源必须是制作计划绑定的当前 selected 视频版本')
+  const promptDocument = { kind: 'production-plan', episode_key: args.episode_key, version_id: selection.versionId, shot_number: args.shot_number }
+  const providerArgs = {
+    provider: 'runninghub', model: DEPTH_MODEL, workflow_id: DEPTH_WORKFLOW_ID, confirmed: true,
+    prompt_profile: 'generic', input_mode: 'full-reference', prompt_version: selection.versionId, prompt: 'Generate the grayscale depth reference only.',
+    reference_paths: [source.path], reference_manifest: [{ type: 'video', order: 1, asset_key: source.asset.key, version_id: source.version.id, role: 'source_video' }],
+  }
+  const summary = { provider: 'runninghub', model: DEPTH_MODEL, workflow_id: DEPTH_WORKFLOW_ID, source: { asset_key: source.asset.key, version_id: source.version.id }, target: expectedTarget, request_count: 1 }
+  if (args.confirmed !== true) return { phase: 'plan', requires_confirmation: true, ...summary }
+  await putAsset(root, { key: expectedTarget, type: 'video', name: `${args.episode_key} 第 ${args.shot_number} 镜深度视频` })
+  return { phase: 'submitted', ...summary, ...await submitTrackedVideo(root, expectedTarget, promptDocument, providerArgs, DEPTH_WORKFLOW_ID) }
+}
+
+async function submitEpisodeDepthVideos(args) {
+  const { project_root: projectRoot, episode_key: episodeKey, shot_numbers: shotNumbers, confirmed } = args
+  if (!/^ep-\d{3}$/.test(episodeKey || '') || shotNumbers !== undefined && (!Array.isArray(shotNumbers) || shotNumbers.some((number) => !Number.isInteger(number) || number < 1))) throw new Error('episode_key/shot_numbers 无效')
+  if (typeof confirmed !== 'boolean') throw new Error('confirmed 必须是布尔值：false 仅出逐镜深度计划，true 在用户确认后提交')
+  const root = await realpath(resolve(projectRoot))
+  const selection = JSON.parse(await readFile(resolve(root, 'episodes', episodeKey, 'production-plan', 'selected.json'), 'utf8'))
+  const document = JSON.parse(await readFile(resolve(root, selection.path), 'utf8'))
+  const wanted = shotNumbers ? new Set(shotNumbers) : null
+  if (shotNumbers && wanted.size !== shotNumbers.length) throw new Error('shot_numbers 不得重复')
+  if (wanted) for (const number of wanted) if (!document.shots?.some((shot) => shot.shot_number === number)) throw new Error(`制作计划中不存在镜号：${number}`)
+  const shots = (document.shots || []).filter((shot) => !wanted || wanted.has(shot.shot_number))
+  const checks = await Promise.allSettled(shots.map((shot) => submitDepthVideo({ project_root: root, episode_key: episodeKey, shot_number: shot.shot_number, confirmed: false })))
+  const plans = checks.map((result, index) => result.status === 'fulfilled'
+    ? { ok: true, shot_number: shots[index].shot_number, ...result.value }
+    : { ok: false, shot_number: shots[index].shot_number, error: result.reason?.message || String(result.reason) })
+  const summary = { episode_key: episodeKey, production_plan_version: selection.versionId, shot_count: plans.length, request_count: plans.filter((item) => item.ok).length, shots: plans.map(({ phase, requires_confirmation, ...item }) => item) }
+  if (!confirmed) return { phase: 'plan', ready: plans.length > 0 && plans.every((item) => item.ok), ...summary }
+  const errors = plans.filter((item) => !item.ok)
+  if (!plans.length || errors.length) throw new Error(`整集深度视频校验未通过，未提交任何镜头：\n${errors.map((item) => `第${item.shot_number}镜：${item.error}`).join('\n')}`)
+  const outcomes = await mapWithConcurrency(plans, 2, (item) => submitDepthVideo({ project_root: root, episode_key: episodeKey, shot_number: item.shot_number, confirmed: true }))
+  const submitted = []
+  const failed = []
+  for (const [index, outcome] of outcomes.entries()) {
+    const plan = plans[index]
+    if (outcome.status === 'fulfilled') submitted.push({ shot_number: plan.shot_number, target: plan.target, task_id: outcome.value.task_id, status: outcome.value.status })
+    else failed.push({ shot_number: plan.shot_number, target: plan.target, error: outcome.reason?.message || String(outcome.reason) })
+  }
+  return { phase: 'submitted', ...summary, submitted, failed }
 }
 
 function selfCheck() {
@@ -1190,6 +1278,8 @@ export async function call(name, args = {}) {
   if (name === 'submit_episode_videos') return submitEpisodeVideos(args)
   if (name === 'submit_episode_images') return submitEpisodeImages(args)
   if (name === 'await_episode_tasks') return awaitEpisodeTasks(args)
+  if (name === 'submit_episode_depth_videos') return submitEpisodeDepthVideos(args)
+  if (name === 'submit_depth_video') return submitDepthVideo(args)
   if (name === 'submit_video') {
     const { project_root: projectRoot, target, prompt_document: promptDocument, ...providerArgs } = args
     return submitVideoOnce(projectRoot, target, promptDocument, providerArgs)

@@ -129,7 +129,7 @@
 }
 ```
 
-`automation_mode` 控制项目后续操作的确认策略，默认值为 `true`。开启后，Codex/agent 可自行判断并提交项目内的选版、批量范围、费用和重试确认，不再为每一步询问用户；但仍必须满足阶段门禁、权限/素材权利事实和安全校验，缺少这些依据时必须停下。设置为 `false` 时恢复逐项确认。
+`automation_mode` 控制项目后续操作的确认策略，默认值为 `true`。开启后，Codex/agent 可自行判断并提交项目内的选版、批量请求范围和重试确认，不再为每一步询问用户；仍须展示制作计划且不计算具体价格，并满足阶段门禁、权限/素材权利事实和安全校验。缺少这些依据时必须停下。设置为 `false` 时恢复逐项确认。
 
 `workflow` 固定为 `{ "type": "standard|viral-recreation", "version": 1 }`；旧项目缺少时按 `standard`。`viral-recreation` 不改变九阶段状态机，只在 analysis 动态增加参考视频分析与声明式复刻工作流。切换 profile 从 analysis 失效。参考原片只能作为 `source/manifest.json` 中 `kind=reference-video` 的来源，不能写入正式视频资产账本。该 profile 的 storyboard、production-plan、video-prompts 与 audio-plan 必须在 `source_versions.recreation_workflow` 绑定当前 selected 复刻工作流版本。
 

@@ -24,6 +24,17 @@ This compact fixture demonstrates one atomic production branch; it is not a comp
 12–16-shot recreation. A real production repeats the `SHOTS.md` entry for every approved atomic unit and
 keeps paid generation blocked until those rows contain real evidence rather than fixture placeholders.
 
+`starrouter-reference.svml` is the native StarRouter/RunningHub variant. RunningHub produces the depth
+Resource; the same Build then sends character, temporal-storyboard, shot-board, depth-video and timed
+audio Resource edges through the Seedance Model to the StarRouter Endpoint. Replace the placeholder
+object-store values in `starrouter-runninghub.runtime.json`, then inspect the paid plan before building:
+
+```bash
+hypit check starrouter-reference.svrun
+hypit plan starrouter-reference.svrun --runtime starrouter-runninghub.runtime.json
+hypit build starrouter-reference.svrun --runtime starrouter-runninghub.runtime.json --follow
+```
+
 The checked-in media are synthetic planning fixtures, so the five image roles deliberately reuse one
 local placeholder file to keep the example small. Before submitting paid tasks, replace
 `assets/original-shot.mp4` and give `character-board`, `scene-board`, `prop-board`,

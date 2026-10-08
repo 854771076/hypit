@@ -77,6 +77,13 @@ const defaultArtStyle = () => ({
   name: '真人风格',
   description: '真实电影级画面质感，适合标准真人短剧制作。',
   prompt: 'Realistic cinematic look, real-world scene fidelity, rich transparent colors, clean and refined image quality.',
+  renderingContract: {
+    medium: 'live-action-photography',
+    rendering_method: 'cinematic live-action photography with physically credible camera and lighting response',
+    surface_language: 'natural skin, hair, fabric, metal, wood and architecture with real-world texture variation',
+    image_formation: 'photographic lens, exposure, depth of field and restrained post-production response',
+    forbidden_substitutions: ['concept art', 'game CG', '2D illustration', 'toon shading', 'plastic wax skin'],
+  },
   visualBible: {
     version: 1,
     palette: { primary: ['#15324A', '#23272B'], secondary: ['#A8ADB3'], accent: ['#C58A42'], neutral: ['#B7A99A'], scheme: 'complementary' },
@@ -128,6 +135,12 @@ function validateArtStyle(style, label = 'art_style') {
   const bible = style.visualBible
   if (!bible || typeof bible !== 'object' || Array.isArray(bible) || bible.version !== 1) throw new Error(`${label}.visualBible 必须是 v1 对象`)
   for (const field of ['palette', 'baseline', 'lighting', 'narrative_arc', 'motion_language', 'negative_constraints']) if (!(field in bible)) throw new Error(`${label}.visualBible.${field} 必填`)
+  if (style.renderingContract !== undefined) {
+    const contract = style.renderingContract
+    if (!contract || typeof contract !== 'object' || Array.isArray(contract)) throw new Error(`${label}.renderingContract 必须是对象`)
+    for (const field of ['medium', 'rendering_method', 'surface_language', 'image_formation']) if (typeof contract[field] !== 'string' || !contract[field].trim()) throw new Error(`${label}.renderingContract.${field} 必填`)
+    if (!Array.isArray(contract.forbidden_substitutions) || contract.forbidden_substitutions.some((item) => typeof item !== 'string' || !item.trim())) throw new Error(`${label}.renderingContract.forbidden_substitutions 必须是字符串数组`)
+  }
 }
 
 export function validateProject(project) {
@@ -493,21 +506,25 @@ export function validateVideoPrompts(document, episodeKey) {
   if (!document.source_versions || typeof document.source_versions !== 'object' || Array.isArray(document.source_versions)) throw new Error('video-prompts source_versions 必须是对象')
   if (!Array.isArray(document.shots) || document.shots.length === 0) throw new Error('video-prompts shots[] 必填')
   if (!Array.isArray(document.unresolved) || typeof document.approved !== 'boolean') throw new Error('video-prompts approved/unresolved 无效')
-  const shotNumbers = new Set()
+  let previousShotNumber = 0
   for (const shot of document.shots) {
     const required = ['shot_number', 'production_plan_version', 'storyboard_version', 'provider', 'model_or_workflow', 'prompt_profile', 'input_mode', 'prompt', 'duration', 'references', 'continuity', 'audio_policy', 'errors']
     for (const key of required) if (!(key in shot)) throw new Error(`video-prompts shot 缺少 ${key}`)
-    if (shotNumbers.has(shot.shot_number)) throw new Error(`video-prompts shot_number 重复：${shot.shot_number}`)
-    shotNumbers.add(shot.shot_number)
+    if (!Number.isInteger(shot.shot_number) || shot.shot_number < 1 || shot.shot_number <= previousShotNumber) throw new Error('video-prompts shots 必须按递增 shot_number 排列')
+    previousShotNumber = shot.shot_number
     validatePromptRoute(shot, `video-prompts shot ${shot.shot_number}`)
     if (!Array.isArray(shot.references) || !Array.isArray(shot.errors)) throw new Error(`video-prompts shot ${shot.shot_number} references/errors 必须是数组`)
     if (!shot.continuity || typeof shot.continuity !== 'object' || Array.isArray(shot.continuity) || !shot.audio_policy || typeof shot.audio_policy !== 'object' || Array.isArray(shot.audio_policy)) throw new Error(`video-prompts shot ${shot.shot_number} continuity/audio_policy 必须是对象`)
     if (shot.audio_policy.audio_strategy || shot.audio_policy.lines) {
       validateShotAudioPolicy(shot.audio_policy)
       if (shot.audio_policy.lines.some((line) => line.delivery_mode === 'native') && !providerSupports(shot.provider, 'video.native-audio')) throw new Error(`video-prompts shot ${shot.shot_number} 的 Provider 不支持 video.native-audio`)
+      for (const [index, line] of shot.audio_policy.lines.entries()) {
+        const taggedText = shot.prompt_profile === 'h3' ? `<d>[${line.language}] ${line.content}</d>` : `[${line.language}] ${line.content}`
+        if (!shot.prompt.includes(taggedText)) throw new Error(`video-prompts shot ${shot.shot_number} 未逐字声明 audio_policy.lines[${index}] 的原语言和台词`)
+      }
     } else if (usesNativeAudio(shot.audio_policy) && !providerSupports(shot.provider, 'video.native-audio')) throw new Error(`video-prompts shot ${shot.shot_number} 的 Provider 不支持 video.native-audio`)
     if (shot.continuity.mode === 'previous-tail') {
-      if (!['first-last-frame', 'I2VA', 'FL2VA'].includes(shot.input_mode) || shot.continuity.required_provider_capability !== 'video.first-frame') throw new Error(`video-prompts shot ${shot.shot_number} previous-tail 要求 video.first-frame 能力`)
+      if (!['full-reference', 'Ref2VA'].includes(shot.input_mode) || shot.continuity.required_provider_capability !== 'video.first-frame') throw new Error(`video-prompts shot ${shot.shot_number} previous-tail 必须在完整参考模式中携带上一镜尾帧连续性锚点`)
       if (!Number.isInteger(shot.continuity.source_shot_number) || shot.continuity.source_shot_number < 1 || shot.continuity.source_shot_number >= shot.shot_number) throw new Error(`video-prompts shot ${shot.shot_number} previous-tail 来源镜号无效`)
       const firstImage = shot.references.filter((item) => item?.type === 'image').sort((left, right) => left.order - right.order)[0]
       const expectedKey = `other-transition-${episodeKey.replace('-', '')}-${String(shot.shot_number).padStart(3, '0')}`
@@ -537,6 +554,29 @@ export function validateVideoPrompts(document, episodeKey) {
     if (shot.errors.length === 0 && !hasNoGeneratedTextClaim(shot.prompt)) throw new Error(`video-prompts shot ${shot.shot_number} prompt 必须原样包含固定禁生成文字声明（见 write-drama-video-prompts 模板）`)
   }
   if (document.approved && (document.unresolved.length || document.shots.some((shot) => shot.errors.length))) throw new Error('video-prompts 存在未决项或错误时不得 approved')
+}
+
+export function validateWorkflowMotionPolicy(workflowType, kind, document) {
+  if (!['standard', 'viral-recreation'].includes(workflowType) || !['production-plan', 'video-prompts'].includes(kind)) return
+  for (const shot of document.shots || []) {
+    const depth = Boolean(kind === 'production-plan' ? shot.video_strategy?.depth_reference : shot.references?.some((item) => item?.role === 'depth_reference'))
+    const previz = Boolean(kind === 'production-plan' ? shot.previz_strategy?.purpose === 'motion-reference' : shot.references?.some((item) => item?.role === 'reference_video'))
+    if (workflowType === 'viral-recreation' && (!depth || previz)) throw new Error(`${kind} 第 ${shot.shot_number} 镜：viral-recreation 必须使用原片深度，不能以白模替代主运动参考`)
+    // standard 可以没有主运动参考；只有静态双分镜无法证明复杂调度时才追加白模，已有逐镜原片合同仍可继续使用深度。
+    if (workflowType === 'standard' && depth && previz) throw new Error(`${kind} 第 ${shot.shot_number} 镜：深度视频与 Blender 白模不得同时作为主运动参考`)
+  }
+}
+
+export function validateStoryboardExecutionContract(panel, label = 'storyboard panel') {
+  const vague = /^(?:按画面描述的前中后景站位|按上一叙事节拍的稳定姿态进入|完成本镜主要动作与反应)$/
+  for (const [index, character] of (panel?.characters || []).entries()) {
+    if (typeof character.slot === 'string' && vague.test(character.slot.trim())) throw new Error(`${label}.characters[${index}].slot 必须写清画面左右、景深、朝向与视线目标，不能使用占位描述`)
+  }
+  for (const field of ['start_state', 'end_state', 'verb']) {
+    const value = panel?.motion_plan?.[field]
+    if (typeof value === 'string' && vague.test(value.trim())) throw new Error(`${label}.motion_plan.${field} 必须是可见、可执行且可在镜尾核验的状态`)
+  }
+  return panel
 }
 
 function validateDocument(kind, document, episodeKey) {
@@ -572,13 +612,15 @@ function validateDocument(kind, document, episodeKey) {
   if (kind === 'art-style') {
     if (!['confirmed-default', 'custom'].includes(document.mode) || typeof document.decision_reason !== 'string' || !document.decision_reason.trim() || typeof document.approved !== 'boolean') throw new Error('art-style mode/decision_reason/approved 无效')
     validateArtStyle(document.style, 'art-style.style')
+    if (!document.style.renderingContract) throw new Error('art-style.style.renderingContract 必填；旧画风必须先补齐并重新确认媒介合同')
   }
   if (kind === 'audio-plan') {
     if (document.episode_key !== episodeKey || !document.source_versions || typeof document.source_versions !== 'object' || Array.isArray(document.source_versions) || !Array.isArray(document.lines) || !Array.isArray(document.voice_bindings) || !Array.isArray(document.unresolved) || typeof document.approved !== 'boolean') throw new Error('audio-plan 合同无效')
     document.lines.forEach((line, index) => {
-      const fields = ['line_index', 'speaker', 'line_type', 'content', 'emotion', 'emotion_strength', 'pronunciation_notes', 'matched_shot', ...(line.range === undefined ? [] : ['range']), 'delivery_mode', 'presentation', 'fallback_mode', 'source_audio', 'voice_binding', 'native_audio_exception', 'performance', 'dubbing_contract']
+      const fields = ['line_index', 'speaker', 'line_type', 'content', 'emotion', 'emotion_strength', 'pronunciation_notes', 'matched_shot', ...(line.language === undefined ? [] : ['language']), ...(line.range === undefined ? [] : ['range']), 'delivery_mode', 'presentation', 'fallback_mode', 'source_audio', 'voice_binding', 'native_audio_exception', 'performance', 'dubbing_contract']
       exactKeys(line, fields, `audio-plan lines[${index}]`)
       if (line.line_index !== index + 1 || typeof line.speaker !== 'string' || !line.speaker || typeof line.content !== 'string' || !line.content || !Array.isArray(line.pronunciation_notes) || typeof line.emotion_strength !== 'number' || line.emotion_strength < 0.1 || line.emotion_strength > 0.5) throw new Error(`audio-plan lines[${index}] 无效`)
+      if (line.language !== undefined && (typeof line.language !== 'string' || !line.language.trim())) throw new Error(`audio-plan lines[${index}].language 无效`)
       if (line.range !== undefined && (!Number.isInteger(line.range?.start_ms) || !Number.isInteger(line.range?.end_ms) || line.range.start_ms < 0 || line.range.end_ms <= line.range.start_ms || Object.keys(line.range).sort().join() !== 'end_ms,start_ms')) throw new Error(`audio-plan lines[${index}].range 无效`)
       validateDubbingContract(line.dubbing_contract, { deliveryMode: line.delivery_mode, presentation: line.presentation, voiceBinding: line.voice_binding, authorizedVoiceBindings: document.voice_bindings })
     })
@@ -625,6 +667,8 @@ function validateDocument(kind, document, episodeKey) {
   if (kind === 'production-plan') {
     const fields = ['shot_number', 'dependencies', 'storyboard_strategy', 'image_strategy', 'video_strategy', 'audio_strategy', 'provider', 'model_or_workflow', 'prompt_profile', 'input_mode', 'duration_seconds', 'resolution', 'aspect_ratio', 'candidate_count', 'reference_assets', 'estimated_paid_calls', 'fallback', 'review_checks', 'status']
     const numbers = new Set()
+    const depthOutputs = new Set()
+    const depthSources = new Set()
     document.shots.forEach((shot, index) => {
       shot.storyboard_strategy ||= { mode: 'image' }
       for (const field of fields) if (!(field in shot)) throw new Error(`production-plan shots[${index}] 缺少 ${field}`)
@@ -633,25 +677,60 @@ function validateDocument(kind, document, episodeKey) {
       for (const field of ['dependencies', 'reference_assets', 'review_checks']) if (!Array.isArray(shot[field])) throw new Error(`production-plan shots[${index}].${field} 必须是数组`)
       for (const field of ['storyboard_strategy', 'image_strategy', 'video_strategy', 'audio_strategy']) if (!shot[field] || typeof shot[field] !== 'object' || Array.isArray(shot[field])) throw new Error(`production-plan shots[${index}].${field} 必须是对象`)
       if (!AUDIO_STRATEGY_MODES.has(shot.audio_strategy.mode)) throw new Error(`production-plan shots[${index}].audio_strategy.mode 必须为 native、post-dub 或 independent`)
+      for (const field of ['visible_character_keys', 'visible_event_keys']) {
+        const values = shot.video_strategy[field]
+        if (!Array.isArray(values) || values.some((value) => typeof value !== 'string' || !value.trim()) || new Set(values).size !== values.length) throw new Error(`production-plan shots[${index}].video_strategy.${field} 必须是数组，且元素为无重复的非空字符串`)
+      }
+      if (shot.video_strategy.visible_character_keys.some((key) => !key.startsWith('char-'))) throw new Error(`production-plan shots[${index}].video_strategy.visible_character_keys 只能包含 char-*`)
+      const boundCharacters = new Set(shot.reference_assets.filter((item) => item?.role === 'character_identity').map((item) => item.key))
+      const missingCharacters = shot.video_strategy.visible_character_keys.filter((key) => !boundCharacters.has(key))
+      const extraCharacters = [...boundCharacters].filter((key) => !shot.video_strategy.visible_character_keys.includes(key))
+      if (missingCharacters.length || extraCharacters.length) throw new Error(`production-plan shots[${index}] 可见人物与 character_identity 引用不一致${missingCharacters.length ? `，缺少：${missingCharacters.join('、')}` : ''}${extraCharacters.length ? `，多出：${extraCharacters.join('、')}` : ''}`)
+      for (const [audioIndex, ambience] of (shot.audio_strategy.ambience || []).entries()) {
+        if (!ambience?.evidence || !['script', 'storyboard', 'scene_asset', 'audio_reference'].includes(ambience.evidence.source) || typeof ambience.evidence.detail !== 'string' || !ambience.evidence.detail.trim()) throw new Error(`production-plan shots[${index}].audio_strategy.ambience[${audioIndex}] 缺少有效来源证据`)
+      }
+      for (const [audioIndex, sound] of (shot.audio_strategy.action_sounds || []).entries()) {
+        if (typeof sound?.evidence_event_key !== 'string' || !shot.video_strategy.visible_event_keys.includes(sound.evidence_event_key)) throw new Error(`production-plan shots[${index}].audio_strategy.action_sounds[${audioIndex}] 必须引用本镜 visible_event_keys`)
+      }
       if (!STORYBOARD_MEDIA.has(shot.storyboard_strategy.mode)) throw new Error(`production-plan shots[${index}].storyboard_strategy.mode 必须为 image 或 blender`)
       for (const field of ['mode', 'board_type', 'panel_grid_size', 'overflow_strategy']) if (!(field in shot.image_strategy)) throw new Error(`production-plan shots[${index}].image_strategy 缺少 ${field}`)
-      if (!['generate', 'skip'].includes(shot.image_strategy.mode)) throw new Error(`production-plan shots[${index}].image_strategy.mode 必须为 generate 或 skip`)
-      if (!STORYBOARD_TYPES.has(shot.image_strategy.board_type ?? 'shot-board')) throw new Error(`production-plan shots[${index}].image_strategy.board_type 无效`)
-      if (!Number.isInteger(shot.image_strategy.panel_grid_size) || shot.image_strategy.panel_grid_size < 1 || shot.image_strategy.panel_grid_size > 16 || (shot.image_strategy.board_type === 'single') !== (shot.image_strategy.panel_grid_size === 1)) throw new Error(`production-plan shots[${index}].image_strategy.panel_grid_size 与分镜类型不匹配`)
+      if (shot.image_strategy.mode !== 'generate') throw new Error(`production-plan shots[${index}].image_strategy.mode 必须为 generate`)
+      if (shot.image_strategy.board_type !== 'shot-board') throw new Error(`production-plan shots[${index}].image_strategy.board_type 必须为 shot-board；时间故事版由同一模块独立生成`)
+      if (!Number.isInteger(shot.image_strategy.panel_grid_size) || shot.image_strategy.panel_grid_size < 2 || shot.image_strategy.panel_grid_size > 16) throw new Error(`production-plan shots[${index}].image_strategy.panel_grid_size 必须为 2–16`)
       if (!['compose-assets', 'reject'].includes(shot.image_strategy.overflow_strategy ?? 'compose-assets')) throw new Error(`production-plan shots[${index}].image_strategy.overflow_strategy 无效`)
+      if (!['seedance2', 'h3'].includes(shot.prompt_profile)) throw new Error(`production-plan shots[${index}] 最终视频只允许 seedance2 或 h3 完整参考合同`)
+      if (shot.prompt_profile === 'seedance2' && shot.input_mode !== 'full-reference') throw new Error(`production-plan shots[${index}] 必须用 Seedance 2.0 full-reference 同时承载人物、深度、双分镜板和音频参考`)
+      if (shot.prompt_profile === 'h3' && shot.input_mode !== 'Ref2VA') throw new Error(`production-plan shots[${index}] 必须用 H3 Ref2VA 同时承载人物、深度、双分镜板和音频参考`)
+      if (shot.video_strategy.visible_character_keys.length > 0 && !shot.reference_assets.some((item) => item?.role === 'character_identity' && item?.key?.startsWith('char-'))) throw new Error(`production-plan shots[${index}] 有可见人物时必须绑定至少一个 char-*/character_identity 人物参考`)
+      const depth = shot.video_strategy.depth_reference
+      if (depth !== undefined) {
+        const depthFields = ['mode', 'provider', 'workflow_id', 'source_asset_key', 'source_version_id', 'expected_output_asset_key', 'reason']
+        if (!depth || typeof depth !== 'object' || Array.isArray(depth) || Object.keys(depth).sort().join() !== depthFields.sort().join()) throw new Error(`production-plan shots[${index}].video_strategy.depth_reference 字段无效`)
+        if (depth.mode !== 'generate' || depth.provider !== 'runninghub' || depth.workflow_id !== '2098674379113979905') throw new Error(`production-plan shots[${index}].video_strategy.depth_reference 必须使用 RunningHub 深度工作流 2098674379113979905`)
+        safeKey(depth.source_asset_key, `production-plan shots[${index}].video_strategy.depth_reference.source_asset_key`)
+        versionKey(depth.source_version_id, `production-plan shots[${index}].video_strategy.depth_reference.source_version_id`)
+        safeKey(depth.expected_output_asset_key, `production-plan shots[${index}].video_strategy.depth_reference.expected_output_asset_key`)
+        const expectedDepthKey = `shot-${episodeKey.replace('-', '')}-depth-${String(shot.shot_number).padStart(3, '0')}`
+        if (depth.expected_output_asset_key !== expectedDepthKey || depth.source_asset_key === depth.expected_output_asset_key || depthOutputs.has(depth.expected_output_asset_key)) throw new Error(`production-plan shots[${index}].video_strategy.depth_reference 输出必须为唯一的 ${expectedDepthKey}，且不能覆盖来源`)
+        const depthSource = `${depth.source_asset_key}@${depth.source_version_id}`
+        if (depthSources.has(depthSource)) throw new Error(`production-plan shots[${index}].video_strategy.depth_reference 必须使用当前镜头独立的源视频版本，不得跨镜复用 ${depthSource}`)
+        depthOutputs.add(depth.expected_output_asset_key)
+        depthSources.add(depthSource)
+        if (typeof depth.reason !== 'string' || !depth.reason.trim()) throw new Error(`production-plan shots[${index}].video_strategy.depth_reference.reason 必填`)
+      }
       if (shot.previz_strategy !== undefined) {
         const previz = shot.previz_strategy
         if (!previz || typeof previz !== 'object' || Array.isArray(previz) || !['none', 'blender'].includes(previz.mode)) throw new Error(`production-plan shots[${index}].previz_strategy 无效`)
         if (previz.mode === 'blender' && (!['review', 'motion-reference'].includes(previz.purpose) || !Number.isInteger(previz.fps) || previz.fps < 6 || previz.fps > 30)) throw new Error(`production-plan shots[${index}].previz_strategy Blender 参数无效`)
       }
-      if (shot.storyboard_strategy.mode === 'image' && shot.image_strategy.mode !== 'generate') throw new Error(`production-plan shots[${index}] 图片分镜必须生成 image_strategy`)
-      if (shot.storyboard_strategy.mode === 'blender' && (shot.image_strategy.mode !== 'skip' || shot.previz_strategy?.mode !== 'blender')) throw new Error(`production-plan shots[${index}] 白模分镜必须跳过图片并启用 Blender`)
+      if (shot.storyboard_strategy.mode === 'blender' && shot.previz_strategy?.mode !== 'blender') throw new Error(`production-plan shots[${index}] 白模分镜必须启用 Blender`)
       if (shot.previz_strategy?.purpose === 'motion-reference' && !supportsPrevizMotionReference(shot.provider, shot.model_or_workflow)) throw new Error(`production-plan shots[${index}] 当前 Provider/工作流不支持白模参考视频`)
+      if (!depth && shot.previz_strategy?.mode === 'blender' && !['review', 'motion-reference'].includes(shot.previz_strategy.purpose)) throw new Error(`production-plan shots[${index}] Blender 白模用途无效`)
       for (const field of ['provider', 'model_or_workflow', 'resolution', 'aspect_ratio']) if (typeof shot[field] !== 'string' || !shot[field]) throw new Error(`production-plan shots[${index}].${field} 必填`)
       if (!Number.isInteger(shot.duration_seconds) || shot.duration_seconds <= 0 || !Number.isInteger(shot.candidate_count) || shot.candidate_count <= 0 || !Number.isInteger(shot.estimated_paid_calls) || shot.estimated_paid_calls < 0) throw new Error(`production-plan shots[${index}] 数量或时长无效`)
       if (!['ready', 'blocked'].includes(shot.status)) throw new Error(`production-plan shots[${index}].status 无效`)
       validatePromptRoute(shot, `production-plan shots[${index}]`, document.approved === false && document.unresolved.length > 0)
-      if (shot.provider === 'comfly' && (shot.model_or_workflow !== 'minimax-h3' || shot.input_mode !== 'Ref2VA' || shot.duration_seconds < 5)) throw new Error(`production-plan shots[${index}] 与 Comfly H3 合同不匹配`)
+      if (shot.provider === 'comfly') throw new Error(`production-plan shots[${index}] Comfly 无法满足深度视频、双分镜板和音频参考的完整合同`)
       if (shot.provider === 'runninghub' && shot.model_or_workflow === 'minimax-h3-reference-to-video' && shot.duration_seconds < 5) throw new Error(`production-plan shots[${index}] RunningHub H3 有效时长至少为 5 秒`)
     })
     if (document.approved && (document.unresolved.length || document.shots.some((shot) => shot.status !== 'ready'))) throw new Error('production-plan 存在未决项或阻塞镜头时不得 approved')
@@ -661,7 +740,13 @@ function validateDocument(kind, document, episodeKey) {
     if (!document.source_versions || typeof document.source_versions !== 'object' || Array.isArray(document.source_versions) || Object.keys(document.source_versions).length === 0) throw new Error('storyboard source_versions 必须是非空对象')
     for (const [source, version] of Object.entries(document.source_versions)) versionKey(version, `storyboard source_versions.${source}`)
     if (!Array.isArray(document.panels) || document.panels.length === 0) throw new Error('storyboard panels[] 必填')
-    const fields = ['panel_number', 'shot_number', 'description', 'characters', 'location', 'source_text', 'duration']
+    const fields = ['panel_number', 'shot_number', 'description', 'characters', 'location', 'source_text', 'duration', 'shot_group']
+    const groupTypes = new Set(['single', 'montage', 'progression', 'causal', 'contrast'])
+    const groupRoles = new Set(['setup', 'action', 'reaction', 'bridge', 'payoff'])
+    const groupPatterns = new Set(['standard', 'reaction-first', 'action-stacked', 'reaction-omitted', 'action-hidden', 'delayed-reaction', 'synchronous', 'reaction-chain', 'repeated-variation', 'contrapuntal', 'omitted-action', 'chain-link'])
+    const groups = new Map()
+    const closedGroups = new Set()
+    let currentGroup = null
     const compositionOf = (panel) => panel.photographyPlan?.composition ?? panel.visual_plan?.composition ?? panel.composition_contract
     const validateComposition = (composition, label) => {
       if (!composition || typeof composition !== 'object' || Array.isArray(composition)) throw new Error(`${label} 构图合同必须是对象`)
@@ -675,6 +760,17 @@ function validateDocument(kind, document, episodeKey) {
       if (panel.shot_number !== panel.panel_number) throw new Error(`storyboard panels[${index}] shot_number 必须等于 panel_number`)
       if (!Array.isArray(panel.characters) || panel.characters.some((character) => !character || typeof character !== 'object' || Array.isArray(character) || typeof character.name !== 'string' || !character.name.trim())) throw new Error(`storyboard panels[${index}].characters 无效`)
       if (!Number.isInteger(panel.duration) || panel.duration <= 0 || typeof panel.description !== 'string' || !panel.description.trim() || typeof panel.location !== 'string' || !panel.location.trim() || typeof panel.source_text !== 'string' || !panel.source_text.trim()) throw new Error(`storyboard panels[${index}] 描述、场景、来源或时长无效`)
+      validateStoryboardExecutionContract(panel, `storyboard panels[${index}]`)
+      exactKeys(panel.shot_group, ['id', 'type', 'role', 'pattern'], `storyboard panels[${index}].shot_group`)
+      if (typeof panel.shot_group.id !== 'string' || !panel.shot_group.id.trim() || !groupTypes.has(panel.shot_group.type) || !groupRoles.has(panel.shot_group.role) || !groupPatterns.has(panel.shot_group.pattern)) throw new Error(`storyboard panels[${index}].shot_group 无效`)
+      if (panel.shot_group.id !== currentGroup) {
+        if (currentGroup !== null) closedGroups.add(currentGroup)
+        if (closedGroups.has(panel.shot_group.id)) throw new Error(`storyboard shot_group 必须连续：${panel.shot_group.id}`)
+        currentGroup = panel.shot_group.id
+      }
+      const groupContract = groups.get(panel.shot_group.id)
+      if (groupContract && (groupContract.type !== panel.shot_group.type || groupContract.pattern !== panel.shot_group.pattern)) throw new Error(`storyboard 同组 type/pattern 必须一致：${panel.shot_group.id}`)
+      groups.set(panel.shot_group.id, { type: panel.shot_group.type, pattern: panel.shot_group.pattern })
       const composition = compositionOf(panel)
       if (composition !== undefined) validateComposition(composition, `storyboard panels[${index}]`)
     }
@@ -710,6 +806,7 @@ async function validateEpisodeDocument(kind, episodeKey, document) {
   }
   if (RECREATION_CONSUMER_DOCUMENTS.has(kind) && await exists(resolve(root, '.short-drama/project.json'))) {
     const project = await readJson(resolve(root, '.short-drama/project.json'))
+    validateWorkflowMotionPolicy(project.workflow?.type, kind, document)
     if (project.workflow?.type === 'viral-recreation') {
       await validateRecreationConsumerBinding(root, kind, episodeKey, document)
     }
@@ -732,6 +829,9 @@ async function validateEpisodeDocument(kind, episodeKey, document) {
     for (const reference of shot.references) {
       safeKey(reference.asset_key, 'reference asset key'); versionKey(reference.version_id, 'reference version id')
       if (typeof reference.role !== 'string' || !reference.role.trim()) throw new Error(`video-prompts shot ${shot.shot_number} 引用用途必填`)
+      if (reference.person_reference !== undefined && typeof reference.person_reference !== 'boolean') throw new Error(`video-prompts shot ${shot.shot_number} person_reference 必须是布尔值`)
+      if (shot.prompt_profile === 'seedance2' && reference.type !== 'audio' && typeof reference.person_reference !== 'boolean') throw new Error(`video-prompts shot ${shot.shot_number} Seedance 图片/视频引用必须声明 person_reference`)
+      if (reference.type === 'audio' && reference.person_reference !== undefined) throw new Error(`video-prompts shot ${shot.shot_number} 音频引用不得声明 person_reference`)
       const asset = ledger.assets?.[reference.asset_key]
       const version = asset?.versions?.find((item) => item.id === reference.version_id)
       if (!version || asset.selectedVersionId !== reference.version_id) throw new Error(`video-prompts shot ${shot.shot_number} 引用必须是已选本地版本：${reference.asset_key}@${reference.version_id}`)
@@ -784,6 +884,12 @@ async function main() {
     validateAssetPlan(assetPlan)
     try { validateAssetPlan({ ...assetPlan, characters: [{ ...assetPlan.characters[0], evidence: [{}] }] }); throw new Error('资产证据自检失败') } catch (error) { if (!String(error.message).includes('顶层字段')) throw error }
     validateDocument('outline', { episodes: [{ key: 'ep-001', order: 1 }], coverage_check: {}, continuity_check: {} })
+    const storyboard = { episode_key: 'ep-001', source_versions: { script: 'v001' }, panels: [
+      { panel_number: 1, shot_number: 1, description: '人物抬头', characters: [], location: '房间', source_text: '他抬起头。', duration: 5, shot_group: { id: 'group-a', type: 'causal', role: 'action', pattern: 'standard' } },
+      { panel_number: 2, shot_number: 2, description: '人物回应', characters: [], location: '房间', source_text: '她看向他。', duration: 5, shot_group: { id: 'group-a', type: 'causal', role: 'reaction', pattern: 'standard' } },
+    ] }
+    validateDocument('storyboard', storyboard, 'ep-001')
+    try { validateDocument('storyboard', { ...storyboard, panels: [storyboard.panels[0], { ...storyboard.panels[1], shot_group: { ...storyboard.panels[1].shot_group, id: 'group-b' } }, { ...storyboard.panels[0], panel_number: 3, shot_number: 3 }] }, 'ep-001'); throw new Error('镜头组连续性自检失败') } catch (error) { if (!String(error.message).includes('必须连续')) throw error }
     validateDocument('continuity-plan', { episode_key: 'ep-001', source_versions: { storyboard: 'v001', 'director-book': 'v001', 'production-plan': 'v001' }, scenes: [{ scene_key: 'scene-001', coordinate_mode: 'semantic', axis_id: 'axis-a', axis_description: '门到窗形成主轴线', camera_side: 'north', anchors: ['door', 'window'], lighting_anchor: 'window-left' }], shots: [{ shot_number: 1, scene_key: 'scene-001', camera_setup_id: 'cam-a', start_state: { actors: [], props: [], axis_id: 'axis-a', camera_side: 'north', lighting_anchor: 'window-left' }, end_state: { actors: [], props: [], axis_id: 'axis-a', camera_side: 'north', lighting_anchor: 'window-left' }, transition_link: { mode: 'independent', source_shot_number: null, source_camera_setup_id: null, enabled: false, reason: '首镜建立空间', required_provider_capability: null }, inherited_fields: ['axis_id', 'camera_side', 'lighting_anchor'], allowed_changes: [], evidence: ['director-book:scene-001'] }], unresolved: [], approved: true }, 'ep-001')
     validateDocument('audio-plan', { episode_key: 'ep-001', source_versions: {}, audio_strategy: { mode: 'native-first', provider_selection: 'prefer-native', fallback_allowed: true, fallback_reasons: [...NATIVE_AUDIO_FAILURE_REASONS] }, lines: [], voice_bindings: [], music_tracks: [{ key: 'op', purpose: 'op', title: '片头曲', source_mode: 'generated', creative_brief: { narrative_function: '建立危机并承诺主角逆势破局', story_context: '主角必须在倒计时结束前救出同伴', character_theme: '克制的主角最终选择公开承担', emotion_arc: [{ at: 0, emotion: '冷感悬疑', intensity: 0.3 }, { at: 1, emotion: '英雄感爆发', intensity: 0.9 }], edit_rhythm: '前段留对白空间，后段按两秒切镜推进', sonic_palette: '电子脉冲、低弦和强鼓组', vocal_direction: '中文青年男声，主歌克制，副歌有力量', target_duration_ms: 40000 }, prompt: '紧张悬疑电子乐', tags: 'cinematic,electronic', lyrics: '', make_instrumental: true, provider: 'starrouter', model: 'suno_music', matched_shots: [1] }], unresolved: [], approved: true }, 'ep-001')
     validateVideoPrompts({ episode_key: 'ep-001', source_versions: {}, unresolved: [], approved: true, shots: [{ shot_number: 1, production_plan_version: 'v001', storyboard_version: 'v001', provider: 'runninghub', model_or_workflow: 'minimax-h3-reference-to-video', prompt_profile: 'h3', input_mode: 'Ref2VA', prompt: `subject_definitions:\nA\nsummary:\nA\nretention_analysis:\nA\ndetailed_description:\n${ANTI_GRID_CLAIM_EN}\n${NO_GENERATED_TEXT_CLAIM_EN}\nA\n${ANTI_GRID_CLAIM_EN}\noverall_soundscape:\nA\nnon_diegetic_music:\nN/A`, duration: 5, references: [], continuity: {}, audio_policy: {}, errors: [] }] }, 'ep-001')

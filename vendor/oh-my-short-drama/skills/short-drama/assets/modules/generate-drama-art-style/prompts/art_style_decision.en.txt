@@ -12,7 +12,7 @@ Return strict JSON only: {"mode":"confirmed-default | custom","style":{},"decisi
 
 Rules:
 1. When the user confirms the current default, use confirmed-default and copy the complete current style unchanged.
-2. For a confirmed custom style, use custom and copy the complete object produced and approved through config_generation, including id, name, description, prompt, and visualBible.
+2. For a confirmed custom style, use custom and copy the complete object produced and approved through config_generation, including id, name, description, prompt, renderingContract, and visualBible. System styles must also retain their renderingContract; never copy only a name or prompt.
 3. approved must be false until the user confirms; never confirm on the user's behalf.
 4. decision_reason records the confirmation basis and excludes credentials, remote task IDs, and unrelated story content.
 5. Return JSON only, without Markdown or explanation.

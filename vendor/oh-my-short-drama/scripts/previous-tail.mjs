@@ -39,6 +39,22 @@ async function nextAssetVersion(root, key) {
   return `v${String(Math.max(0, ...numbers) + 1).padStart(3, '0')}`
 }
 
+async function reusableTail(root, key, sourceKey, source, episodeKey, shotNumber, continuityVersion) {
+  let selected
+  try { selected = await selectedAssetVersion(root, key) }
+  catch (error) {
+    if (/资产不存在|没有 selected|已因上游变更失效/.test(error.message)) return null
+    throw error
+  }
+  const provenance = selected.version.provenance
+  const prompt = provenance?.prompt_document
+  const sourceReference = provenance?.source_assets?.find((item) => item.key === sourceKey)
+  if (provenance?.origin !== 'transformed' || provenance.model_or_workflow !== 'ffmpeg-extract-frame') return null
+  if (prompt?.kind !== 'continuity-plan' || prompt.episode_key !== episodeKey || prompt.version_id !== continuityVersion || prompt.shot_number !== shotNumber) return null
+  if (sourceReference?.version_id !== source.version.id || provenance.parameters?.source_sha256 !== source.version.sha256) return null
+  return { asset_key: key, version_id: selected.version.id, local_path: relative(root, selected.path), source_sha256: source.version.sha256, reused: true }
+}
+
 export async function preparePreviousTail({ projectRoot, episodeKey, shotNumber, continuityVersion }) {
   const root = resolve(projectRoot)
   if (!/^ep-\d{3}$/.test(episodeKey) || !Number.isInteger(shotNumber) || shotNumber < 2 || !/^v\d{3}$/.test(continuityVersion)) throw new Error('尾帧派生参数无效')
@@ -50,6 +66,8 @@ export async function preparePreviousTail({ projectRoot, episodeKey, shotNumber,
   const source = await selectedAssetVersion(root, sourceKey)
   await requireApprovedReview(root, sourceKey, source.version.id)
   const key = `other-transition-${episodeKey.replace('-', '')}-${String(shotNumber).padStart(3, '0')}`
+  const reusable = await reusableTail(root, key, sourceKey, source, episodeKey, shotNumber, continuityVersion)
+  if (reusable) return reusable
   const versionId = await nextAssetVersion(root, key)
   const output = resolve(root, 'assets', 'other', key, `${versionId}.png`)
   let registered = false

@@ -4,8 +4,11 @@ import { EndpointRegistry, MemoryResourceStore } from "@hypit/driver-node";
 import { gptImageEndpoints, sealGptImage2Request } from "@hypit/gpt-image";
 import { sealMinimaxH3Request, minimaxH3Endpoints } from "@hypit/minimax-h3";
 import { sealSeedanceRequest, seedanceEndpointsByModel } from "@hypit/seedance";
+import { canonicalize } from "@hypit/protocol";
 import type { CanonicalValue, Need } from "@hypit/protocol";
+import type { RuntimeEndpointAdapterImplementation } from "@hypit/runtime-kit";
 
+import { hypitPackage } from "../src/activation.js";
 import { createStarRouterProvider } from "../src/provider.js";
 import type { CreateStarRouterProviderOptions } from "../src/provider.js";
 
@@ -135,6 +138,29 @@ test("StarRouter without a public asset publisher rejects video references durin
   const resolution = registry.resolve(request); assert.equal(resolution.status, "unsupported");
   const configured = new EndpointRegistry(); await createStarRouterProvider({ publicAssetUrl: async () => "https://media.test/reference.png" }).install(configured);
   assert.equal(configured.resolve(request).status, "resolved");
+});
+
+test("StarRouter Runtime config enables reference requests through public object storage", async () => {
+  const request: Need = {
+    id: "need:starrouter-runtime-reference", capability: minimaxH3Endpoints.video!.capability, returns: minimaxH3Endpoints.video!.returns,
+    constraints: sealMinimaxH3Request({ prompt: ["move"], duration: [5], firstFrame: [{ role: "image", artifact: { kind: "blob", resource: "res_reference", size: 3, mediaType: "image/png" } }] }) as unknown as CanonicalValue,
+    result: "record:starrouter-runtime-reference",
+  };
+  const adapter = hypitPackage.hostFacets[0]!.implementation as RuntimeEndpointAdapterImplementation;
+  const activation = await adapter.activate({
+    hostStateRoot: "/tmp", dataRoot: "/tmp", instance: "starrouter.default", pool: "starrouter.default",
+    config: canonicalize({
+      apiKey: { store: "os", key: "starrouter.api-key" },
+      publicAssets: {
+        bucket: "media", publicBaseUrl: "https://media.example.test/hypit", region: "auto",
+        accessKeyId: { store: "os", key: "media.access-key-id" },
+        secretAccessKey: { store: "os", key: "media.secret-access-key" },
+      },
+    }),
+  });
+  const registry = new EndpointRegistry();
+  await activation.endpoint.install(registry);
+  assert.equal(registry.resolve(request).status, "resolved");
 });
 
 test("StarRouter retries Seedance face references through a reviewed BytePlus asset", async () => {

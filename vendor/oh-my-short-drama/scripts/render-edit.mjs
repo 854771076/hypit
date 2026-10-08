@@ -24,7 +24,7 @@ async function copyTree(srcDir, destDir) {
   await mkdir(destDir, { recursive: true })
   for (const entry of await readdir(srcDir, { withFileTypes: true })) {
     const src = resolve(srcDir, entry.name)
-    const dest = resolve(destDir, entry.name)
+    const dest = resolve(destDir, entry.name === '.gitignore.template' ? '.gitignore' : entry.name)
     if (entry.isDirectory()) await copyTree(src, dest)
     else await copyFile(src, dest)
   }
@@ -151,7 +151,7 @@ async function loudness(root, episode, args) {
 
 async function selfCheck() {
   const required = [
-    'package.json', 'tsconfig.json', 'remotion.config.ts', '.gitignore',
+    'package.json', 'tsconfig.json', 'remotion.config.ts', '.gitignore.template',
     'src/index.ts', 'src/Root.tsx', 'src/load-timeline.ts', 'src/timeline.generated.ts', 'src/DramaTimeline.tsx',
     'src/components/SegmentVideo.tsx', 'src/components/AudioTrack.tsx', 'src/components/Subtitle.tsx', 'src/components/Label.tsx', 'src/components/Graphic.tsx', 'src/components/transitions.ts',
   ]

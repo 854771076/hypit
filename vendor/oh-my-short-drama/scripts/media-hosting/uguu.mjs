@@ -1,7 +1,7 @@
 import { openAsBlob } from 'node:fs'
 import { basename } from 'node:path'
 const ENDPOINT = 'https://uguu.se/upload'
-export const capabilities = { media_types: ['image', 'audio'], anonymous: true, free: true, expiries: ['1h'], max_bytes: 100 * 1024 ** 2, permanent: false }
+export const capabilities = { media_types: ['image', 'video', 'audio'], anonymous: true, free: true, expiries: ['1h'], max_bytes: 100 * 1024 ** 2, permanent: false }
 export async function upload(path, expiry, fetchImpl = fetch) {
   if (expiry !== '1h') throw new Error('Uguu 适配器只接受 1h（服务端保留期可能变化）')
   const body = new FormData(); body.append('files[]', await openAsBlob(path), basename(path))

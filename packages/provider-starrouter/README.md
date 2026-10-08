@@ -2,13 +2,14 @@
 
 Hypit Runtime Provider for StarRouter. It exposes the Distribution's GPT Image 2, MiniMax H3,
 Seedance 2 and Seedance 2 Fast capabilities, polls video jobs, and stores generated files in the
-current Build. Video reference media requires the embedding Host to provide `publicAssetUrl`;
-GPT Image reference images are uploaded directly to the edit endpoint.
+current Build. GPT Image reference images are uploaded directly to the edit endpoint. Video reference
+media can use an embedding Host's `publicAssetUrl` callback or the Runtime Profile's `publicAssets`
+object store; no CLI or vendor script participates in submission.
 
 Seedance image and video references require matching `@图片1`, `@图片2`, … and `@视频1`, `@视频2`, …
 labels in the prompt. Each video reference must declare `duration-seconds`; their total must be 2–15
-seconds. Audio references remain unsupported because the current Seedance request does not carry the
-duration metadata StarRouter requires to validate them.
+seconds. Each audio reference must also declare `duration-seconds`; their total must not exceed 15
+seconds. Prompts must label audio references as `@音频1`, `@音频2`, … in order.
 
 ```json
 {
@@ -17,12 +18,28 @@ duration metadata StarRouter requires to validate them.
       "use": "@hypit/provider-starrouter",
       "pool": "starrouter.default",
       "config": {
-        "apiKey": { "store": "platform", "key": "starrouter.api-key" }
+        "apiKey": { "store": "platform", "key": "starrouter.api-key" },
+        "publicAssets": {
+          "bucket": "hypit-media",
+          "prefix": "starrouter",
+          "region": "auto",
+          "endpoint": "https://ACCOUNT_ID.r2.cloudflarestorage.com",
+          "forcePathStyle": true,
+          "publicBaseUrl": "https://media.example.com/starrouter",
+          "accessKeyId": { "store": "platform", "key": "media.access-key-id" },
+          "secretAccessKey": { "store": "platform", "key": "media.secret-access-key" }
+        }
       }
     }
   }
 }
 ```
+
+`publicBaseUrl` must expose the configured bucket and prefix over HTTPS. The Provider reads each
+Build-local Resource, uploads it under its opaque Resource id, and passes only that URL to StarRouter.
+S3, R2 and compatible stores are supported; temporary anonymous file hosts are intentionally not a
+default transport. Configure a short retention lifecycle on this prefix; the Provider does not delete
+an input while a remote generation task may still be reading it.
 
 ## Seedance face-reference review retry
 

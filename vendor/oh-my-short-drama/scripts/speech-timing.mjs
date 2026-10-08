@@ -93,11 +93,13 @@ function validateLine(line, index, method, reviewed, previousEnd) {
   const expected = method === 'manual-direction'
     ? ['line_index', 'speaker', 'text', 'start_ms', 'end_ms', 'pauses', 'review_evidence', 'words', 'evidence']
     : ['line_index', 'speaker', 'text', 'start_ms', 'end_ms', 'pauses', 'review_evidence', 'confidence', 'confidence_source', 'words']
+  if (line?.language !== undefined) expected.push('language')
   if (line?.timeline_mapping !== undefined) expected.push('timeline_mapping')
   exactKeys(line, expected, label)
   if (!Number.isInteger(line.line_index) || line.line_index <= 0 || !Number.isInteger(line.start_ms) || !Number.isInteger(line.end_ms) || line.start_ms < 0 || line.end_ms <= line.start_ms) throw new Error(`${label} 时间区间无效`)
   if (previousEnd !== null && line.start_ms < previousEnd) throw new Error(`${label} 与前一行重叠`)
   validateSemanticFields(line, reviewed, label)
+  if (line.language !== undefined && (typeof line.language !== 'string' || !line.language.trim())) throw new Error(`${label}.language 无效`)
   validatePauses(line.pauses, line, label, method === 'manual-direction')
   if (line.timeline_mapping !== undefined) {
     exactKeys(line.timeline_mapping, ['source_in_ms', 'timeline_at_ms'], `${label}.timeline_mapping`)
@@ -136,7 +138,10 @@ export function validateSpeechTiming(document) {
   if (!METHODS.has(document.method)) throw new Error('speech-timing.method 无效')
   if (typeof document.reviewed !== 'boolean' || typeof document.language !== 'string' || !document.language.trim() || !Array.isArray(document.lines) || document.lines.length === 0) throw new Error('speech-timing reviewed/language/lines 无效')
   let previousEnd = null
-  for (const [index, line] of document.lines.entries()) previousEnd = validateLine(line, index, document.method, document.reviewed, previousEnd)
+  for (const [index, line] of document.lines.entries()) {
+    previousEnd = validateLine(line, index, document.method, document.reviewed, previousEnd)
+    if (document.language === 'mixed' && !line.language) throw new Error(`speech-timing lines[${index}].language 在多语言音轨中必填`)
+  }
   return structuredClone(document)
 }
 

@@ -4,6 +4,7 @@ import { mkdir, readFile, realpath, writeFile } from 'node:fs/promises'
 import { basename, dirname, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { injectPromptSystemVars } from './prompt-system-vars.mjs'
+import { compileArtStylePrompt } from './art-style-review.mjs'
 
 const pluginRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const moduleMap = JSON.parse(await readFile(resolve(pluginRoot, 'references/module-map.json'), 'utf8'))
@@ -16,10 +17,12 @@ function arg(name) {
 
 export function render(template, vars, locale = 'zh') {
   template = injectPromptSystemVars(template, locale)
+  const resolvedVars = { ...vars }
+  for (const name of ['art_style', 'style']) if (resolvedVars[name] && typeof resolvedVars[name] === 'object' && !Array.isArray(resolvedVars[name])) resolvedVars[name] = compileArtStylePrompt(resolvedVars[name], locale)
   const missing = new Set()
   const output = template.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, name) => {
-    if (!(name in vars)) { missing.add(name); return `{${name}}` }
-    return typeof vars[name] === 'string' ? vars[name] : JSON.stringify(vars[name])
+    if (!(name in resolvedVars)) { missing.add(name); return `{${name}}` }
+    return typeof resolvedVars[name] === 'string' ? resolvedVars[name] : JSON.stringify(resolvedVars[name])
   })
   if (missing.size) throw new Error(`缺少提示词变量：${[...missing].join(', ')}`)
   return output

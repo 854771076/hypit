@@ -19,15 +19,16 @@
 7. **声音证据与合同**：对原声或外部音频先执行 `analyze_speech_timing`，人工复核后用当前 timing 写逐句表演合同；`compile_dubbing_request` 只预检，不产生费用。
 8. **三轮生成与审核**：最多生成三轮，最终 alignment 达到一帧容差后执行八维完整听看审核；通过候选才能 selected。
 9. **字幕与口型**：调用 `build_subtitles_from_audio` 从最终 selected 音频生成绑定字幕；换版后重建字幕、口型和剪辑引用。
-7. **制作规划**：构建/修订结构化分镜，`plan-drama-production` 逐镜判断单图/故事版/分镜板及实际格数，并锁定模型、`prompt_profile`、输入模式、参考顺序和预算。
-8. **分镜与素材制作**：按制作计划逐镜执行。图片分镜生成、选版并做八维审计；白模分镜先编导，再生成、完整观看并达到 85 分。对应镜头通过后先由 `plan-shot-continuity` 建立空间连续性，只有同场景同机位且状态连续时才使用上一镜尾帧作为下一镜首帧；然后由 `write-drama-video-prompts` 按 Seedance 2.0、MiniMax H3 或已确认的通用协议编译并保存提示词版本。声音按 native-first 执行：原生声七维复听，失败仅替换有证据的区间；可见独立对白才按需对口型。任务和文件全部本地对账。
-9. **授权音乐、修复与超分**：许可证用途验证通过后才把目录音乐放入时间线；局部修复保留来源、范围和专项审核。只对当前 selected 视频按需超分，RunningHub SeedVR2.5 保留 Provider 原始输出，成品完整复看后才替换选版。
-10. **剪辑**：`remotion-best-practices` 约束 Remotion 工程与帧确定实现，`edit-drama-timeline` 按本地剪辑方案完成粗剪、字幕、转场、声音和渲染。
-11. **成片**：`edit-deliver-drama` 逐集完整审片并输出 `delivery/<episode-key>/`。
+10. **制作规划**：构建/修订结构化分镜，`plan-drama-production` 逐镜确定双分镜板格数、主运动参考（原片深度或白模二选一）、模型、`prompt_profile`、输入模式和参考顺序，只汇总任务与素材数量。
+11. **分镜与素材制作**：制作规划先建立空间连续性。`viral-recreation` 从原片逐镜生成并审核深度视频；`standard` 无参考视频时不生成深度，默认使用双分镜板，只有复杂调度风险无法由静态板证明时才追加 Blender 白模。深度与白模互斥。所有镜头生成时间故事版与镜头分镜板并分别完成八维审计，再由 `write-drama-video-prompts` 绑定本镜实际需要的参考和音频参考。声音按 native-first 执行。
+    复刻项目必须先通过深度生成入口产出、完整观看审核并选中逐镜深度视频；最终视频 Build 只读取这个不可变选版，不得再次生成深度。随后执行 `hypit short-drama production plan ep-001 --runtime <profile> --workspace <项目>`；计划中的 `generation_groups` 会列出不同连续生成组及 `ready`、`waiting-review`、`waiting-tail`、`complete` 状态。确认计划后执行 `production build ... --confirmed`，一次只提交每组当前的 `ready_shot_number`。候选生成后先按制作计划审核；审核通过会自动选版。若下一镜显示 `waiting-tail`，调用 `prepare_previous_tail`，再重新执行 production plan/build；系统会把上一镜当前选版的尾帧作为下一镜第一个 `first_frame`，相同来源重复调用会直接复用。存在 `pending-build.json` 时再次执行 build 只恢复原任务，不产生新付费提交；它会核对提交时提示词文档、Run 和 Runtime Profile 的 SHA-256，文件变化或 Runtime 不同则须先恢复，终态失败也会先回收成功镜头。成功候选审核并选中后，未变化镜头会从重试 Run 中排除。标准原创镜头直接绑定已审核白模主运动参考。普通项目不得调用 legacy `submit_video` 绕过 Runtime。
+12. **授权音乐、修复与超分**：许可证用途验证通过后才把目录音乐放入时间线；局部修复保留来源、范围和专项审核。只对当前 selected 视频按需超分，RunningHub SeedVR2.5 保留 Provider 原始输出，成品完整复看后才替换选版。
+13. **剪辑**：`remotion-best-practices` 约束 Remotion 工程与帧确定实现，`edit-drama-timeline` 按本地剪辑方案完成粗剪、字幕、转场、声音和渲染。
+14. **成片**：`edit-deliver-drama` 逐集完整审片并输出 `delivery/<episode-key>/`。
 
 文本资产默认由 Codex 直接生成，不使用外部文本模型。图片、视频、音频才进入生成 Provider 路由。
 
-付费确认只授权费用，不改变阶段。生成 MCP 会在请求落盘前检查当前阶段和全部上游门禁；直接编辑 `selected.json`、项目配置或占位文档不能使越级调用通过。
+制作计划确认只授权所列 Provider 请求，不改变阶段，也不计算具体价格。Runtime 与仍保留的生成 MCP 都会在请求落盘前检查当前阶段和全部上游门禁；直接编辑 `selected.json`、项目配置或占位文档不能使越级调用通过。
 
 全流程只调用 `short-drama` 主 Skill。进入阶段后运行 `node scripts/module-runs.mjs required <项目目录> <阶段>`，主 Skill 完整读取并执行返回的 reference 模块，再用 `record` 关联实际项目产物。`workflow.mjs advance` 会拒绝没有模块执行凭证的结果。
 
@@ -49,27 +50,27 @@
 | `write-drama-director-book` | 生成场次级表演、调度、摄影、光线和声音导演本 | 已选剧本后 | 改变剧情含义、表演基调或声音策略的决定 |
 | `plan-drama-assets` | 识别本集人物、场景、关键道具及叙事版本 | 导演本后 | 资产范围、合并/拆分、版本需求 |
 | `generate-character-profiles` | 建立人物事实、别名、关系、长期表演与声音特征 | 资产分析阶段 | 人物身份、关系、是否出镜、持续造型 |
-| `generate-drama-art-style` | Codex 生成项目画风、色板、光线和运动语言 | 资产生成前；默认真人风格可直接确认 | 画风名称/描述、参考图、预览模型和费用 |
+| `generate-drama-art-style` | Codex 生成项目画风、色板、光线和运动语言 | 资产生成前；默认真人风格可直接确认 | 画风名称/描述、参考图、预览模型和制作计划 |
 | `manage-drama-art-styles` | 选择、绑定或变更已有画风并计算 stale 范围 | 画风生成后或变更时 | 入选画风和重新生成范围 |
-| `generate-character-images` | 生成含脸部特写、正侧背全身和辅助设定的角色原画板 | 人物档案确认后 | Provider、模型/工作流、候选数、尺寸、参考图、费用、选版 |
-| `generate-scene-assets` | 提取并生成无人场景候选 | 资产分析后 | 场景层级、锚点、Provider、候选数、尺寸、费用、选版 |
-| `generate-prop-assets` | 提取并生成关键道具候选 | 资产分析后 | 是否值得独立资产、Provider、候选数、尺寸、费用、选版 |
+| `generate-character-images` | 生成含脸部特写、正侧背全身和辅助设定的角色原画板 | 人物档案确认后 | Provider、模型/工作流、候选数、尺寸、参考图、制作计划、选版 |
+| `generate-scene-assets` | 提取并生成无人场景候选 | 资产分析后 | 场景层级、锚点、Provider、候选数、尺寸、制作计划、选版 |
+| `generate-prop-assets` | 提取并生成关键道具候选 | 资产分析后 | 是否值得独立资产、Provider、候选数、尺寸、制作计划、选版 |
 | `manage-drama-assets` | 将文件、URL、base64 结果归档本地，登记哈希和选版 | 每次媒体生成后立即执行 | 导入目标、文件名、选版、回退或覆盖影响 |
 | `build-drama-storyboard` | 将剧本、导演本和已选资产拆成结构化镜头 | 资产选版完成后 | 镜头数量/时长、剧情覆盖、台词和镜头策略 |
 | `revise-drama-storyboards` | 插镜、变体、修改、重排并保留分镜版本 | 已有分镜后按需 | 修改镜头、剧情影响、批量范围、选定版本 |
 | `write-drama-video-prompts` | Codex 把分镜编译成 Seedance 2.0、MiniMax H3 或通用逐镜提示词，并本地版本化 | 制作计划锁定模型与参考顺序后 | prompt_profile、input_mode、时长、参考用途/顺序、声音方式、台词、转场意图 |
-| `plan-drama-production` | 汇总逐镜生成方式、Provider、参考素材、依赖与预算 | 媒体生成前最后门禁 | Provider、模型/工作流、尺寸、时长、候选数、参考文件、预算和批量付费范围 |
-| `drama-generation-service` | 路由 StarRouter、RunningHub、Comfly 等图片/视频/音频 Provider | 所有付费媒体生成入口 | Provider、模型/工作流、参数、参考文件用途、费用；切换或重试 |
+| `plan-drama-production` | 汇总逐镜生成方式、Provider、参考素材和依赖 | 媒体生成前最后门禁 | Provider、模型/工作流、尺寸、时长、候选数、参考文件和批量请求范围 |
+| `drama-generation-service` | 路由 StarRouter、RunningHub 等图片/视频/音频 Provider | 所有远端媒体生成入口 | Provider、模型/工作流、参数、参考文件用途和制作计划；切换或重试 |
 | `publish-drama-references` | 查询或用 Litterbox 临时托管把本地选版图转为公网 HTTPS URL | Comfly 等 Provider 不接受本地文件时 | 先查有效收据；素材权利、公开暴露、用途许可、逐项资产版本和 1h/12h/24h/72h 时效；强制重传需再次确认 |
 | `configure-generation-providers` | 配置和探活 Provider，不生成 | 首次使用或凭据/目录变化时 | 各模态 Provider 选择；密钥由用户自行配置 |
-| `generate-storyboard-images` | 为选择图片媒介的镜头生成单图、故事版或分镜板 | 制作计划批准后、图片分镜镜头的视频生成前 | Provider、AI 已判断的类型/格数、尺寸、候选数、参考图、费用、选版 |
-| `direct-blender-previz` / `generate-blender-previz` | 为选择白模媒介的镜头编导、生成并评分 | 制作计划批准后、白模分镜镜头的视频生成前 | 剧情节拍、调度、轴线、运镜、评分与选版 |
-| `generate-drama-videos` | 生成并下载逐镜视频 | 对应图片/白模分镜与视频提示词确认后 | Provider、模型/工作流、时长、分辨率、参考素材、声音、费用、重试 |
-| `design-drama-audio` | 原生音频优先；做七维复听、局部 TTS/外部音频兜底和符合条件的对口型；合格原声不重复调用 | 制作计划或逐镜视频阶段 | 音频 Provider、声音权利、voice_id、文本、失败区间、MuseTalk 本地配置、费用、选版 |
-| `transform-drama-media` | 改图、二维转真人、宫格拆分、裁剪、抽帧、对口型和超分等版本化媒体操作 | 媒体生产中按需 | 生成式变换的 Provider/费用；来源资产、裁剪或替换范围；口型唯一人脸与专项审核 |
+| `generate-storyboard-images` | 为每镜独立生成时间故事版与镜头分镜板 | 制作计划批准后、视频提示词编译前 | Provider、格数、尺寸、候选数、参考图、制作计划、选版 |
+| `direct-blender-previz` / `generate-blender-previz` | standard 仅为静态双板无法证明的复杂调度生成可选白模；viral-recreation 仅为复杂调度追加 review 白模 | 双分镜板之后、视频提示词编译前 | 剧情节拍、调度、轴线、运镜、评分与选版 |
+| `generate-drama-videos` | 生成并下载逐镜视频 | 原片深度或白模主运动参考、双分镜板、音频参考与视频提示词确认后 | Provider、模型/工作流、时长、分辨率、参考素材、声音、制作计划、重试 |
+| `design-drama-audio` | 原生音频优先；做七维复听、局部 TTS/外部音频兜底和符合条件的对口型；合格原声不重复调用 | 制作计划或逐镜视频阶段 | 音频 Provider、声音权利、voice_id、文本、失败区间、MuseTalk 本地配置、制作计划、选版 |
+| `transform-drama-media` | 改图、二维转真人、宫格拆分、裁剪、抽帧、对口型和超分等版本化媒体操作 | 媒体生产中按需 | 生成式变换制作计划；来源资产、裁剪或替换范围；口型唯一人脸与专项审核 |
 | `monitor-drama-tasks` | 本地登记、去重、查询异步任务并校验完成文件 | 媒体生产贯穿执行 | 取消任务、扩大重试或重新付费 |
 | `recover-drama-pipeline` | 恢复中断任务、缺失下载和 stale 下游 | 失败或续作时 | 重提、换 Provider/模型、重新付费、回退阶段 |
-| `review-drama-shots` | 审计图片分镜八维逻辑、按导演合同评分白模，并验收正式视频 | 分镜选版后、视频生成前必做；视频落盘后再次执行 | 接受 P2 缺陷、重生成或选用替代版本 |
+| `review-drama-shots` | 分别审计双分镜板八维逻辑、按导演合同评分可选白模，并验收正式视频 | 分镜选版后、视频生成前必做；视频落盘后再次执行 | 接受 P2 缺陷、重生成或选用替代版本 |
 | `remotion-best-practices` | 约束 Remotion 工程、React 时间线、字幕、音频、预览与渲染 | editing 阶段首个实现层 | 工程初始化、外部包安装和输出规格 |
 | `edit-drama-timeline` | 用本地 Remotion 工程完成剪辑、字幕、转场、声音和渲染 | 全部选镜验收通过后 | 入选版本、剪辑结构、字幕样式、转场、声音目标、输出规格 |
 | `edit-deliver-drama` | 完整审片、技术检查和本地交付打包 | 最后一步 | 批准版、文件名、交付目录和发布规格 |

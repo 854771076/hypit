@@ -34,6 +34,13 @@ Create a coherent panel plan that covers the full clip content in chronological 
 Treat one shot as one irreducible visible narrative beat. Merge dialogue, listening, ordinary reactions, and continuous action when they share the same blocking. Create a new shot only for a reveal, action turn, viewpoint change, or clear rhythm break. Never add repeated action, an empty reaction, or a shot with no new story information.
 Each panel is one video-model generation: one time, one place, and one continuous camera take. Split every montage, cross-cut, location change, camera cut, or chain of independent causal actions into separate panels and relate them with shot_group.
 
+Preproduction performance and natural-motion planning:
+- Before splitting shots, read each character's `performance_bible` from the full character descriptions. It is the ceiling for long-term body and attention behavior, not a per-shot action checklist. Apply center of gravity, gait, eyeline, blink rhythm, stress response, or a habitual action only when source_text or the current relationship task supplies its trigger.
+- At the first plan, give every visible person one primary action, one attention target, one reaction trigger, and an uninvolved state. Unless the screenplay explicitly calls for marching, ritual unison, shared shock, or synchronized action, offset onset, amplitude, gaze, and reaction latency; never make everybody turn, nod, blink, step, or gesture together.
+- A still person is not frozen. When readable at the shot scale, retain irregular blinks, brief refocusing, breathing, and a small weight adjustment only in service of the current relationship task, never as a loop or distracting business.
+- Hair, hems, loose sleeves, accessories, and props respond only to established wind, character acceleration, gravity, or contact, with smaller delayed motion, damping, and settling. Never add windless flutter, whole-body phase locking, or unsupported environmental response merely to look natural.
+- Plan psychology as stimulus/information → attention and gaze shift → maintained social mask → brief leak → decision/action → residual exit expression. In a readable close shot, use micro-expression in only one or two facial regions with a low-amplitude onset—apex—release; at wider scales use head, breath, posture, pause, distance, and blocking. Do not invent an inner state without evidence from source, profile, or director contract.
+
 {storyboard_scene_types}
 
 {cinematography_vocabulary}

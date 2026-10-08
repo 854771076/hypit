@@ -21,7 +21,6 @@ export async function seedVrSmoke({ root: rootArg, assetKey, versionId, confirme
     source_media: { duration_ms: media.duration_ms, width: media.width, height: media.height, fps: media.fps, audio: media.has_audio },
     upload: { required: true, occurs_only_after_confirmation: true },
     output_expectation: { larger_resolution: true, unchanged_duration_and_fps: true, preserve_source_audio: true, requires_full_review_before_selection: true },
-    cost_estimate: { available: false, reason: 'RunningHub 工作流接口未提供免提交价格估算' },
   }
   if (!confirmed) return summary
   return { ...summary, submission: await call('submit_media_operation', { ...request, confirmed: true }) }

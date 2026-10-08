@@ -39,6 +39,12 @@ For prop contact, state the before/contact/after states and any adjacent object 
 - A voice-over or inner monologue is off-screen audio: the visible character has no speaking lip movement, keeping a natural mouth position consistent with breathing and the current expression.
 - Use multiple speaking faces in one shot only when the Provider supports it, speech windows do not overlap, and every visible mouth state can be scheduled; otherwise split coverage, and use post-dub only when the Provider lacks native audio.
 
+[PREPRODUCTION NATURAL-MOTION CONTRACT]
+- On the video_prompt timeline, give every visible person one primary action, attention target, reaction trigger, and uninvolved state. Unless synchronization is story-required, offset group onset, amplitude, gaze, and reaction latency.
+- When readable at the shot scale, keep still people alive with irregular unsynchronized blinks, brief refocusing, breathing, or a small weight adjustment without mechanical loops or distracting business.
+- Ground body action in planted support, center-of-mass transfer, hip/shoulder lead, joint path, acceleration, deceleration, follow-through, and recovery. After prop contact, preserve the correct grip and load.
+- Hair, hems, loose sleeves, accessories, and props respond only to established wind, character acceleration, gravity, or contact with smaller delayed motion, damping, and settling. The environment responds locally only to evidenced forces. Split the shot when instruction load or multi-person contact ownership becomes ambiguous.
+
 Panel input JSON:
 {panels_json}
 
@@ -69,6 +75,7 @@ Required fields per panel:
 - shot_type
 - camera_move
 - video_prompt
+- visible_event_keys (stable keys for visible events that may justify action sound; empty when none)
 - duration (optional)
 
 Output schema example (field names must be preserved):
@@ -89,16 +96,19 @@ Output schema example (field names must be preserved):
 
 Rules:
 0. Treat `identity_binding` as version and `appearance_id` validation metadata only; never expose it as visible text. Copy the visible `identity_constraints` — `grooming_and_makeup`, `costume_signature`, and every `memory_anchors` item — into each visible character description without inventing, dropping, or rewriting anchors. Keep one appearance consistent across shots unless an evidence-backed continuity change explicitly authorizes it.
+0a. Carry the same character reference's `performance_constraints` unchanged into the storyboard performance contract. Convert `eyeline_behavior`, `blink_rhythm`, `stress_response`, and a trigger-bound `habitual_actions` item into a visible beat only when this shot contains the recorded trigger; `forbidden_performance` always applies. Never invent psychology from a personality label alone.
+0b. Express psychology through stimulus or information, gaze target and shift, social mask, brief leak, decision/action, and exit residue. For a close shot specify one or two visible facial regions with a low-amplitude onset—apex—release; at wider scales use head, breath, posture, pause, distance, and blocking. Never output FACS/AU codes or non-executable labels such as “complex,” “shocked,” or “sinister.”
 1. Keep panel order unchanged.
 2. Keep source_text semantically aligned with input; do not rewrite story meaning.
 3. video_prompt should be motion-ready and concrete. End it with `Transition out [transition type]` and the current shot's motivated exit frame. Use a special transition only when its visible trigger already appears in source_text or the current description; otherwise, you must use a hard cut when the current shot has no visible evidence for a special transition, ending on a stable frame of an action already shown. Never foreshadow, add, or generate the next shot's story action.
 4. Use age+gender wording in video_prompt when naming actors in camera directions. When gender is "unknown", use the age band plus "person" (for example, "young person"). Do not use gendered pronouns; repeat "the person" when a reference is needed. Never infer gender from a name, occupation, appearance, or action.
 5. Preserve every input `slot` when the character is stably positioned, and reflect it as a preferred anchor in refined description/video_prompt.
 6. Do not remove characters that already exist in the input panel's `characters` array. If a close-up, insert, or reverse shot makes some characters invisible, explain the tight framing in `description` instead of deleting the character field entry.
-7. If source_text or description clearly introduces another asset-library character who is visible in the shot, you may add that character to `characters`.
+7. Every actually visible character must appear in `characters`, and appearance must retain a parseable `char-*@vNNN`. Do not leave identifiable seated, crowd, reflected, or background characters only in description. If source_text or description clearly introduces another visible asset-library character, add that character to `characters`.
 8. `slot` is not an absolute boundary. If the shot is clearly about movement, entry/exit, path traversal, transition space, temporary space, empty space, imagination, dream, memory, or abstract/non-literal space, you may remove `slot` or keep it without forcing a rigid static match.
 9. When no `slot` is used, decide placement freely from source text, action flow, spatial logic, and cinematic staging.
 10. Do not shorten, rewrite, summarize, or replace a provided `slot` phrase with a short token.
-11. Return JSON array only.
-12. ⚠️ JSON SAFETY: All quotation marks in text (""''「」 etc.) MUST be converted to corner brackets「」in JSON string values. NEVER use raw ASCII double quotes " inside string values.
-13. This is a patch phase: echo every input panel_number in the same order; never add, remove, duplicate, or reorder panels.
+11. `visible_event_keys` contains only stable keys for events visibly executed in this shot and eligible to justify action sound; use an empty array when none. Footsteps, cloth, impacts, doors, or energy sound respectively require a visible walking, cloth-motion, contact, door-motion, or energy event. Never invent an event for atmosphere.
+12. Return JSON array only.
+13. ⚠️ JSON SAFETY: All quotation marks in text (""''「」 etc.) MUST be converted to corner brackets「」in JSON string values. NEVER use raw ASCII double quotes " inside string values.
+14. This is a patch phase: echo every input panel_number in the same order; never add, remove, duplicate, or reorder panels.

@@ -5,6 +5,13 @@
     "category": "2D动漫",
     "description": "核心视觉特征为通透渐变天空、柔和丁达尔光影、高饱和冷暖平衡配色，搭配日式日常场景、樱花、水洼反光、漂浮微尘等细节，氛围感浪漫治愈；适用青春恋爱、校园日常、奇幻治愈类动画插画创作；应避免使用纯黑死灰、硬边阴影、过度对比度破坏通透感的误用。",
     "prompt": "Makoto Shinkai style anime illustration, cinematic soft rendering, soft clean line art, highly transparent gradient sky, soft realistic god rays (Tyndall effect), high saturation but gentle fresh warm-cool color matching, intricate texture details, dynamic composition balancing character and natural scenery, reserved negative space for sky display, detailed Japanese daily scenes, falling cherry blossom petals, realistic puddle reflections, tiny floating dust particles, romantic healing atmosphere",
+    "renderingContract": {
+      "medium": "2d-animation-illustration",
+      "rendering_method": "clean 2D linework with softly painted anime backgrounds and controlled atmospheric compositing",
+      "surface_language": "drawn surfaces with selective realistic reflections and luminous environmental color",
+      "image_formation": "line art, layered color, painted light, and 2D compositing rather than photographic capture or 3D shaders",
+      "forbidden_substitutions": ["live-action photography", "photorealistic portrait", "3D character render", "game CG"]
+    },
     "visualBible": {
       "version": 1,
       "palette": {
@@ -102,6 +109,13 @@
     "category": "3D动漫",
     "description": "核心视觉特征为高精度3D渲染结合中国传统美学，人物造型灵动精致、服饰纹样配饰细节考究，场景融入古风建筑、仙幻秘境等东方元素，色彩柔和饱满，光影氛围感强。适用题材为古风仙侠、神话传说、传统民俗相关的影视画面、角色立绘创作。禁止在现代、西式幻想等非国风题材中生硬套用，避免为追求特效忽略材质真实质感。",
     "prompt": "3D exquisite Chinese animation style, high-precision 3D rendering with delicate texture, integrated traditional Chinese aesthetic features, vivid and delicate character modeling, meticulous details of clothing patterns and accessories, scenes integrated with ancient Chinese architecture, fairyland secret realm and other oriental elements, soft and full color matching Chinese aesthetic, prominent light and shadow atmosphere, cinematic level, soft circular catchlight in eyes to enhance vivid expression, suitable for ancient style Xianxia, myth legend, traditional folk theme works",
+    "renderingContract": {
+      "medium": "3d-animation",
+      "rendering_method": "high-detail 3D character and environment rendering with controlled cinematic animation lighting",
+      "surface_language": "physically legible cloth, metal, hair, stone, and wood shaders shaped by Chinese animation aesthetics",
+      "image_formation": "modeled geometry, coherent shaders, physically motivated light, and restrained post effects",
+      "forbidden_substitutions": ["live-action photography", "2D painted illustration", "flat cel animation", "cheap plastic game CG"]
+    },
     "visualBible": {
       "version": 1,
       "palette": {
@@ -203,6 +217,13 @@
     "category": null,
     "description": "日式动漫风格",
     "prompt": "日式动漫风格",
+    "renderingContract": {
+      "medium": "2d-animation",
+      "rendering_method": "clean 2D anime drawing and controlled cel or soft-layer shading",
+      "surface_language": "consistent drawn linework and stylized flat-to-soft surface separation",
+      "image_formation": "line, shape, color layers, and 2D compositing",
+      "forbidden_substitutions": ["live-action photography", "photorealistic skin", "3D character render", "game CG"]
+    },
     "visualBible": {
       "version": 1,
       "palette": {
@@ -287,6 +308,13 @@
     "category": null,
     "description": "现代高质量漫画风格，动漫风格，细节丰富精致，线条锐利干净，质感饱满，超清，干净的画面风格，2D风格，动漫风格。",
     "prompt": "现代高质量漫画风格，动漫风格，细节丰富精致，线条锐利干净，质感饱满，超清，干净的画面风格，2D风格，动漫风格。",
+    "renderingContract": {
+      "medium": "2d-chinese-animation",
+      "rendering_method": "precise 2D linework with polished Chinese animation color design and layered shading",
+      "surface_language": "drawn textile, hair, architecture, and ornament detail with consistent line and color treatment",
+      "image_formation": "clean line art, controlled color shapes, selective gradients, and 2D compositing",
+      "forbidden_substitutions": ["live-action photography", "photorealistic portrait", "3D character render", "thick concept-art painting"]
+    },
     "visualBible": {
       "version": 1,
       "palette": {
@@ -371,6 +399,13 @@
     "category": null,
     "description": "现代日系动漫风格，赛璐璐上色，清晰干净的线条，视觉小说CG感。高质量2D风格",
     "prompt": "现代日系动漫风格，赛璐璐上色，清晰干净的线条，视觉小说CG感。高质量2D风格",
+    "renderingContract": {
+      "medium": "2d-cel-animation",
+      "rendering_method": "clean Japanese anime linework with cel shading and polished visual-novel color compositing",
+      "surface_language": "stylized drawn hair, skin, cloth, and environment surfaces with controlled cel-shadow groups",
+      "image_formation": "precise line art, flat color shapes, limited gradients, and 2D compositing",
+      "forbidden_substitutions": ["live-action photography", "photorealistic skin", "3D anime render", "painterly concept art"]
+    },
     "visualBible": {
       "version": 1,
       "palette": {
@@ -455,6 +490,13 @@
     "category": null,
     "description": "真实电影级画面质感，真实现实场景，色彩饱满通透，画面干净精致，真实感",
     "prompt": "真实电影级画面质感，真实现实场景，色彩饱满通透，画面干净精致，真实感",
+    "renderingContract": {
+      "medium": "live-action-photography",
+      "rendering_method": "cinematic live-action photography with physically credible camera and lighting response",
+      "surface_language": "natural skin, hair, fabric, metal, wood, and architecture with real-world texture variation",
+      "image_formation": "photographic lens, exposure, depth of field, sensor response, and restrained post-production",
+      "forbidden_substitutions": ["concept art", "game CG", "2D illustration", "toon shading", "plastic wax skin"]
+    },
     "visualBible": {
       "version": 1,
       "palette": {

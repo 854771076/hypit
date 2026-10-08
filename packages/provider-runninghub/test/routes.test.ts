@@ -7,19 +7,23 @@ import { sealDepthVideoRequest } from "@hypit/depth-video";
 import { runningHubRouteForCapability } from "../src/routes.js";
 
 const image: BlobRef = { kind: "blob", resource: "res_first", size: 3, mediaType: "image/png" };
+const video: BlobRef = { kind: "blob", resource: "res_video", size: 3, mediaType: "video/mp4" };
+const audio: BlobRef = { kind: "blob", resource: "res_audio", size: 3, mediaType: "audio/wav" };
 
 test("MiniMax H3 request becomes RunningHub workflow inputs", () => {
   const route = runningHubRouteForCapability({ module: { name: "@hypit/minimax-h3", version: "1" }, name: "minimax-h3" })!;
   const request = sealMinimaxH3Request({
     prompt: ["move"], duration: [6], resolution: ["2K"],
     firstFrame: [{ role: "image", artifact: image }],
+    referenceVideo: [{ role: "video", artifact: video }],
+    referenceAudio: [{ role: "audio", artifact: audio }],
   });
   const prepared = route.prepare(request as unknown as CanonicalValue);
   assert.equal(prepared.workflowId, "2086743729407733762");
   assert.deepEqual(prepared.inputs, {
     kind: "minimax-h3",
     prompt: "move", duration: 6, aspectRatio: "16:9 (Widescreen)", megapixels: 2,
-    assets: [image],
+    assets: [image, video, audio],
   });
 });
 

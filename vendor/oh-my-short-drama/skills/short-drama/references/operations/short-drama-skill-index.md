@@ -14,8 +14,8 @@
 - 场景、道具 → `generate-scene-assets`、`generate-prop-assets`
 - 打斗动作链、空间路线与动作分镜 → `design-fight-video`
 - 首次拆镜、分镜修订 → `build-drama-storyboard`、`revise-drama-storyboards`
-- 分镜媒介 → 图片分镜使用 `generate-storyboard-images` 与 `review-drama-shots` 八维审计；白模分镜使用 `direct-blender-previz`、`generate-blender-previz` 与导演评分；图片确定性变换使用 `transform-drama-media`
-- 制作规划、跨镜连续性、尾帧首帧承接、Seedance 2.0/H3/通用视频提示词 → `plan-drama-production`、`plan-shot-continuity`、`write-drama-video-prompts`
+- 分镜参考 → 每镜双分镜板使用 `generate-storyboard-images` 与 `review-drama-shots` 八维审计；可选白模使用 `direct-blender-previz`、`generate-blender-previz` 与导演评分；图片确定性变换使用 `transform-drama-media`
+- 制作规划、跨镜连续性、逐镜 RunningHub 深度视频、尾帧首帧承接、Seedance 2.0/H3/通用视频提示词 → `plan-drama-production`、`plan-shot-continuity`、`generate-depth-videos`、`write-drama-video-prompts`
 - 视频镜头 → `generate-drama-videos`
 - 原生音频复听、受控 TTS/外部音频兜底与口型 → `design-drama-audio`；授权配乐与许可证也由该 Skill 规划，媒体登记和变换走 `drama-generation-service`、`transform-drama-media`
 - 镜头验收、时间线、交付 → `review-drama-shots`、`remotion-best-practices`、`edit-drama-timeline`、`edit-deliver-drama`

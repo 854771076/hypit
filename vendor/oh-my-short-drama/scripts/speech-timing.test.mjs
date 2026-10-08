@@ -86,6 +86,11 @@ test('ASR 行拒绝重叠行和越过行边界的词', () => {
   assert.throws(() => validateSpeechTiming(timing({ lines: [line({ pauses: [{ start_ms: 100, end_ms: 200 }] })] })), /不得与词级发声区间重叠/)
 })
 
+test('多语言音轨必须逐句记录语言', () => {
+  assert.throws(() => validateSpeechTiming(timing({ language: 'mixed' })), /多语言音轨中必填/)
+  assert.doesNotThrow(() => validateSpeechTiming(timing({ language: 'mixed', lines: [line({ language: 'ja-JP' })] })))
+})
+
 test('人工指令行必须用 evidence 说明、声明停顿并允许 words 为空', () => {
   const manual = { episode_key: 'ep-001', source_asset: sourceAsset, method: 'manual-direction', reviewed: false, language: 'zh-CN', lines: [{ line_index: 1, speaker: '林晚', text: '别回头', start_ms: 0, end_ms: 500, pauses: [{ start_ms: 160, end_ms: 220 }], review_evidence: pendingReview, words: [], evidence: '导演按画面节奏标注起止与停顿' }] }
   assert.doesNotThrow(() => validateSpeechTiming(manual))

@@ -11,6 +11,7 @@ import { withFileLock } from './file-lock.mjs'
 import { invalidateFrom, invalidateShot } from './invalidate-workflow.mjs'
 import { validDocumentReferenceShape } from './document-reference.mjs'
 import { finalSpeechAlignment } from './speech-timing.mjs'
+import { artStyleSha256 } from './art-style-review.mjs'
 
 const TYPES = new Set(['character', 'scene', 'prop', 'storyboard', 'video', 'audio', 'other'])
 const TYPE_DIRECTORIES = { character: 'characters', scene: 'scenes', prop: 'props', storyboard: 'storyboards', video: 'videos', audio: 'audio', other: 'other' }
@@ -202,6 +203,22 @@ export async function addAssetVersion(rootArg, key, input) {
   })
 }
 
+export async function annotateHypitBuild(rootArg, key, versionId, buildId, output) {
+  const root = resolve(rootArg)
+  return withFileLock(ledgerPath(root), async () => {
+    const ledger = await readLedger(root)
+    const asset = get(ledger, key)
+    const version = asset.versions.find((item) => item.id === versionKey(versionId))
+    if (!version) throw new Error(`版本不存在：${key}@${versionId}`)
+    if (version.provenance?.created_by !== 'provider' || version.provenance?.task_id !== buildId) throw new Error('Hypit Build 必须与 Provider provenance 任务一致')
+    if (typeof output !== 'string' || !output.trim()) throw new Error('Hypit Output 名称必填')
+    version.provenance.parameters = { ...version.provenance.parameters, hypit_build_id: buildId, hypit_output: output }
+    asset.updatedAt = new Date().toISOString()
+    await save(root, ledger)
+    return version
+  })
+}
+
 export async function nextAssetVersionId(rootArg, key) {
   const ledger = await readLedger(resolve(rootArg))
   const asset = get(ledger, key)
@@ -384,7 +401,16 @@ export async function selectAssetVersion(rootArg, key, versionId) {
       const review = reviews.reviews?.[`${key}@${versionId}`]
       const profileBytes = await readFile(resolve(root, 'assets/characters/profiles.json'))
       const profileSha256 = createHash('sha256').update(profileBytes).digest('hex')
-      if (review?.review_type !== 'character-appeal' || review.approved !== true || review.asset_sha256 !== version.sha256 || review.profile_sha256 !== profileSha256) throw new Error(`新生成人物候选必须通过当前档案绑定的人物专项审核：${key}@${versionId}`)
+      const project = JSON.parse(await readFile(resolve(root, '.short-drama', 'project.json'), 'utf8'))
+      const currentArtStyleSha256 = artStyleSha256(project.creative?.art_style)
+      if (review?.review_type !== 'character-appeal' || review.approved !== true || review.asset_sha256 !== version.sha256 || review.profile_sha256 !== profileSha256 || review.art_style_sha256 !== currentArtStyleSha256 || review.art_style_fidelity?.art_style_id !== project.creative?.art_style?.id) throw new Error(`新生成人物候选必须通过绑定当前档案与当前画风的人物专项审核：${key}@${versionId}`)
+    }
+    if (['scene', 'prop'].includes(asset.type) && version.provenance?.origin === 'generated') {
+      const reviews = JSON.parse(await readFile(resolve(root, '.short-drama', 'shot-reviews.json'), 'utf8').catch((error) => error?.code === 'ENOENT' ? '{"reviews":{}}' : Promise.reject(error)))
+      const review = reviews.reviews?.[`${key}@${versionId}`]
+      const project = JSON.parse(await readFile(resolve(root, '.short-drama', 'project.json'), 'utf8'))
+      const currentArtStyleSha256 = artStyleSha256(project.creative?.art_style)
+      if (review?.review_type !== 'visual-asset' || review.approved !== true || review.asset_sha256 !== version.sha256 || review.art_style_sha256 !== currentArtStyleSha256 || review.art_style_fidelity?.art_style_id !== project.creative?.art_style?.id) throw new Error(`新生成场景/道具候选必须通过绑定当前画风的视觉资产专项审核：${key}@${versionId}`)
     }
     await access(localPath(root, version.localPath))
     if (asset.selectedVersionId && asset.selectedVersionId !== versionId) {
@@ -471,6 +497,11 @@ async function main() {
     const [key, file] = args
     if (!key || !file) throw new Error('用法：add-version <项目目录> <资产 key> <版本 JSON>')
     return console.log(JSON.stringify(await addAssetVersion(root, key, JSON.parse(await readFile(resolve(file), 'utf8'))), null, 2))
+  }
+  if (command === 'annotate-hypit') {
+    const [key, versionId, buildId, output] = args
+    if (!key || !versionId || !buildId || !output) throw new Error('用法：annotate-hypit <项目目录> <资产 key> <版本 id> <Build id> <Output 名称>')
+    return console.log(JSON.stringify(await annotateHypitBuild(root, key, versionId, buildId, output), null, 2))
   }
   const operate = async () => {
   const ledger = await readLedger(root)
@@ -574,7 +605,7 @@ async function main() {
     await save(root, ledger)
     return console.log(JSON.stringify(asset, null, 2))
   }
-  throw new Error('用法：asset-ledger.mjs put|import|fetch|decode|add-version|flag-version|select|restore|revert|list ...')
+  throw new Error('用法：asset-ledger.mjs put|import|fetch|decode|add-version|annotate-hypit|flag-version|select|restore|revert|list ...')
   }
   return MUTATING.has(command) ? withFileLock(ledgerPath(root), operate) : operate()
 }

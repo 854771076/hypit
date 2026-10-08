@@ -15,7 +15,7 @@ test('视频门禁只展示制作计划和素材数量，不计算具体价格',
     ok: true, shot_number: 1, target: 'shot-ep001-001', provider: 'starrouter', missing_urls: [],
     production: { model: 'model-a', duration: 5, resolution: '720p', ratio: '9:16', size: null, generate_audio: true, watermark: false, references },
   }] })
-  assert.deepEqual(summary.material_count, { depth_videos: 1, temporal_storyboards: 1, shot_boards: 1, asset_boards: 1, audio_references: 1 })
+  assert.deepEqual(summary.material_count, { depth_videos: 1, blender_previz_videos: 0, temporal_storyboards: 1, shot_boards: 1, asset_boards: 1, audio_references: 1 })
   assert.equal(JSON.stringify(summary).includes('price'), false)
   assert.equal(JSON.stringify(summary).includes('cost'), false)
 });

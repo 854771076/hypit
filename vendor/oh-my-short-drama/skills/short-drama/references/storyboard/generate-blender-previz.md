@@ -1,6 +1,6 @@
 # 生成 Blender 白模分镜
 
-只处理制作计划中 `previz_strategy.mode=blender` 的镜头。开始前必须已有当前 selected 结构化分镜、人物/场景/道具选版，以及 `direct-blender-previz` 生成的当前镜头白模导演合同；选择 `storyboard_strategy.mode=image` 的镜头还要求 selected 分镜图和八维审计。静态特写、表演细节或画风确认镜头优先保留图片分镜。
+只处理制作计划中 `previz_strategy.mode=blender` 的镜头。开始前必须已有当前 selected 结构化分镜、人物/场景/道具选版、分别通过八维审计的时间故事版与镜头分镜板，以及 `direct-blender-previz` 生成的当前镜头白模导演合同。`standard` 仅为双板无法证明的复杂路线、多人交互、精确接触、轴线风险或连续运镜生成白模主运动参考；`viral-recreation` 同样只为复杂调度追加 review 白模。
 
 直接执行导演合同中的 JSON 场景。基础灰模使用 `cube`、`cylinder`、`sphere`、`human`；确有叙事需要时使用经过门禁的 `weapon` 与 `effect` 预设，不临时下载来源和授权不明的模型。人物位移区间使用 `walk` 保留落脚节奏，身体调度使用根节点 `rotation_degrees`，视线反应使用 `head_keyframes`，阻挡等关节动作使用 `arm_keyframes`；不在生成阶段重新解释剧情或改变相机动机。人物可以共用白色材质，但同框身份难辨时应使用稳定的色块或标签，不为预演制作精细模型、贴图和毛发。
 

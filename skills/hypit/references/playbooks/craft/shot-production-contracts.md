@@ -111,14 +111,14 @@ Surface children exactly. This table is a StarRouter Seedance example; another E
 different prompt-label dialect.
 
 ```markdown
-| order | model label | role | selected file/version | responsibility | person reference |
-| --- | --- | --- | --- | --- | --- |
-| 1 | @图片1 | identity | lead-v1.png | face, body, costume | true |
-| 2 | @图片2 | scene | kitchen-v1.png | geometry, materials, light | false |
-| 3 | @图片3 | temporal-storyboard | S03-temporal.png | action stages and reading order | true |
-| 4 | @图片4 | shot-board | S03-shot-board.png | coverage, blocking and staging | true |
-| 5 | @视频1 | depth | S03-depth.mp4 | structure, motion and camera | false |
-| 6 | @音频1 | audio-reference | S03-reference.wav | voice, delivery, emotion and room | false |
+| order | model label | role | selected file/version | responsibility | person reference | measured duration |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | @图片1 | identity | lead-v1.png | face, body, costume | true | — |
+| 2 | @图片2 | scene | kitchen-v1.png | geometry, materials, light | false | — |
+| 3 | @图片3 | temporal-storyboard | S03-temporal.png | action stages and reading order | true | — |
+| 4 | @图片4 | shot-board | S03-shot-board.png | coverage, blocking and staging | true | — |
+| 5 | @视频1 | depth | S03-depth.mp4 | structure, motion and camera | false | 5.0 s |
+| 6 | @音频1 | audio-reference | S03-reference.wav | voice, delivery, emotion and room | false | 4.8 s |
 ```
 
 Use H3 Ref2VA labels instead of Seedance labels for H3. Preserve the actual input order in every H3

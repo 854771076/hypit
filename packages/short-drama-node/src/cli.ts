@@ -55,6 +55,9 @@ export function writeShortDramaHelp(io: Io): void {
   modules <required|record|record-stage|list|migrate> [...] [--workspace <project-directory>]
   project <project-store command> [...] [--workspace <project-directory>]
   preflight <init|media|editing> [--workspace <project-directory>]
+  production <compile|check> <ep-NNN> [--workspace <project-directory>]
+  production plan <ep-NNN> --runtime <profile> [--workspace <project-directory>]
+  production build <ep-NNN> --runtime <profile> --confirmed [--workspace <project-directory>]
   dashboard [--workspace <project-directory>]
   root
   tool <relative-script.mjs> [raw script arguments...]
@@ -122,6 +125,20 @@ export async function runShortDramaCli(argv: readonly string[], io: Io): Promise
   if (command === "preflight") {
     if (positionals.length !== 1) throw new Error("preflight 需要 init、media 或 editing");
     await run("preflight.mjs", [positionals[0]!, workspace], io);
+    return;
+  }
+  if (command === "production") {
+    const action = positionals[0]; const episode = positionals[1]; const rest = positionals.slice(2);
+    if (!action || !["compile", "check", "plan", "build"].includes(action) || !/^ep-\d{3}$/u.test(episode || "")) throw new Error("production 用法：production <compile|check|plan|build> ep-001");
+    let runtime: string | undefined; let confirmed = false;
+    for (let index = 0; index < rest.length; index += 1) {
+      if (rest[index] === "--runtime" && runtime === undefined && rest[index + 1] && !rest[index + 1]!.startsWith("--")) runtime = rest[++index];
+      else if (rest[index] === "--confirmed" && !confirmed) confirmed = true;
+      else throw new Error("production 参数无效");
+    }
+    if ((action === "plan" || action === "build") && runtime === undefined) throw new Error(`production ${action} 必须显式指定 --runtime`);
+    if (action !== "build" && confirmed) throw new Error("--confirmed 只适用于 production build");
+    await run("hypit-runtime.mjs", [action, "--project-root", workspace, "--episode", episode!, ...(runtime ? ["--runtime", runtime] : []), ...(confirmed ? ["--confirmed"] : [])], io);
     return;
   }
   if (command === "dashboard") {

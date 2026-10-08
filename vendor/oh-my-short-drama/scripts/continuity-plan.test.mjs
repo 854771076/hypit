@@ -102,6 +102,13 @@ test('第一镜启用 previous-tail 被拒绝', () => {
   assert.throws(() => validateContinuityPlan(documentWith([first]), 'ep-001'), /第一镜/)
 })
 
+test('连续性计划拒绝乱序镜头', () => {
+  const first = shot(1, actor('left'), actor('center'))
+  const third = shot(3, actor('center'), actor('right'))
+  third.transition_link = { mode: 'independent', source_shot_number: null, source_camera_setup_id: null, enabled: false, reason: '新机位', required_provider_capability: null }
+  assert.throws(() => validateContinuityPlan(documentWith([third, first]), 'ep-001'), /递增 shot_number/)
+})
+
 test('已批准计划不能含未决项或相邻状态跳变', () => {
   assert.throws(() => validateContinuityPlan(documentWith([shot(1, actor('left'), actor('center'))], { unresolved: [{ id: 'continuity-1', question: '人物站位未知', affects: ['shot-001'] }] }), 'ep-001'), /未决项/)
   assert.throws(() => validateContinuityPlan(documentWith([

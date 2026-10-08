@@ -68,7 +68,7 @@ Provider. Read its installed README for the current Profile fields and limits.
 | Service | Bundled Provider | Capabilities and important boundary |
 | --- | --- | --- |
 | RunningHub | `@hypit/provider-runninghub` | MiniMax H3 and video-to-depth; uploads image, video and audio inputs to bundled compatible workflows; each item is limited to 200MB |
-| StarRouter | `@hypit/provider-starrouter` | GPT Image 2, MiniMax H3, Seedance 2 and Seedance 2 Fast; GPT Image references upload directly, while video references require an embedding Host that supplies `publicAssetUrl`; Seedance video references also require measured `duration-seconds` and matching `@视频N` prompt labels |
+| StarRouter | `@hypit/provider-starrouter` | GPT Image 2, MiniMax H3, Seedance 2 and Seedance 2 Fast; GPT Image references upload directly, while H3/Seedance references use Host `publicAssetUrl` or Runtime `publicAssets`; Seedance video/audio references require measured `duration-seconds` and matching `@视频N`/`@音频N` prompt labels |
 
 Model routing and prompt routing must agree. MiniMax H3 requests use an `h3:*` Surface and a prompt
 written with the bundled [H3 prompt-writing guide](../playbooks/craft/h3-prompt-writing.md); Seedance requests use a `seedance:*` Surface and its own
@@ -78,15 +78,16 @@ Seedance prompt to H3.
 
 Both Providers declare an `apiKey` credential slot. Select the service under `endpoints`, route the
 exact capability under `bindings` when more than one Endpoint offers it, then use `hypit auth login
-<endpoint>` with a writable Credential Store. A missing `publicAssetUrl` makes StarRouter video
-reference requests unsupported before submission; it does not justify dropping the references.
+<endpoint>` with a writable Credential Store. A missing Host `publicAssetUrl` and missing Runtime
+`publicAssets` configuration make StarRouter video reference requests unsupported before submission;
+that does not justify dropping the references.
 
 For reference-led recreation, strongly recommend chaining `@hypit/depth-video@1#depth-video` into the existing H3 or
 Seedance `ReferenceVideo` Surface. Keep the character image and depth video as separate references,
 describe the latter as structure/motion/camera guidance in the Prompt, and call the result
 “depth-reference generation”, not native depth or ControlNet conditioning. StarRouter Seedance needs
-`person-reference="false" duration-seconds="…"` on the depth video and `@图片N`/`@视频N` labels in
-the Prompt; RunningHub H3 accepts the same depth Artifact as an ordinary video reference. The plan must
+`person-reference="false" duration-seconds="…"` on the depth video, `duration-seconds="…"` on every
+audio reference, and matching `@图片N`/`@视频N`/`@音频N` labels in the Prompt; RunningHub H3 accepts the same depth Artifact as an ordinary video reference. The plan must
 show the depth request before the generated-shot request. Skipping it requires an explicit reason such
 as no useful temporal source, an incompatible target model, or a user-approved creative departure.
 

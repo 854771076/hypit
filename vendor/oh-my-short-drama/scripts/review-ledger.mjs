@@ -9,6 +9,8 @@ import { fileSha256, probePrevizMedia, validatePrevizContract, validatePrevizMed
 import { validateMediaOperationReview } from './media-operation-review.mjs'
 import { validateNativeAudioReview } from './native-audio-audit.mjs'
 import { validateCharacterAppealReview } from './character-appeal-review.mjs'
+import { artStyleSha256 } from './art-style-review.mjs'
+import { validateVisualAssetReview } from './visual-asset-review.mjs'
 import { inspectMediaQuality } from './media-tools.mjs'
 import { usesNativeAudio } from './audio-prompt-policy.mjs'
 
@@ -21,6 +23,7 @@ export const STORYBOARD_REVIEW_CRITERIA = [
   '空间关系与轴线', '时间与动作连续性', '物理与交互逻辑', '光线与色彩连续性',
   '人物身份与造型一致性', '场景与道具一致性', '构图与镜头语言', '叙事覆盖与阅读顺序',
 ]
+export const DEPTH_REVIEW_CRITERIA = ['深度层级与边界可读', '动作、空间与运镜对应来源', '时长、帧率与画幅覆盖完整', '无字幕、水印或纹理污染']
 export const PREVIZ_SCORE_WEIGHTS = {
   '剧情因果与节拍': 20,
   '人物调度与表演': 15,
@@ -32,6 +35,34 @@ export const PREVIZ_SCORE_WEIGHTS = {
 }
 export const PREVIZ_REVIEW_CRITERIA = Object.keys(PREVIZ_SCORE_WEIGHTS)
 const pathFor = (root) => resolve(root, '.short-drama', 'shot-reviews.json')
+const PLAYBACK_METHODS = new Set(['human-playback', 'agent-video-tool'])
+const TIMED_OBSERVATION = /(?:第\s*)?\d+(?:\.\d+)?\s*(?:秒|s|帧|frame)/i
+
+export function validWatchEvidence(evidence, duration) {
+  if (!evidence || !PLAYBACK_METHODS.has(evidence.method) || !Number.isFinite(duration) || duration <= 0 || Math.abs(evidence.duration_seconds - duration) > Math.max(0.05, duration / 100)) return false
+  const points = ['start', 'middle', 'end'].map((field) => evidence[field])
+  if (points.some((point) => !Number.isFinite(point?.time_seconds) || typeof point.observation !== 'string' || point.observation.trim().length < 8)) return false
+  const [start, middle, end] = points.map((point) => point.time_seconds)
+  return start >= 0 && start <= Math.min(1, duration * 0.2)
+    && middle >= duration * 0.3 && middle <= duration * 0.7
+    && end >= Math.max(duration * 0.8, duration - 1) && end <= duration
+    && new Set(points.map((point) => point.observation.trim())).size === 3
+}
+
+export function validTimedCriteria(criteria) {
+  return Array.isArray(criteria) && criteria.length > 0 && criteria.every((item) => TIMED_OBSERVATION.test(item?.observation || ''))
+}
+
+export function validApprovedVideoReview(record, assetSha256, duration, requiredCriteria) {
+  const criteria = record?.criteria || []
+  return record?.approved === true
+    && record.asset_sha256 === assetSha256
+    && record.watchedFull === true
+    && validWatchEvidence(record.watch_evidence, duration)
+    && validTimedCriteria(criteria)
+    && JSON.stringify(criteria.map((item) => item.criterion)) === JSON.stringify(requiredCriteria || [])
+    && criteria.every((item) => item.status === 'passed')
+}
 
 export function validPrevizScore(score) {
   if (!score || !Number.isFinite(score.total) || !score.breakdown || JSON.stringify(Object.keys(score.breakdown)) !== JSON.stringify(PREVIZ_REVIEW_CRITERIA)) return false
@@ -98,8 +129,45 @@ export async function putCharacterAppealReview(rootArg, input) {
     const version = asset?.versions?.find((item) => item.id === record.versionId)
     if (!version || asset.staleVersionIds?.includes(record.versionId)) throw new Error('人物专项审核目标必须是未失效候选版本')
     const { character, profile_sha256 } = await characterProfileForCandidate(root, asset, version)
-    const approved = validateCharacterAppealReview(character, record)
-    const saved = { ...record, asset_sha256: version.sha256, profile_sha256, approved, reviewedAt: new Date().toISOString() }
+    const project = JSON.parse(await readFile(resolve(root, '.short-drama', 'project.json'), 'utf8'))
+    const artStyle = project.creative?.art_style
+    const art_style_sha256 = artStyleSha256(artStyle)
+    const approved = validateCharacterAppealReview(character, record, artStyle)
+    const saved = { ...record, asset_sha256: version.sha256, profile_sha256, art_style_sha256, approved, reviewedAt: new Date().toISOString() }
+    const ledger = await read(root)
+    const key = `${record.assetKey}@${record.versionId}`
+    const previous = ledger.reviews[key]
+    ledger.reviews[key] = saved
+    await save(root, ledger)
+    if (approved) try { await selectAssetVersion(root, record.assetKey, record.versionId) }
+    catch (error) {
+      if (previous) ledger.reviews[key] = previous
+      else delete ledger.reviews[key]
+      await save(root, ledger)
+      throw error
+    }
+    return { ...saved, selected: approved }
+  })
+}
+
+export async function putVisualAssetReview(rootArg, input) {
+  const root = resolve(rootArg)
+  const record = structuredClone(input)
+  if (record?.review_type !== 'visual-asset' || !/^(?:scene|prop)-[a-z0-9]+(?:-[a-z0-9]+)*$/.test(record.assetKey || '') || !/^v\d{3}$/.test(record.versionId || '')) throw new Error('视觉资产专项审核必须绑定有效场景/道具资产与版本')
+  return withFileLock(pathFor(root), async () => {
+    const assets = JSON.parse(await readFile(resolve(root, '.short-drama', 'assets.json'), 'utf8'))
+    const asset = assets.assets?.[record.assetKey]
+    const version = asset?.versions?.find((item) => item.id === record.versionId)
+    if (!version || asset.staleVersionIds?.includes(record.versionId) || !['scene', 'prop'].includes(asset.type) || version.provenance?.origin !== 'generated') throw new Error('视觉资产专项审核目标必须是未失效的新生成场景或道具候选')
+    const source = version.provenance?.prompt_document
+    if (source?.kind !== 'asset-plan' || source.asset_key !== record.assetKey || !/^ep-\d{3}$/.test(source.episode_key || '') || !/^v\d{3}$/.test(source.version_id || '')) throw new Error('视觉资产专项审核缺少有效资产计划来源')
+    const selected = JSON.parse(await readFile(resolve(root, 'episodes', source.episode_key, 'asset-plan', 'selected.json'), 'utf8'))
+    if (selected.versionId !== source.version_id) throw new Error('视觉资产专项审核必须绑定当前 selected 资产计划')
+    const project = JSON.parse(await readFile(resolve(root, '.short-drama', 'project.json'), 'utf8'))
+    const artStyle = project.creative?.art_style
+    const art_style_sha256 = artStyleSha256(artStyle)
+    const approved = validateVisualAssetReview(asset.type, record, artStyle)
+    const saved = { ...record, asset_sha256: version.sha256, art_style_sha256, approved, reviewedAt: new Date().toISOString() }
     const ledger = await read(root)
     const key = `${record.assetKey}@${record.versionId}`
     const previous = ledger.reviews[key]
@@ -190,7 +258,8 @@ async function main() {
   if (command === 'list') return console.log(JSON.stringify(await read(root), null, 2))
   if (command === 'review-media-operation' && inputPath) return console.log(JSON.stringify(await putMediaOperationReview(root, JSON.parse(await readFile(resolve(inputPath), 'utf8'))), null, 2))
   if (command === 'review-character' && inputPath) return console.log(JSON.stringify(await putCharacterAppealReview(root, JSON.parse(await readFile(resolve(inputPath), 'utf8'))), null, 2))
-  if (command !== 'put' || !inputPath) throw new Error('用法：review-ledger.mjs put <项目目录> <验收 JSON> | review-character <项目目录> <人物专项审核 JSON> | review-media-operation <项目目录> <专项审核 JSON> | list <项目目录>')
+  if (command === 'review-visual-asset' && inputPath) return console.log(JSON.stringify(await putVisualAssetReview(root, JSON.parse(await readFile(resolve(inputPath), 'utf8'))), null, 2))
+  if (command !== 'put' || !inputPath) throw new Error('用法：review-ledger.mjs put <项目目录> <验收 JSON> | review-character <项目目录> <人物专项审核 JSON> | review-visual-asset <项目目录> <场景/道具专项审核 JSON> | review-media-operation <项目目录> <专项审核 JSON> | list <项目目录>')
   return withFileLock(pathFor(root), async () => {
     const record = JSON.parse(await readFile(resolve(inputPath), 'utf8'))
     let approved = validate(record)
@@ -231,9 +300,9 @@ async function main() {
       if (record.audio !== 'not-applicable' || record.transition !== 'not-applicable' || record.captions !== 'not-applicable' || JSON.stringify(record.criteria.map((item) => item.criterion)) !== JSON.stringify(PREVIZ_REVIEW_CRITERIA)) throw new Error('白模分镜 criteria[] 必须按导演评分合同原顺序逐项覆盖')
       const actualSha256 = createHash('sha256').update(await readFile(localReal)).digest('hex')
       if (actualSha256 !== version.sha256 || record.asset_sha256 !== version.sha256) throw new Error('白模分镜审核必须绑定当前且未被替换的媒体 SHA-256')
-      if (record.watchedFull !== true || !record.watch_evidence || !Number.isFinite(record.watch_evidence.duration_seconds) || record.watch_evidence.duration_seconds <= 0 || ['start', 'middle', 'end'].some((field) => typeof record.watch_evidence[field] !== 'string' || !record.watch_evidence[field].trim())) throw new Error('白模分镜必须完整观看并记录首、中、尾证据')
       const actualMedia = probePrevizMedia(localReal)
       validatePrevizMedia(actualMedia, contract, planShot)
+      if (approved && (record.watchedFull !== true || !validWatchEvidence(record.watch_evidence, actualMedia.duration_seconds) || !validTimedCriteria(record.criteria))) throw new Error('白模分镜通过前必须记录播放方式、首中尾时间点及每项带帧号或秒数的实际观察')
       const expectedDuration = version.provenance?.parameters?.duration
       const durationTolerance = Math.max(0.05, 1 / actualMedia.fps)
       if (!Number.isFinite(expectedDuration) || Math.abs(actualMedia.duration_seconds - expectedDuration) > durationTolerance || Math.abs(record.watch_evidence.duration_seconds - actualMedia.duration_seconds) > durationTolerance) throw new Error('白模分镜审核时长必须与实际媒体及生成声明一致')
@@ -243,11 +312,34 @@ async function main() {
       if (approved && !validPrevizScore(record.score)) throw new Error('白模分镜通过时必须总分至少 85，且各项达到满分 70%')
     } else if (version.provenance?.origin === 'generated' && asset.type === 'storyboard') {
       const source = version.provenance?.prompt_document
-      if (source?.kind !== 'storyboard' || !source.episode_key || !source.version_id || !Number.isInteger(source.shot_number) || record.assetKey !== `board-${source.episode_key.replace('-', '')}-${String(source.shot_number).padStart(3, '0')}`) throw new Error('验收分镜图缺少有效分镜来源')
+      const boardPattern = new RegExp(`^board-${source?.episode_key?.replace('-', '')}-(?:temporal|shot)-${String(source?.shot_number).padStart(3, '0')}$`)
+      if (source?.kind !== 'storyboard' || !source.episode_key || !source.version_id || !Number.isInteger(source.shot_number) || !boardPattern.test(record.assetKey)) throw new Error('验收分镜图缺少有效分镜来源')
       const selected = JSON.parse(await readFile(resolve(root, 'episodes', source.episode_key, 'storyboard', 'selected.json'), 'utf8'))
       const storyboard = JSON.parse(await readFile(resolve(root, 'episodes', source.episode_key, 'storyboard', `${source.version_id}.json`), 'utf8'))
       if (!storyboard.panels?.some((item) => item.shot_number === source.shot_number) || !await sameShotVersion(root, source.episode_key, 'storyboard', source.version_id, selected.versionId, source.shot_number).catch(() => false)) throw new Error('验收分镜图不是当前镜头内容')
       if (record.audio !== 'not-applicable' || record.transition !== 'not-applicable' || record.captions !== 'not-applicable' || JSON.stringify(record.criteria.map((item) => item.criterion)) !== JSON.stringify(STORYBOARD_REVIEW_CRITERIA)) throw new Error('分镜图 criteria[] 必须按八维审计合同原顺序逐项覆盖')
+    } else if (version.provenance?.origin === 'generated' && asset.type === 'video' && /^shot-ep\d{3}-depth-\d{3}$/.test(record.assetKey)) {
+      const match = /^shot-(ep\d{3})-depth-(\d{3})$/.exec(record.assetKey)
+      const episode = match[1].replace('ep', 'ep-')
+      const shotNumber = Number(match[2])
+      const source = version.provenance?.prompt_document
+      if (source?.kind !== 'production-plan' || source.episode_key !== episode || source.shot_number !== shotNumber || version.provenance.provider !== 'runninghub' || version.provenance.model_or_workflow !== '2098674379113979905') throw new Error('深度视频验收缺少固定 RunningHub 工作流与制作计划来源')
+      const selected = JSON.parse(await readFile(resolve(root, 'episodes', episode, 'production-plan', 'selected.json'), 'utf8'))
+      if (selected.versionId !== source.version_id) throw new Error('深度视频验收必须绑定当前 selected 制作计划')
+      const plan = JSON.parse(await readFile(resolve(root, selected.path), 'utf8'))
+      const contract = plan.shots?.find((item) => item.shot_number === shotNumber)?.video_strategy?.depth_reference
+      if (contract?.expected_output_asset_key !== record.assetKey || !version.provenance.source_assets?.some((item) => item.key === contract.source_asset_key && item.version_id === contract.source_version_id)) throw new Error('深度视频验收目标或来源与制作计划不一致')
+      const sourceAsset = assets.assets?.[contract.source_asset_key]
+      const sourceVersion = sourceAsset?.versions?.find((item) => item.id === contract.source_version_id)
+      if (sourceAsset?.type !== 'video' || sourceAsset.selectedVersionId !== contract.source_version_id || sourceAsset.staleVersionIds?.includes(contract.source_version_id) || !sourceVersion?.localPath) throw new Error('深度视频验收来源不是当前 selected 且未失效的视频版本')
+      if (record.audio !== 'not-applicable' || record.transition !== 'not-applicable' || record.captions !== 'not-applicable' || JSON.stringify(record.criteria.map((item) => item.criterion)) !== JSON.stringify(DEPTH_REVIEW_CRITERIA)) throw new Error('深度视频 criteria[] 必须按专项审核合同原顺序逐项覆盖')
+      const actualSha256 = createHash('sha256').update(await readFile(localReal)).digest('hex')
+      if (actualSha256 !== version.sha256 || record.asset_sha256 !== version.sha256) throw new Error('深度视频审核必须绑定当前且未被替换的媒体 SHA-256')
+      const [actualMedia, sourceMedia] = [probePrevizMedia(localReal), probePrevizMedia(resolve(root, sourceVersion.localPath))]
+      if (approved && (record.watchedFull !== true || !validWatchEvidence(record.watch_evidence, actualMedia.duration_seconds) || !validTimedCriteria(record.criteria))) throw new Error('深度视频通过前必须记录播放方式、首中尾时间点及每项带帧号或秒数的实际观察')
+      const durationTolerance = Math.max(0.05, 1 / sourceMedia.fps, 1 / actualMedia.fps)
+      const sameAspect = Math.abs(actualMedia.width / actualMedia.height - sourceMedia.width / sourceMedia.height) <= 0.01
+      if (Math.abs(actualMedia.duration_seconds - sourceMedia.duration_seconds) > durationTolerance || Math.abs(actualMedia.fps - sourceMedia.fps) > 0.01 || Math.abs(actualMedia.frames - sourceMedia.frames) > 1 || !sameAspect || Math.abs(record.watch_evidence.duration_seconds - actualMedia.duration_seconds) > durationTolerance) throw new Error('深度视频的实际时长、帧率、帧数、画幅或观看时长与逐镜源视频不一致')
     } else if (version.provenance?.origin === 'generated') {
       const source = version.provenance?.prompt_document
       if (!source?.episode_key || !source?.version_id || !Number.isInteger(source?.shot_number)) throw new Error('验收视频缺少视频提示词来源')
@@ -257,7 +349,8 @@ async function main() {
       const required = plan.shots?.find((item) => item.shot_number === source.shot_number)?.review_checks || []
       const actual = record.criteria.map((item) => item.criterion)
       if (!required.length || JSON.stringify(actual) !== JSON.stringify(required)) throw new Error('criteria[] 必须按制作计划 review_checks 原顺序逐项覆盖')
-      if (record.watchedFull !== true || !record.watch_evidence || !Number.isFinite(record.watch_evidence.duration_seconds) || record.watch_evidence.duration_seconds <= 0 || ['start', 'middle', 'end'].some((field) => typeof record.watch_evidence[field] !== 'string' || !record.watch_evidence[field].trim())) throw new Error('视频验收必须完整观看，并在 watch_evidence 记录时长及首、中、尾实际观察')
+      const actualMedia = probePrevizMedia(localReal)
+      if (approved && (record.watchedFull !== true || !validWatchEvidence(record.watch_evidence, actualMedia.duration_seconds) || !validTimedCriteria(record.criteria))) throw new Error('视频通过前必须记录播放方式、首中尾时间点及每项带帧号或秒数的实际观察')
       if (!record.continuity || VIDEO_CONTINUITY_FIELDS.some((field) => !record.continuity[field])) throw new Error('视频验收必须逐项记录人物身份、运动方向、朝向与视线、出入画和尾帧状态')
       const nativeAudio = usesNativeAudio(prompt.audio_policy)
       if (nativeAudio) {
@@ -272,7 +365,7 @@ async function main() {
     const ledger = await read(root)
     const key = `${record.assetKey}@${record.versionId}`
     const previous = ledger.reviews[key]
-    ledger.reviews[key] = { ...record, approved, reviewedAt: new Date().toISOString() }
+    ledger.reviews[key] = { ...record, asset_sha256: version.sha256, approved, reviewedAt: new Date().toISOString() }
     await save(root, ledger)
     if (approved) try { await selectAssetVersion(root, record.assetKey, record.versionId) }
     catch (error) {

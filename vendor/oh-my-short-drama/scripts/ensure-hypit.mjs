@@ -1,13 +1,19 @@
 #!/usr/bin/env node
-import { mkdir, writeFile } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
 
 const rawArgs = process.argv.slice(2)
 const args = new Set(rawArgs)
 const mode = rawArgs[0] || 'check'
-const hypitVersion = process.env.SHORT_DRAMA_HYPIT_VERSION || '0.2.10'
-const hypitSkillSource = process.env.SHORT_DRAMA_HYPIT_SKILL_SOURCE || 'https://github.com/hypit-ai/hypit.git#b85a707777350e4c555a48550ff348965f78e2ee'
+const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..')
+const distributionPath = resolve(repositoryRoot, 'package.json')
+const distribution = existsSync(distributionPath) ? JSON.parse(await readFile(distributionPath, 'utf8')) : null
+const installedVersion = spawnSync('hypit', ['version'], { encoding: 'utf8' }).stdout?.match(/\d+\.\d+\.\d+/)?.[0] || null
+const hypitVersion = process.env.SHORT_DRAMA_HYPIT_VERSION || distribution?.version || installedVersion
+const hypitSkillSource = process.env.SHORT_DRAMA_HYPIT_SKILL_SOURCE || (distribution ? repositoryRoot : null)
 const projectIndex = rawArgs.indexOf('--project-root')
 const projectArg = projectIndex >= 0 ? rawArgs[projectIndex + 1] : null
 const projectRoot = projectArg ? resolve(projectArg) : null
@@ -27,23 +33,31 @@ function executableStatus() {
   return { installed: result.ok && paths.ok && matches, expected_version: hypitVersion, version, paths: paths.ok ? paths.stdout : null, error: result.ok && paths.ok && matches ? null : result.stderr || paths.stderr || `Hypit 版本不匹配，期望 ${hypitVersion}` }
 }
 
+function hasHypitSkill(output) {
+  try { return JSON.parse(output).some((item) => item?.name === 'hypit') } catch { return false }
+}
+
 function skillStatus() {
-  const direct = run('skills', ['list', '-g'])
-  const result = direct.ok ? direct : run('npx', ['--no-install', 'skills', 'list', '-g'])
-  return { installed: result.ok && /(^|\s)hypit(\s|$)/im.test(result.stdout), output: result.stdout, error: result.ok ? null : result.stderr || '找不到 skills CLI；ensure 模式会通过 npx 安装或更新它' }
+  const direct = run('skills', ['list', '-g', '--json'])
+  const result = direct.ok ? direct : run('npx', ['--no-install', 'skills', 'list', '-g', '--json'])
+  const installed = result.ok && hasHypitSkill(result.stdout)
+  return { installed, output: result.stdout, error: result.ok ? null : result.stderr || '找不到 skills CLI；ensure 模式会通过 npx 安装本地 Skill' }
 }
 
 function installSkill() {
-  const result = run('npx', ['--yes', 'skills', 'add', hypitSkillSource, '-g'])
+  if (!hypitSkillSource) throw new Error('独立插件无法定位 Hypit Skill 源码；请设置 SHORT_DRAMA_HYPIT_SKILL_SOURCE')
+  const result = run('npx', ['--yes', 'skills', 'add', hypitSkillSource, '--skill', 'hypit', '--global', '--yes', '--copy'])
   if (!result.ok) throw new Error(`安装 Hypit Skill 失败：${result.stderr || result.stdout}`)
 }
 
 function installExecutable() {
-  const result = run('npm', ['install', '--global', `@hypit/hypit@${hypitVersion}`])
+  if (!distribution) throw new Error('独立插件无法定位 Hypit 安装包；请先安装 hypit 或从 Hypit 集成仓库执行')
+  const result = run('npm', ['install', '--global', repositoryRoot, '--ignore-scripts'])
   if (!result.ok) throw new Error(`安装 Hypit 可执行程序失败：${result.stderr || result.stdout}`)
 }
 
 if (mode === '--self-check') {
+  if (!/^\d+\.\d+\.\d+/.test(hypitVersion || '') || distribution && hypitSkillSource !== repositoryRoot || !hasHypitSkill('[{"name":"hypit"}]') || hasHypitSkill('\u001b[36mhypit')) throw new Error('Hypit 本地安装合同自检失败')
   console.log('ok')
   process.exit(0)
 }
@@ -53,8 +67,7 @@ let skill = skillStatus()
 if (mode === 'ensure') {
   if (!skill.installed) {
     installSkill()
-    const installed = run('npx', ['--yes', 'skills', 'list', '-g'])
-    skill = { installed: installed.ok && /(^|\s)hypit(\s|$)/im.test(installed.stdout), output: installed.stdout?.trim() || '', error: installed.ok ? null : installed.stderr || '无法读取安装后的全局 Skill 清单' }
+    skill = skillStatus()
   }
   if (!executable.installed) {
     installExecutable()

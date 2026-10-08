@@ -10,7 +10,7 @@
 质量要求：
 1. prompt 必须使用英文，准确体现用户指定的画风；包含媒介/渲染方式、材质与细节、色彩关系、构图倾向和有动机的光线。不要擅自混入与名称或描述无关的流行元素。
 2. description 使用中文，简洁说明核心视觉特征、适用题材和应避免的误用。
-3. visualBible 独立于 prompt，是跨镜头连续性规范，不得把 prompt 原文重复粘贴进去。
+3. renderingContract 是前期媒介与渲染合同，必须明确 medium、rendering_method、surface_language、image_formation 和禁止替换的媒介；不得默认真人写实，也不能只写“电影感”“高级感”。visualBible 独立于 prompt 和 renderingContract，是跨镜头连续性规范，不得把 prompt 原文重复粘贴进去。
 4. palette 四组字段都必须存在，但只有 primary 与 neutral 必须非空；secondary 或 accent 不适合单色、低彩或来源受限方案时可为空。优先使用明确十六进制色值，每组最多 5 项。accent 只在存在明确剧情强调对象时使用，并绑定具体道具、人物或信息节点，不能平均铺满全片。
 5. narrative_arc 覆盖项目实际需要的开场、发展、转折/高潮和收束阶段；色彩只有在剧情、时空或人物视点发生可证变化时才改变，没有动机的阶段保持基线，不为填满阶段强造调色变化。
 6. 光线与运动语言的每个字段都必须完整，且服务于该画风，而不是套用空泛的“电影感、高级感”。光线规则应说明可解释的环境光源、方向、质感和连续性，不默认添加轮廓光、霓虹或彩色烟雾。
@@ -21,6 +21,13 @@
 {
   "prompt": "英文画风提示词",
   "description": "中文画风说明",
+  "renderingContract": {
+    "medium": "明确媒介，例如 live-action-photography / 2d-animation / 3d-animation / stop-motion / user-defined-medium",
+    "rendering_method": "该媒介的具体成像或渲染方法",
+    "surface_language": "人物、服装、场景与道具共享的表面和材质语言",
+    "image_formation": "镜头、线条、着色器、笔触或合成如何形成最终图像",
+    "forbidden_substitutions": ["不得偷换成的其他媒介或廉价替代"]
+  },
   "visualBible": {
     "version": 1,
     "palette": {

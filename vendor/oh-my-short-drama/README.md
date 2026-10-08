@@ -12,7 +12,7 @@ Codex / Claude Code / Hermes → oh-my-short-drama → drama-generation MCP → 
 - 文本资产由 Codex 直接生成，不调用外部文本模型。
 - 图片、视频、语音和音乐统一通过 `drama-generation-service` 路由。
 - 项目、剧集、分镜、素材、任务、选版和交付均在本地管理。
-- 新项目分镜默认推荐白模：复杂镜头由白模编导 Skill 设计剧情节拍、人物调度和专业运镜，再通过 Blender 批量生成可评分预演；静态特写、细腻表演和画风确认仍可逐镜选择图片分镜。
+- 每镜默认生成时间故事版与镜头分镜板并分别审计；复杂镜头再由白模编导设计剧情节拍、人物调度和专业运镜，通过 Blender 批量生成可评分预演。
 - 上游版本回退后，可用 `node scripts/asset-ledger.mjs restore <项目目录> <资产 key> <版本>` 按本地哈希恢复 stale 选版；文件被修改时会拒绝恢复。
 - 所有媒体版本记录 Provider、模型、任务、参数、上游资产和 SHA-256。
 - 每次媒体调用完整保存模型入参、提示词和引用清单，并由任务记录绑定请求 SHA-256。
@@ -31,7 +31,7 @@ Codex / Claude Code / Hermes → oh-my-short-drama → drama-generation MCP → 
   → 人物银幕吸引力审核与跨镜身份绑定
   → 打斗动作链与空间路线（按需）
   → 分镜与制作规划（逐镜选择图片 / Blender 白模）
-  → 图片分镜八维审计 / 白模分镜导演评分
+  → 双分镜板八维审计 / 可选白模导演评分
   → 连续镜头空间计划 / 按需绑定上一镜尾帧
   → 视频提示词落盘
   → 原生声音优先的视频生成与七维复听
@@ -43,11 +43,11 @@ Codex / Claude Code / Hermes → oh-my-short-drama → drama-generation MCP → 
 
 完整使用顺序、Skill 关系和确认项见 [使用手册](references/usage-guide.md)。
 
-打斗题材可按需使用 `design-fight-video`：它只产出平台无关的动作因果、空间路线和镜头接力合同。`viral-recreation` 的中间理解阶段会按需安装并调用 Hypit，登记带 SHA-256 的中间文件 handoff，再翻译成我们自己的 `reference-video-analysis` 与 `recreation-workflow`；最终图片、视频、音频、剪辑和交付仍使用本插件自己的 Provider 与审片链路。需要 Hypit 完整运行时、SVML/SVS/SVRun、Studio 或批量变体时仍可直接使用 `use-hypit-video`。
+打斗题材可按需使用 `design-fight-video`：它只产出平台无关的动作因果、空间路线和镜头接力合同。`viral-recreation` 的中间理解阶段会调用 Hypit，登记带 SHA-256 的中间文件 handoff，再翻译成 `reference-video-analysis` 与 `recreation-workflow`；媒体阶段则把选定合同编译为 Hypit Author/Run Source，并通过 Runtime Provider 执行。
 
 ### 参考视频复刻
 
-项目设为 `workflow.type=viral-recreation` 后，固定执行“打开项目 Dashboard → 配置并探测图片/视频/音频 Provider → 导入、选中并准备参考视频 → Hypit 中间理解与 handoff → 正式参考分析 → 五层复刻工作流”。可导入并选择本地 mp4、mov、webm 或 mkv，也可在明确确认素材权利后从受支持的平台链接导入。所有平台默认先使用 yt-dlp，DTK 仅在用户显式指定时使用；若 yt-dlp 明确收到 HTTP 403 或登录/浏览器 Cookie 挑战，先引导用户在自己的 Chrome 登录，再以 `--cookies-from-browser chrome --impersonate chrome` 重试一次，仍失败才读取该现有 Chrome 播放会话。禁止创建临时浏览器、直接导出 Cookie、替用户输入凭据或因普通网络错误误切浏览器。浏览器下载结果仍必须通过受控入口校验容器、文件大小、视频流、时长、帧率、分辨率和 SHA-256 后才能登记。插件用 ffprobe/ffmpeg 生成镜头候选、固定间隔兜底关键帧、音轨和失败记录；Hypit 自动作为复刻链路的中间理解器，但不参与 Build 或最终媒体生成；再由 Codex 输出带时间码证据的正式参考分析，以及 Script、Media、Caption、Speech、Film 五层声明式工作流。选版会生成锁定工作流与分析哈希的编译约束包，供后续简报、剧本、导演本、分镜、制作计划、音频和剪辑消费。媒体触发器绑定台词段和词语，修改人物、产品、Hook、CTA 或语言后可以按依赖重编译，而不是把整条时间线写死。默认只迁移结构；近似复刻、真人身份、声音、音乐和商标复用必须有明确权利依据与匹配的授权范围。
+项目设为 `workflow.type=viral-recreation` 后，固定执行“打开项目 Dashboard → 配置并探测图片、视频、音频 Provider → 导入、选中并准备参考视频 → Hypit 中间理解与 handoff → 正式参考分析 → 五层复刻工作流”。插件用 ffprobe/ffmpeg 生成镜头证据；Hypit 同时负责媒体阶段的 Author/Run 编译、Runtime Build 和结果证据。复刻镜头先通过 RunningHub 逐镜生成、审核并选中深度视频，最终 H3/Seedance Build 只消费该不可变选版，避免重复付费和未审核深度直接进入成片；默认只迁移结构，近似复刻、真人身份、声音、音乐和商标复用必须有明确权利依据与匹配的授权范围。
 
 ```bash
 # 链接导入：先 inspect，再确认权利并 import。DTK 密钥只从环境变量读取。
@@ -163,7 +163,7 @@ hermes skills install 854771076/oh-my-short-drama/use-short-drama-studio
 
 本仓库的标签发布会生成 `.tar.gz`、`.zip` 和 `SHA256SUMS`。版本统一使用三段式 SemVer；发布标签必须是清单版本加 `v` 前缀，例如版本 `0.4.0` 对应 `v0.4.0`。
 
-插件在 SessionStart 时会检查 GitHub 最新正式 Release，检查结果缓存 24 小时；仅发现新版本时提示，网络或 GitHub 故障不会阻塞启动。也可手动强制检查：
+插件默认不在 SessionStart 时检查或升级版本，避免本地定制内容被远端版本覆盖。需要时可手动检查最新正式 Release：
 
 ```bash
 node "${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-.}}/scripts/check-update.mjs" --check
@@ -233,7 +233,7 @@ project/
 - `publish_reference_image`
 - `list_models`
 - `generate_image`
-- `submit_video`
+- `submit_video`（仅旧项目兼容；新项目默认走 Hypit Runtime）
 - `get_generation_task`
 - `generate_audio`
 - `generate_music`
@@ -243,6 +243,17 @@ project/
 - `design_voice` / `clone_voice` / `list_voices` / `delete_voice`
 
 口型同步也可使用用户自行安装的 MuseTalk 1.5：设置 `MUSETALK_ROOT`，并按需设置 `MUSETALK_PYTHON`、`MUSETALK_ENTRYPOINT`。插件不会自动安装、下载模型或修改 MuseTalk 目录。用户明确需要 BGM、OP 或 ED 时，插件会先按剧情、人物、情绪弧和剪辑节奏生成音乐创作简报，再通过 StarRouter `suno_music` 生成；音乐目录可用 `STARROUTER_MUSIC_MODELS` 扩展，外部音乐必须先登记许可证与允许用途。
+
+```bash
+hypit short-drama production compile ep-001 --workspace /absolute/project
+hypit short-drama production check ep-001 --workspace /absolute/project
+hypit short-drama production plan ep-001 --runtime /absolute/hypit.runtime.json --workspace /absolute/project
+hypit short-drama production build ep-001 --runtime /absolute/hypit.runtime.json --confirmed --workspace /absolute/project
+```
+
+`production plan` 会按连续的 `previous-tail` 链展示 `generation_groups`。不同组可以并行；同组一次只开放一个 `ready_shot_number`。生成候选后必须先审核并选版；组状态变为 `waiting-tail` 时，通过 MCP `prepare_previous_tail` 从上一镜当前选版提取尾帧，再重新执行 plan/build。该尾帧固定作为下一镜第一个 `first_frame`，其他人物、主运动、双分镜板和音频参考仍全部保留。
+
+`production build` 在提交前先以唯一标题写入 `pending-build.json`；若进程恰好在 Build 持久化后、返回 ID 前中断，下次会从 Hypit Build 目录找回原任务，不会重复付费提交。Build 进入终态后会自动导出所有已经成功产生的目标 Output，并以未选中的候选版本登记到本地资产账本；即使整集 Build 因单镜失败，其他成功镜头也不会丢失。若等待、导出或登记中断，下一次执行 build 会继续恢复原 Build，不要求当前提示词仍是同一选版。待回收记录同时绑定提交时的提示词文档、Run 和 Runtime Profile SHA-256；对应文件被改写或改用其他 Runtime 时会保留恢复记录并要求先还原，避免把远端结果登记到错误合同。成功候选完成审核并选中后，只要该镜合同未变化，下一次 Run 会自动排除它，只重建缺失或已变化镜头。
 
 如果当前任务看不到这些工具，应使用 `⌘Q` 完全退出 Codex，再重新打开并新建任务；不得降级为占位媒体。
 

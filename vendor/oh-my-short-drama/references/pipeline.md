@@ -65,11 +65,11 @@
 
 剧本阶段的 `short-drama` 必须绑定实际分集剧本版本；人物分析必须绑定 `assets/characters/profiles.json`。人物链路固定为：年龄证据 → `audience_appeal` 校验 → 人物定妆候选 → 人物专项审核与选版 → 分镜/白模/正式视频引用绑定 → 跨镜一致性复核。明确成年人物使用 `adult-charisma`，必须有专属 `grooming_and_makeup`、`costume_signature` 和角色级 `memory_anchors`；儿童只使用 `child-cuteness`，任何成人化或性化处理都是不可由总分抵消的硬失败。未知年龄停在人物档案阶段。新生成角色候选只能经 `validateCharacterAppealReview` 和 `review-character` 选版，正式视频人物引用还要通过 `assertCharacterReadyForVisuals` 及档案 SHA、appearance 与可见身份约束校验。
 
-新项目默认 `storyboard.preferred_medium=blender`，制作计划仍逐镜选择：复杂空间、多人调度、动作接触、轴线风险和连续运镜优先白模；静态特写、细腻表演和画风确认使用图片。旧计划缺少 `storyboard_strategy` 时按图片分镜兼容。
+每个镜头都必须生成两张独立参考板：`board-epNNN-temporal-NNN` 时间故事版和 `board-epNNN-shot-NNN` 镜头分镜板，分别选版并通过八维审计。有参考原片的复刻项目逐镜生成深度；无参考视频的 standard 项目默认直接使用双板，仅在复杂路线、多人交互、精确接触、轴线风险或连续运镜无法由静态板证明时追加 Blender 白模。禁止先造视频再转深度，Blender 不能替代双板。
 
-图片分镜镜头要求对应 `board-epNNN-NNN` 已生成、选版并通过八维审计。白模分镜镜头先由 `direct-blender-previz` 写入 `episodes/<episode>/previz/shot-NNN-vNNN.json` 导演合同，再由 `generate-blender-previz` 渲染为 `other-previz-epNNN-NNN`，登记、完整观看、按七项 100 分合同验收并选版；总分低于 85 或任一单项低于 70% 时不得提交正式视频。两类分镜都不能替代正式视频所需的人物、场景和道具资产。
+选择 Blender 的镜头先由 `direct-blender-previz` 写入 `episodes/<episode>/previz/shot-NNN-vNNN.json` 导演合同，再由 `generate-blender-previz` 渲染为 `other-previz-epNNN-NNN`，登记、完整观看、按七项 100 分合同验收并选版；总分低于 85 或任一单项低于 70% 时不得提交正式视频。双板和白模都不能替代正式视频所需的人物、场景和道具资产。
 
-分镜与白模审计完成后，由 `plan-shot-continuity` 汇总 selected 分镜、导演本和制作计划，生成并显式选定 `continuity-plan/vNNN.json`。计划逐镜固定机位、轴线、人物/道具起止状态与转场方式；只有同场景同机位且状态连续时才允许 previous-tail。媒体阶段用 `prepare_previous_tail` 从上一镜当前 selected 且已审核的视频派生下一镜首帧，正式提交前再次比对来源版本和 SHA-256。
+结构化分镜与制作计划批准后，由 `plan-shot-continuity` 汇总 selected 分镜、导演本和制作计划，生成并显式选定 `continuity-plan/vNNN.json`。分镜 `shot_group` 表达叙事组；计划逐镜固定机位、轴线、人物/道具起止状态与转场方式，只有同场景同机位且状态连续时才允许 previous-tail。Runtime 把连续 previous-tail 链派生为生成镜头组：不同组并行、同组串行，一次只生成各组当前前沿镜头。后续双分镜板或白模若暴露冲突，必须回退生成连续性计划新版本。媒体阶段用 `prepare_previous_tail` 从上一镜当前 selected 且已审核的视频派生下一镜首帧，正式提交前再次比对来源版本和 SHA-256。
 
 资产计划中的人物、场景或道具若已有 selected、未失效且不是 Provider 产出的本地版本，可直接复用；缺失、失效或由 Provider 生成/变换时，动态要求对应生成 Skill 与 `drama-generation-service`，防止 Provider 变换资产绕过执行凭证。
 

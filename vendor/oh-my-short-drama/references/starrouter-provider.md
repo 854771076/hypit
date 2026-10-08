@@ -18,7 +18,7 @@
 
 两者固定使用 `prompt_profile=h3`，输入模式枚举为 `T2VA`、`I2VA`、`FL2VA`、`L2VA`、`Ref2VA`，画幅为 `21:9`、`16:9`、`4:3`、`1:1`、`3:4`、`9:16`。`MiniMax-H3` 支持 `768P/2K`、4–15 秒及参考图/视频/音频；`MiniMax-H3-Max` 支持 `480P/768P`、5–15 秒，不接受参考素材或 Ref2VA。
 
-`images` 最多两张，依次是 `first_frame`、`last_frame`；`input_reference` 仅在 `images` 为空时作为首帧。参考内容使用 `metadata.content`，元素类型只能是 `text`、`image_url`、`video_url`、`audio_url`，素材角色只能是 `first_frame`、`last_frame`、`reference_image`、`reference_video`、`reference_audio`。每个请求至少含一个非空 text；首尾帧和参考素材模式不能混用。
+`images` 最多两张，依次是 `first_frame`、`last_frame`；`input_reference` 仅在 `images` 为空时作为首帧。参考内容使用 `metadata.content`，元素类型只能是 `text`、`image_url`、`video_url`、`audio_url`，素材角色只能是 `first_frame`、`last_frame`、`reference_image`、`reference_video`、`reference_audio`。每个请求至少含一个非空 text；Hypit Runtime 的 Ref2VA 可把一个 `first_frame` 连续性锚点与完整参考素材同时提交。
 
 `metadata` 仅接受 `model`、`content`、`resolution`、`duration`、`ratio`、`callback_url`；适配器要求 `metadata.model` 与顶层模型一致，回调地址和所有素材必须是公网 HTTPS。公开任务状态 `queued/in_progress/completed/failed` 被统一归一化为 pending/completed/failed，完成地址从响应（包括 `metadata.url`）提取。
 

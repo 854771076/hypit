@@ -1,32 +1,32 @@
 # 生成短剧视频
 
-`viral-recreation` 项目即使中间阶段使用 Hypit，也必须在此处切回本插件：只读取当前 selected 的 `video-prompts`、制作计划、资产版本和复刻编译约束，使用项目已确认的 StarRouter 或 RunningHub 提交最终镜头。Hypit 只可用于前置 RunningHub 深度预处理；其深度输出必须先导入本地资产账本并选版，不能直接复用 Hypit 生成的最终镜头，也不能把 Hypit Runtime 当作本插件的媒体 Provider。
+`viral-recreation` 与 `standard` 项目都把当前 selected 的 `video-prompts`、制作计划、资产版本和编译约束编译为 Hypit Author Source 与 Run Source。Model Surface 表达准确的图片、视频、音频参考语义，Runtime Profile 显式绑定用户确认的 StarRouter 或 RunningHub Endpoint；插件项目文件只提供制作决策，不再直接提交厂商 API。复刻项目必须先独立生成、完整审核并选中逐镜深度视频，最终视频 Build 只消费该选版，禁止从原片再次生成深度。
 
-开始视频制作前先检查 `video_strategy.depth_reference`：必须已有对应 source 生成的 selected 深度视频，并以 `type=video, role=depth_reference` 进入本镜提示词引用；没有深度选版就停止，不得静默降级或 waived。每镜还必须包含彼此独立的 `image/temporal_storyboard`、`image/shot_board` 与 `audio/audio_reference`；音频必须是本镜对应时间范围的 selected 片段，并随本镜请求一起提交，资产设定板仅作为可选的 `image/asset_board`。统一提交入口会在任何 Provider 请求前校验这些角色、类型、选版、文件和哈希。
+开始视频制作前检查参考合同：`viral-recreation` 必须包含从原片生成的 selected `video/depth_reference`；`standard` 仅当制作计划启用白模时包含 selected `video/reference_video`，否则不要求视频运动参考。深度与白模不得混用。每镜必须包含彼此独立的 `image/temporal_storyboard` 与 `image/shot_board`，以及本镜 `audio/audio_reference`；镜头出现人物时加入对应的 `image/character_identity`。统一提交入口会在 Provider 请求前校验全部角色、版本、文件和哈希。
 
-开始视频制作前，对本次待提交镜头逐镜按制作计划校验分镜媒介：`storyboard_strategy.mode=image` 必须有当前图片分镜选版和八维审计；`mode=blender` 必须有当前白模选版、导演合同和七项验收，且白模登记时长、导演合同时长、制作计划时长完全一致。缺少或失败任意一项时停止；单镜重生成不被其他未提交镜头阻塞。每镜的 Provider、模型或工作流 ID、prompt_profile、input_mode、提示词、时长与参考绑定以当前 selected `video-prompts` 为准，分辨率/画幅/声音等参数以 project.json 已确认配置为准；MCP 逐镜硬校验一致后才提交，任何手工改词、改参数都会被拒绝。同一目标与输入指纹存在在途任务时禁止重复提交。
+开始视频制作前，对本次待提交镜头逐镜校验时间故事版和镜头分镜板均为当前选版且分别通过八维审计；`storyboard_strategy.mode=blender` 时还必须有当前白模选版、导演合同和七项验收，且白模登记时长、导演合同时长、制作计划时长完全一致。缺少或失败任意一项时停止；单镜重生成不被其他未提交镜头阻塞。每镜的 Provider、模型、提示词协议、输入模式、提示词、时长与参考绑定以当前 selected `video-prompts` 为准，分辨率、画幅和声音参数以 project.json 已确认配置为准；编译出的 Source 必须与这些选版逐字段一致，任何手工改词或改参数都应在 `hypit check/plan` 前拒绝。
 
-整集视频只允许按下面三次 MCP 调用成批完成，禁止逐镜让用户重复确认或手工拼接参考 URL：
+整集视频优先按下面三步通过 Hypit 原生图执行，禁止逐镜让用户重复确认、手工拼接参考 URL 或直接加载厂商脚本：
 
-1. **一次发布参考图**：需要公网 URL 的 Provider（StarRouter、Comfly）先调用一次 `ensure_reference_urls`（`project_root`、`episode_key`、service、expires_in、usage_scope 加四个确认布尔值）。调用前把将要公开的素材清单（资产 key@版本、用途、有效期、non-commercial/commercial-authorized）给用户看一次；有效收据自动复用、不重复上传。RunningHub 直接上传本地文件，不发布。视频/音频参考不在批量发布范围，对应镜头改用单次 `submit_video` 传已授权公网 URL。
-2. **一次计划确认**：调用 `submit_episode_videos`，先 `confirmed:false`。MCP 只返回逐镜制作计划（镜号、Provider、模型、时长、分辨率/画幅、深度视频、两类分镜、可选资产板、音频参考及总时长）和逐镜校验错误，不计算或猜测具体价格。把计划原样给用户，确认后再以 `confirmed:true` 提交；MCP 在同一次调用内并发提交全部通过校验的镜头，单镜失败（权限、余额、审核、schema、在途冲突）只记入 failed，不阻塞其他镜头，也不自动重试或换模型。
-3. **一次整集等待**：调用 `await_episode_tasks`（可选 `timeout_seconds`，默认 480、上限 540）。MCP 在服务端并发轮询全部在途镜头，pending 会刷新本地任务状态与时间，completed 自动下载登记候选并回写（含成片宫格检测标记），failed 原样返回错误，超时返回 pending 清单；`automation_mode=true` 时立即用同一参数续调直到整集终态，不得因单次 MCP 超时停止或再次询问用户；关闭全托管时才返回等待状态。不要逐镜 `get_generation_task`（仅限单镜恢复）。
+1. **编译全部真实参考边**：把当前镜头合同中的图片、主运动视频和音频版本写成 Author Source 的本地 Resource 引用。RunningHub 在 Provider 内上传本地字节；StarRouter 由 Runtime Profile 的 `publicAssets` 对象存储在 Build 内发布，作者层不得预先拼接公网 URL。
+2. **一次计划确认**：为全部待生成镜头编写一份 Author Source 和 Run Source，每镜一个独立 Model Surface；真实参考文件必须作为显式 Resource 边接入。`production compile` 会先逐镜比较制作计划与视频提示词的 Provider、模型、模式、时长以及计划拥有的素材版本/语义角色；执行期新增的顺序字段与深度、双分镜、音频、首帧、白模等派生参考不制造假不一致，但把 `location_identity` 等角色改写成 `asset_board` 会在 `plan/build` 前直接拒绝。执行 `hypit plan` 展示逐镜模型、Provider、输入数量、主运动参考和请求数，不计算具体价格。用户确认的是这份制作计划。
 
-只有单镜重生成或修复失败镜头时才使用单次 `submit_video`（传 `project_root`、目标视频资产 key 和 `{episode_key,version_id,shot_number}`）；它与批量调用共用同一套校验、快照、预登记和宫格输入扫描路径。
+首次进入一个新场景、多人座次或高风险灵力/动作类型时，先各选一镜组成最多三镜的代表性试产 Run；三镜都完成真实音视频验收后才释放同类型其余镜头。已有同一模型、同一参考合同且通过验收的代表镜可以复用，不为形式重复试产。
+3. **一次整集 Build**：确认后执行一次 `hypit short-drama production build ... --confirmed`。入口先提交并持久化 Build id，再通过 Runtime 状态等待，最后收集目标 Output；终端中断后重跑会恢复原 Build，不会先产生第二次付费提交。Runtime 按依赖和 Endpoint 容量并发推进 `start → poll → collect`，Provider 回执、未知提交结果保护、失败镜头和可复用完成项保存在 Build 中。单镜失败时只修改该镜 Source/Run 或显式复用已完成输出后重新 Build，不得绕开 Core 用 `get_generation_task` 或厂商脚本补交。
+
+单镜重生成或修复失败镜头时，创建只包含该镜 Target 的 Run Source，仍走相同的 `plan → build` 路径；不得改用 `submit_video` 绕过 Runtime 的请求、回执与结果记录。
 
 视频镜头默认使用原生音频并显式 `generate_audio=true`，声音随视频一次生成，不再提交外部 TTS；必须核对逐秒对白、音乐锚点和相邻镜声音转场。只有用户明确要求或 Provider 明确不支持，且制作计划写明 post-dub/independent 时，才调用独立音频 Skill。
 
-多格分镜板（`panel_grid_size > 1` 的 `board-*` 选版）仅允许交给有独立语义参考能力的 Provider：Seedance 2.0 用 `full-reference`、H3 用 `Ref2VA`、其他模型用 `reference_image` 角色；此时 prompt 还必须包含固定反宫格声明和分镜板时间顺序条款。Comfly 只有一个参考图槽位，严禁整张提交多格板：必须用 `node "${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-.}}/scripts/media-tools.mjs" extract-grid-cell <分镜图> <项目/assets/other/.../vNNN.png> <列数> <行数> <格号> 85` 裁出当前镜头单格，再以 `created_by=codex`、`origin=transformed`、`source_assets` 指回分镜选版的方式登记为 selected `other-*`，并在视频提示词 references 中标记 `role=storyboard-frame`；MCP 会拒绝缺少该链路的付费提交。多格板同样严禁放进首尾帧像素槽位。成片检测若高置信命中宫格会写 `grid_high_confidence` 并禁止误报放行；中置信 `grid_suspect` 仍须完整观看后记录证据。身份合板不得混入分镜格。
+多格分镜板（`panel_grid_size > 1` 的 `board-*` 选版）只以语义参考提交：Seedance 2.0 固定用 `full-reference`，H3 固定用 `Ref2VA`；prompt 还必须包含固定反宫格声明和分镜板时间顺序条款。Comfly 无法同时承载人物、深度、双分镜板与音频，不能进入正式制作计划。成片检测若高置信命中宫格会写 `grid_high_confidence` 并禁止误报放行；中置信 `grid_suspect` 仍须完整观看后记录证据。身份合板不得混入分镜格。
 
-整集所有无依赖镜头由 `submit_episode_videos` 一次确认后全量提交；RunningHub 同一 API Key 最多 2 路并发，超出的提交在适配器内排队，其他 Provider 由上游网关排队。再由 `await_episode_tasks` 在一次调用内并发轮询全部在途任务；completed 后 MCP 自动下载并登记候选版本、回写 `outputVersionId`，但不会绕过验收自动选版。单镜失败不阻塞无依赖镜头；权限、余额、审核、schema、模型能力或在途冲突错误不自动重试、换模型或换 Provider，定位修复后只对失败镜头单次 `submit_video` 重提。`get_generation_task` 仅用于单镜恢复。
+整集所有无依赖镜头由同一 Run 一次确认后提交；RunningHub 和 StarRouter 并发上限由 Runtime Profile 的 Endpoint 容量控制。`production build` 在调用 Hypit 前先用唯一提交标题写入 `pending-build.json`，因此即使进程在 Build 持久化后、返回 ID 前中断，也能从本地 Build 目录找回原任务。Build 终止后自动导出每个已经成功的目标 Output，并连同 Build id 登记为未选中的候选版本；等待、导出或登记中断时保留检查点，同时绑定提交时提示词文档与 Run 的 SHA-256。再次执行 build 会先校验并按原提示词版本幂等恢复剩余 Output，不会重新付费提交；文件被改写时保留待回收记录并要求先恢复。候选不会绕过验收自动选版；通过审核并选中的成功镜头只要逐镜合同未变化，就会从下一次 Run Target 中排除。单镜失败不阻塞无依赖镜头；权限、余额、审核、schema、模型能力或在途冲突错误不自动换模型或换 Provider，定位后仅重建失败镜头。旧项目尚未迁移为 Author/Run Source 时才可继续使用 MCP 批处理，且必须标为 legacy，不能与同一镜头的原生 Build 混用。
 
-RunningHub 内置 `minimax-h3-reference-to-video` 接受本地图片 0–9、视频 0–2、音频 0–2，适配器自动上传并注入专用 workflow；无需 `node_info_list`。Comfly `minimax-h3` 固定使用 Ref2VA，接受 1–3 张公开 HTTPS 参考图片或 1 段公开视频，二者互斥且不支持参考音频。两者都必须使用 H3 提示词合同。
+RunningHub 内置 `minimax-h3-reference-to-video` 接受本地图片 0–9、视频 0–2、音频 0–2，原生 Runtime 分辨率固定为 `768P|2K`；适配器自动上传并注入专用 workflow，无需 `node_info_list`。Comfly `minimax-h3` 固定使用 Ref2VA，接受 1–3 张公开 HTTPS 参考图片或 1 段公开视频，二者互斥且不支持参考音频。两者都必须使用 H3 提示词合同。
 
 ## StarRouter 模型与枚举
 
-- 2.0：`dreamina-seedance-2-0-fast-260128`、`dreamina-seedance-2-0-260128`、`doubao-seedance-2-0-260128`、`doubao-seedance-2-0-fast-260128`。
-- 1.x：`doubao-seedance-1-5-pro-251215`、`doubao-seedance-1-0-pro-250528`、`doubao-seedance-1-0-pro-fast-251015`。
-- MiniMax：`MiniMax-H3`、`MiniMax-H3-Max`。
-- 2.0 固定参数：`prompt_profile=seedance2`；`input_mode ∈ {first-last-frame,full-reference}`；`duration ∈ {4,5,6,7,8,9,10,11,12,13,14,15}`；`resolution ∈ {480p,720p,1080p}`；`ratio ∈ {16:9,9:16,1:1,4:3,3:4}`；`fps=24`；`generate_audio ∈ {true,false}`；`watermark ∈ {true,false}`。
-- 多模态全参考只允许适配器登记的 Dreamina 2.0 模型：图片最多 9、视频最多 3、音频最多 3、总数最多 12。1.x 使用 `prompt_profile=generic`，禁止视频/音频多模态引用；其时长、分辨率和画幅组合必须先以远端模型目录或真实探测确认，不从 2.0 推断。
-- MiniMax 固定 `prompt_profile=h3`，`input_mode ∈ {T2VA,I2VA,FL2VA,L2VA,Ref2VA}`，`ratio ∈ {21:9,16:9,4:3,1:1,3:4,9:16}`。`MiniMax-H3` 支持 `size ∈ {768P,2K}`、4–15 秒和参考图/视频/音频；`MiniMax-H3-Max` 支持 `size ∈ {480P,768P}`、5–15 秒，但不支持参考素材与 Ref2VA。首尾帧使用 `first_frame/last_frame`，参考素材使用 `reference_image/reference_video/reference_audio`，两类模式互斥。
+- 原生 StarRouter Endpoint：`dreamina-seedance-2-0-fast-260128`、`dreamina-seedance-2-0-260128` 和 `MiniMax-H3`，分别由 `@hypit/seedance`、`@hypit/minimax-h3` 的精确 Capability 选择。
+- 2.0 正式制作固定 `prompt_profile=seedance2`、`input_mode=full-reference`；`duration ∈ {4,5,6,7,8,9,10,11,12,13,14,15}`；`resolution ∈ {480p,720p,1080p}`；`ratio ∈ {16:9,9:16,1:1,4:3,3:4}`；`fps=24`；`generate_audio ∈ {true,false}`；`watermark ∈ {true,false}`。
+- 多模态全参考图片最多 9、视频最多 3、音频最多 3、总数最多 12；每段视频和音频都写入实测 `duration-seconds`，Prompt 按真实顺序包含 `@图片N`、`@视频N`、`@音频N`。
+- MiniMax 正式制作使用 `@hypit/minimax-h3` 的 `ReferenceVideo` Surface；原生 StarRouter 路由当前只声明 `MiniMax-H3`，未声明的 H3 Max 或 Seedance 1.x 不能靠字符串模型名绕过 Capability 边界。

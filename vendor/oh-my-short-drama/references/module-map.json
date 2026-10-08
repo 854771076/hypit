@@ -134,6 +134,13 @@
       "condition": "always",
       "dependencies": []
     },
+    "generate-depth-videos": {
+      "path": "skills/short-drama/references/generation/generate-depth-videos.md",
+      "category": "generation",
+      "stage": "media-production",
+      "condition": "always",
+      "dependencies": []
+    },
     "generate-prop-assets": {
       "path": "skills/short-drama/references/assets/generate-prop-assets.md",
       "category": "assets",
@@ -151,8 +158,8 @@
     "generate-storyboard-images": {
       "path": "skills/short-drama/references/generation/generate-storyboard-images.md",
       "category": "generation",
-      "stage": null,
-      "condition": "image-storyboard-required",
+      "stage": "media-production",
+      "condition": "always",
       "dependencies": []
     },
     "humanizer": {
@@ -328,9 +335,11 @@
     "write-drama-video-prompts": {
       "path": "skills/short-drama/references/generation/write-drama-video-prompts.md",
       "category": "generation",
-      "stage": "production-plan",
+      "stage": "media-production",
       "condition": "always",
-      "dependencies": []
+      "dependencies": [
+        "generate-storyboard-images"
+      ]
     }
   },
   "workflow": [
@@ -355,11 +364,12 @@
     "build-drama-storyboard",
     "revise-drama-storyboards",
     "plan-drama-production",
+    "plan-shot-continuity",
+    "generate-depth-videos",
     "generate-storyboard-images",
     "review-drama-shots",
     "direct-blender-previz",
     "generate-blender-previz",
-    "plan-shot-continuity",
     "write-drama-video-prompts",
     "generate-drama-videos",
     "design-drama-audio",
@@ -412,10 +422,12 @@
       "design-fight-video",
       "build-drama-storyboard",
       "plan-drama-production",
-      "plan-shot-continuity",
-      "write-drama-video-prompts"
+      "plan-shot-continuity"
     ],
     "media-production": [
+      "generate-depth-videos",
+      "generate-storyboard-images",
+      "write-drama-video-prompts",
       "drama-generation-service",
       "review-drama-shots",
       "generate-drama-videos",
@@ -433,7 +445,6 @@
     "character_asset_sheet",
     "scene_asset_sheet",
     "prop_generate",
-    "single_panel_image",
     "panel_grid_image",
     "panel_storyboard_image",
     "panel_grid_enhance",
@@ -537,7 +548,6 @@
     "screenplay_conversion": "write-drama-episode",
     "select_location": "generate-scene-assets",
     "select_prop": "generate-prop-assets",
-    "single_panel_image": "generate-storyboard-images",
     "storyboard_edit": "revise-drama-storyboards",
     "voice_analysis": "design-drama-audio"
   },
@@ -559,6 +569,7 @@
     "generate-blender-previz": "2379668233a1031c4eb8f90b5b72ec18661b8d468e703b019b79f0be4d717a67",
     "generate-character-images": "5528f81967155a296fcbf4ac18bac75c75f07c9c5f09f7dcd1bf2114e8dc17fd",
     "generate-character-profiles": "89e68191dfb5775e01b9b087ce2f9eb7fec7314478f7f17cf95aeb3ff98426da",
+    "generate-depth-videos": "8e16f5b7650fdc3f0ac4dcc0ff8010c5674de71f35dd742139148e9010c691ff",
     "generate-drama-art-style": "c65bfdec293a3bc5f721ee4284061d04ea4b40a2ebc7b7f78196b6187e416fee",
     "generate-drama-videos": "b2d8bbdcb9a85698449016b857d0bf9a04609421f0992d3eeae8e2c56e61cd05",
     "generate-prop-assets": "ed1354508e099d6fc7d30e6a3832c06604d472752e64bb22d8de9a541b3f67a5",
@@ -608,6 +619,7 @@
     "generate-blender-previz": "generate-blender-previz",
     "generate-character-images": "generate-character-images",
     "generate-character-profiles": "generate-character-profiles",
+    "generate-depth-videos": "generate-depth-videos",
     "generate-drama-art-style": "generate-drama-art-style",
     "generate-drama-videos": "generate-drama-videos",
     "generate-prop-assets": "generate-prop-assets",

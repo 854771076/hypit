@@ -6,8 +6,8 @@
 
 `asset-plan` 中场景存在 `derived_from` 时，不得从零重画：先读取母场景当前 selected 本地图片，把它作为结构与材质参考，只生成版本证据明确要求的时段、天气、前景或陈设变化，并保持建筑骨架、出入口、固定锚点、尺度和磨损一致。母场景没有可用选版时将该变体保持 blocked，不用文字描述冒充视觉继承。
 
-对同一依赖层的全部场景全量提交 `generate_image`；RunningHub 同一 API Key 最多 2 路并发，其余请求由适配器排队；`derived_from` 场景只在母场景选版后进入下一并发层。调用时传 `{kind:"asset-plan",episode_key,version_id,asset_key}`，实际 prompt 必须等于 `scene_asset_sheet` 的已留痕输出；提交前确认模型、数量、尺寸、参考路径和费用。检查父子空间、固定锚点、时代、建筑结构和光线方向，用 `asset-ledger.mjs fetch|decode` 保存候选、写入相同制作文档引用并选版。
+对同一依赖层的全部场景全量提交 `generate_image`；RunningHub 同一 API Key 最多 2 路并发，其余请求由适配器排队；`derived_from` 场景只在母场景选版后进入下一并发层。调用时传 `{kind:"asset-plan",episode_key,version_id,asset_key}`，并向 `render-prompt.mjs` 传完整项目画风对象；实际 prompt 必须等于 `scene_asset_sheet` 的已留痕输出。提交前展示并确认模型、数量、尺寸、参考路径和制作计划，不计算具体价格。用 `asset-ledger.mjs fetch|decode` 保存候选并写入相同制作文档引用；检查父子空间、固定锚点、时代、建筑结构、光线方向以及当前 renderingContract 的媒介、材质和成像规则。新生成候选不得直接选版，必须执行 `review-ledger.mjs review-visual-asset`，绑定当前画风 ID 与内容哈希后才可原子选版。
 
-正式出图必须用 `scene_asset_sheet` 生成同一场景的九视角网格、平面布局、轴测图、色卡和关键材质样本；各视角共享同一空间结构。不得在调用处退化为单张泛化背景。
+正式出图必须用 `scene_asset_sheet` 生成同一场景的九视角网格、平面布局、轴测图、色卡和关键材质样本；各视角共享同一空间结构。网格只是空间信息布局，不得把用户媒介偷换成概念原画、真人摄影、二维厚涂或三维游戏场景；以当前 renderingContract 为唯一媒介事实源。不得在调用处退化为单张泛化背景。
 
 StarRouter 图片枚举：`model=gpt-image-2`；`resolution ∈ {1K,2K,4K}`；`aspect_ratio ∈ {1:1,16:9,9:16,4:3,3:4}`；`quality ∈ {auto,low,medium,high}`；`background ∈ {auto,opaque,transparent}`；`moderation ∈ {auto,low}`；`output_format ∈ {png,jpeg,webp}`；`n=1..4`。

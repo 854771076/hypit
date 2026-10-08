@@ -33,6 +33,10 @@ Requirements:
 9. Visible action may omit unsupported categories. Do not invent details merely to fill expression, body language, micro-action, or eyeline categories.
 10. A silent character in frame still performs a relationship task: assess the partner, conceal a response, wait for an opening, or protect the situation. A reaction may begin when the key information lands rather than mechanically after the line ends; a difficult reply shows an evidenced assessment or pause before speech. Do not invent a new plot reaction.
 11. If source_text already contains ongoing work, daily business, exertion, impact, or injury, let the tactic travel through that action, breath, and weight. An evidenced interruption can punctuate a beat. Physical load and breathing must continue across the cut rather than resetting immediately.
+12. Give every visible person one primary action, attention target, reaction trigger, and uninvolved state. Unless synchronization is story-required, offset group onset, amplitude, gaze, and reaction latency; never make a group turn, nod, blink, or step together.
+13. When readable, keep a still person alive through irregular blinks, brief refocusing, breathing, or a small weight adjustment without loops or distracting business. Hair, hems, loose sleeves, accessories, and props respond only to established wind, acceleration, gravity, or contact with smaller delayed motion, damping, and settling; forbid windless flutter and instant stops.
+14. State the gaze target, screen direction, hold/glance/avert/return behavior, and whether eyes or head initiate the shift. Forbid lens gaze outside explicit POV or direct address. Render psychology as stimulus/information → attention and gaze shift → maintained social mask → brief leak → decision/action → residual exit expression.
+15. Use micro-expression only in a readable close shot, limiting it to one or two facial regions with low-amplitude onset—apex—release. At wider scales use head, breath, posture, pause, distance, and blocking; never emit AU codes or substitute an emotion label for action.
 
 Output format (JSON array only):
 [

@@ -206,8 +206,12 @@ function validateSeedance2Contract(input, counts) {
     if (roles.some((role, index) => role !== ['first_frame', 'last_frame'][index])) throw new Error('Seedance 2.0 首尾帧角色必须依次为 first_frame、last_frame')
   } else {
     if (manifest.length === 0) throw new Error('Seedance 2.0 全参考模式至少需要一个参考素材')
-    const expected = { image: 'reference_image', video: 'reference_video', audio: 'reference_audio' }
-    if (manifest.some((item) => item.role !== expected[item.type])) throw new Error('Seedance 2.0 全参考素材 role 与类型不匹配')
+    const allowed = {
+      image: new Set(['reference_image', 'character_identity', 'temporal_storyboard', 'shot_board', 'asset_board', 'storyboard-frame', 'first_frame']),
+      video: new Set(['reference_video', 'depth_reference']),
+      audio: new Set(['reference_audio', 'audio_reference']),
+    }
+    if (manifest.some((item) => !allowed[item.type]?.has(item.role))) throw new Error('Seedance 2.0 全参考素材 role 与类型不匹配')
   }
   const videoSeconds = manifest.filter((item) => item.type === 'video').reduce((sum, item) => sum + Number(item.duration_seconds || 0), 0)
   const audioSeconds = manifest.filter((item) => item.type === 'audio').reduce((sum, item) => sum + Number(item.duration_seconds || 0), 0)
@@ -225,9 +229,10 @@ function seedanceContent(input, frameUrl, images, videos, audios, manifest) {
   const imageItems = manifest.filter((item) => item.type === 'image')
   const videoItems = manifest.filter((item) => item.type === 'video')
   const audioItems = manifest.filter((item) => item.type === 'audio')
-  content.push(...imageUrls.map((url, index) => ({ type: 'image_url', image_url: { url }, role: imageItems[index].role })))
-  content.push(...videos.map((url, index) => ({ type: 'video_url', video_url: { url }, role: videoItems[index].role })))
-  content.push(...audios.map((url, index) => ({ type: 'audio_url', audio_url: { url }, role: audioItems[index].role })))
+  const transportRole = (type, role) => input.input_mode === 'full-reference' ? { image: 'reference_image', video: 'reference_video', audio: 'reference_audio' }[type] : role
+  content.push(...imageUrls.map((url, index) => ({ type: 'image_url', image_url: { url }, role: transportRole('image', imageItems[index].role) })))
+  content.push(...videos.map((url, index) => ({ type: 'video_url', video_url: { url }, role: transportRole('video', videoItems[index].role) })))
+  content.push(...audios.map((url, index) => ({ type: 'audio_url', audio_url: { url }, role: transportRole('audio', audioItems[index].role) })))
   return content
 }
 
@@ -584,6 +589,9 @@ export function selfCheck() {
   validateSeedance2Contract({ model: 'dreamina-seedance-2-0-260128', prompt_profile: 'seedance2', input_mode: 'first-last-frame', duration: 5, prompt: '@图片1', reference_manifest: [{ type: 'image', order: 1, asset_key: 'board-1', version_id: 'v001', role: 'first_frame', real_person_face: false }] }, { image: 1, video: 0, audio: 0 })
   const seedanceFrames = [{ type: 'image', order: 1, asset_key: 'board-1', version_id: 'v001', role: 'first_frame' }, { type: 'image', order: 2, asset_key: 'board-2', version_id: 'v001', role: 'last_frame' }]
   if (seedanceContent({ prompt: 'A' }, '', ['https://example.com/1.png', 'https://example.com/2.png'], [], [], seedanceFrames).at(-1).role !== 'last_frame') throw new Error('Seedance 首尾帧角色映射失败')
+  const productionReferences = [{ type: 'image', order: 1, asset_key: 'char-a', version_id: 'v001', role: 'character_identity' }, { type: 'video', order: 1, asset_key: 'shot-depth', version_id: 'v001', role: 'depth_reference', duration_seconds: 5 }, { type: 'audio', order: 1, asset_key: 'audio-reference', version_id: 'v001', role: 'audio_reference', duration_seconds: 5 }]
+  validateSeedance2Contract({ model: 'dreamina-seedance-2-0-260128', prompt_profile: 'seedance2', input_mode: 'full-reference', duration: 5, prompt: '@图片1 @视频1 @音频1', reference_manifest: productionReferences }, { image: 1, video: 1, audio: 1 })
+  if (seedanceContent({ prompt: 'A', input_mode: 'full-reference' }, '', ['https://example.com/1.png'], ['https://example.com/1.mp4'], ['https://example.com/1.wav'], productionReferences).slice(1).map((item) => item.role).join() !== 'reference_image,reference_video,reference_audio') throw new Error('Seedance 制作语义角色未归一为 Provider 传输角色')
   const h3 = h3Payload({ model: 'MiniMax-H3', prompt_profile: 'h3', input_mode: 'T2VA', prompt: 'A circle moves.', duration: 4, size: '2K', ratio: '16:9' })
   if (h3.size !== '2K' || h3.metadata.content[0].type !== 'text') throw new Error('MiniMax H3 请求自检失败')
   try { h3Payload({ model: 'MiniMax-H3', prompt_profile: 'h3', input_mode: 'FL2VA', prompt: 'A', duration: 4, size: '768P', images: ['https://example.com/1.png', 'https://example.com/2.png', 'https://example.com/3.png'] }); throw new Error('H3 图片上限自检失败') } catch (error) { if (!String(error.message).includes('最多两张')) throw error }

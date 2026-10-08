@@ -14,7 +14,7 @@
 
 旁白不论原生还是兜底都必须有电影感表演合同：逐项写 `tone_arc`、`emotion_beats[]`、`pace`、`breath_and_pause`、`distance_and_space`。旁白兜底使用独立 narrator 音色；除非剧本明确角色兼任叙述者，不得复用角色 voice_id。
 
-原生七维审核失败后先调用 `generate_audio_fallback` 且以 `confirmed=false` 预检，只允许审核报告实际失败的 reason 与毫秒区间。此分支固定使用百炼 `cosyvoice-v3.5-plus`：角色对白绑定克隆或设计后的 `voice_role:character`；旁白绑定 `voice_role:narrator`，其 `cinematic_profile` 必须逐字段等于 audio-plan 的表演合同。用户确认费用后才以 `confirmed=true` 生成；输出 provenance 必须保存 `native_audio_exception`、来源视频版本、`replaced_ranges` 和 `mix_sources`。只替换失败区间，合格的原生环境声和动作声继续保留，不得整轨覆盖。
+原生七维审核失败后先调用 `generate_audio_fallback` 且以 `confirmed=false` 预检，只允许审核报告实际失败的 reason 与毫秒区间。此分支固定使用百炼 `cosyvoice-v3.5-plus`：角色对白绑定克隆或设计后的 `voice_role:character`；旁白绑定 `voice_role:narrator`，其 `cinematic_profile` 必须逐字段等于 audio-plan 的表演合同。展示并确认失败区间、音色、模型和请求次数后才以 `confirmed=true` 生成，不计算具体价格；输出 provenance 必须保存 `native_audio_exception`、来源视频版本、`replaced_ranges` 和 `mix_sources`。只替换失败区间，合格的原生环境声和动作声继续保留，不得整轨覆盖。
 
 每个原生声视频必须先由 ASR 辅助、再由人工完整观看和复听，逐项填写七维报告：`speech_intelligibility`（台词可懂度）、`speaker_identity`（声纹身份）、`narration_performance`（旁白电影感表演）、`ambience_action_sync`（环境/动作同步）、`lip_sync`（可见对白口型）、`technical_audio`（底噪、爆音、声道与响度）和 `undeclared_music`（未声明或重复音乐）。七项全部通过才能保留原声；文件存在、波形正常或 ASR 文本大致正确都不能替代其余人工维度。
 

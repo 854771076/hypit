@@ -7,6 +7,9 @@ const MAX_UPLOAD_BYTES = 200 * 1024 * 1024
 const H3_MODEL = 'minimax-h3-reference-to-video'
 const H3_WORKFLOW_ID = process.env.RUNNINGHUB_H3_WORKFLOW_ID || '2086743729407733762'
 const H3_TEMPLATE = JSON.parse(await readFile(new URL('./minimax-h3-workflow.json', import.meta.url), 'utf8'))
+const DEPTH_MODEL = 'depth-video'
+const DEPTH_WORKFLOW_ID = '2098674379113979905'
+const DEPTH_TEMPLATE = JSON.parse(await readFile(new URL('./depth-video-workflow.json', import.meta.url), 'utf8'))
 const KREA2_MODEL = 'krea2-normal-v1'
 const KREA2_WORKFLOW_ID = process.env.RUNNINGHUB_KREA2_WORKFLOW_ID || '2096515700701929473'
 const KREA2_TEMPLATE = JSON.parse(await readFile(new URL('./krea2-normal-v1-workflow.json', import.meta.url), 'utf8'))
@@ -21,7 +24,7 @@ const KREA2_DIMENSIONS = {
   '2K': { '1:1': [2048, 2048], '16:9': [2048, 1152], '9:16': [1152, 2048], '3:4': [1536, 2048], '4:3': [2048, 1536], '2:3': [1360, 2048], '3:2': [2048, 1360] },
 }
 const H3_RATIOS = { '16:9': '16:9 (Widescreen)', '9:16': '9:16 (Portrait Widescreen)' }
-const H3_MEGAPIXELS = { '480p': 0.4, '720p': 0.9, '1K': 1, '2K': 2 }
+const H3_MEGAPIXELS = { '480p': 0.4, '720p': 0.9, '768P': 0.9, '1K': 1, '2K': 2 }
 const MAX_CONCURRENT_SUBMISSIONS = 2
 // ponytail: 当前按 MCP 进程内的 API Key 限流；多进程共享密钥时再升级为跨进程信号量。
 const submissionStates = new Map()
@@ -120,10 +123,15 @@ function validateH3References(input, groups) {
     const items = manifest.filter((item) => item?.type === type)
     if (items.length !== paths.length || items.some((item, index) => item.order !== index + 1)) throw new Error(`RunningHub H3 ${type} 素材顺序无效`)
   }
+  // Ref2VA 按媒体类型接收制作语义角色；深度、双分镜板和音频参考不能被改写成旧版通用角色，否则会丢失资产合同。
+  if (input.input_mode === 'Ref2VA') {
+    if (manifest.length === 0) throw new Error('RunningHub H3 Ref2VA 至少需要一个参考素材')
+    return
+  }
   const keyframes = manifest.filter((item) => ['first_frame', 'last_frame'].includes(item.role))
   const references = manifest.filter((item) => ['reference_image', 'reference_video', 'reference_audio'].includes(item.role))
   if (keyframes.length + references.length !== manifest.length || keyframes.some((item) => item.type !== 'image')) throw new Error('RunningHub H3 reference_manifest 包含无效素材角色')
-  const expected = { T2VA: [0, 0], I2VA: [1, 0], FL2VA: [2, 0], L2VA: [1, 0], Ref2VA: [0, 1] }[input.input_mode]
+  const expected = { T2VA: [0, 0], I2VA: [1, 0], FL2VA: [2, 0], L2VA: [1, 0] }[input.input_mode]
   if (!expected || keyframes.length !== expected[0] || (expected[1] ? references.length < expected[1] : references.length !== 0)) throw new Error(`RunningHub H3 素材与 ${input.input_mode} 不匹配`)
   if (input.input_mode === 'I2VA' && keyframes[0]?.role !== 'first_frame') throw new Error('RunningHub H3 I2VA 必须使用 first_frame')
   if (input.input_mode === 'FL2VA' && keyframes.map((item) => item.role).join() !== 'first_frame,last_frame') throw new Error('RunningHub H3 FL2VA 必须依次使用 first_frame、last_frame')
@@ -139,7 +147,7 @@ async function submitH3(input) {
   const resolution = input.resolution || '1K'
   if (duration > 15) throw new Error('RunningHub H3 duration 必须为 1–15 秒，1–4 秒会归一为 5 秒')
   if (!H3_RATIOS[ratio]) throw new Error('RunningHub H3 ratio 只能是 16:9 或 9:16')
-  if (!H3_MEGAPIXELS[resolution]) throw new Error('RunningHub H3 resolution 只能是 480p、720p、1K 或 2K')
+  if (!H3_MEGAPIXELS[resolution]) throw new Error('RunningHub H3 resolution 只能是 480p、720p、768P、1K 或 2K')
   const groups = [
     ['images', h3Paths(input, 'reference_image_paths', input.reference_paths || []), 9, 100, 'LoadImage', 'ref_images.ref_image_'],
     ['videos', h3Paths(input, 'reference_video_paths'), 2, 120, 'VHS_LoadVideo', 'ref_videos.ref_video_'],
@@ -171,6 +179,23 @@ async function submitH3(input) {
   })
   if (Number(payload.code) !== 0 || !payload?.data?.taskId) throw new Error(`RUNNINGHUB_H3_SUBMIT_FAILED: ${String(payload.msg || payload.code)}`)
   return { task_id: payload.data.taskId, provider: 'runninghub', media_type: 'video', model: H3_MODEL, workflow_id: H3_WORKFLOW_ID, status: 'submitted' }
+}
+
+async function submitDepthVideo(input) {
+  confirm(input)
+  if (input.workflow_id && String(input.workflow_id) !== DEPTH_WORKFLOW_ID) throw new Error(`RunningHub 深度视频必须使用固定工作流 ${DEPTH_WORKFLOW_ID}`)
+  const paths = Array.isArray(input.reference_paths) ? input.reference_paths : []
+  const manifest = Array.isArray(input.reference_manifest) ? input.reference_manifest : []
+  if (paths.length !== 1 || manifest.length !== 1 || manifest[0]?.type !== 'video' || manifest[0]?.role !== 'source_video' || manifest[0]?.order !== 1) throw new Error('RunningHub 深度视频必须且只能绑定一个 video/source_video 来源')
+  const workflow = structuredClone(DEPTH_TEMPLATE)
+  if (!workflow['21']?.inputs) throw new Error('RunningHub 深度视频内置工作流无效')
+  workflow['21'].inputs.video = await upload(paths[0])
+  const payload = await request('/task/openapi/create', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ apiKey: apiKey(), workflowId: DEPTH_WORKFLOW_ID, workflow: JSON.stringify(workflow), addMetadata: false }),
+  })
+  if (Number(payload.code) !== 0 || !payload?.data?.taskId) throw new Error(`RUNNINGHUB_DEPTH_SUBMIT_FAILED: ${String(payload.msg || payload.code)}`)
+  return { task_id: payload.data.taskId, provider: 'runninghub', media_type: 'video', model: DEPTH_MODEL, workflow_id: DEPTH_WORKFLOW_ID, status: 'submitted' }
 }
 
 async function submitKrea2(input) {
@@ -257,10 +282,10 @@ function taskResult(payload) {
 
 export const runninghub = {
   label: 'RunningHub', credentialEnv: 'RUNNINGHUB_API_KEY',
-  catalog: { image: [...new Set([KREA2_MODEL, process.env.RUNNINGHUB_IMAGE_WORKFLOW_ID].filter(Boolean))], video: [H3_MODEL, process.env.RUNNINGHUB_VIDEO_WORKFLOW_ID].filter(Boolean), audio: [process.env.RUNNINGHUB_AUDIO_WORKFLOW_ID].filter(Boolean), get transform() { return [SEEDVR25_MODEL, ...Object.entries(transformWorkflows()).filter(([operation, workflow]) => operation !== 'video-upscale' && workflow).map(([, workflow]) => workflow)] } },
+  catalog: { image: [...new Set([KREA2_MODEL, process.env.RUNNINGHUB_IMAGE_WORKFLOW_ID].filter(Boolean))], video: [H3_MODEL, DEPTH_MODEL, process.env.RUNNINGHUB_VIDEO_WORKFLOW_ID].filter(Boolean), audio: [process.env.RUNNINGHUB_AUDIO_WORKFLOW_ID].filter(Boolean), get transform() { return [SEEDVR25_MODEL, ...Object.entries(transformWorkflows()).filter(([operation, workflow]) => operation !== 'video-upscale' && workflow).map(([, workflow]) => workflow)] } },
   capabilities: { text: false, image: true, video: true, audio: true, 'video.native-audio': true, get 'transform.lip-sync'() { return Boolean(transformWorkflow('lip-sync')) }, get 'transform.video-inpaint'() { return Boolean(transformWorkflow('video-inpaint')) }, get 'transform.video-upscale'() { return Boolean(transformWorkflow('video-upscale')) } },
   async models() {
-    return { provider: 'runninghub', image_models: [KREA2_MODEL], video_models: [H3_MODEL], workflows: { image: process.env.RUNNINGHUB_IMAGE_WORKFLOW_ID || null, krea2_image: KREA2_WORKFLOW_ID, video: process.env.RUNNINGHUB_VIDEO_WORKFLOW_ID || null, h3_video: H3_WORKFLOW_ID, audio: process.env.RUNNINGHUB_AUDIO_WORKFLOW_ID || null, transforms: transformWorkflows() } }
+    return { provider: 'runninghub', image_models: [KREA2_MODEL], video_models: [H3_MODEL, DEPTH_MODEL], workflows: { image: process.env.RUNNINGHUB_IMAGE_WORKFLOW_ID || null, krea2_image: KREA2_WORKFLOW_ID, video: process.env.RUNNINGHUB_VIDEO_WORKFLOW_ID || null, h3_video: H3_WORKFLOW_ID, depth_video: DEPTH_WORKFLOW_ID, audio: process.env.RUNNINGHUB_AUDIO_WORKFLOW_ID || null, transforms: transformWorkflows() } }
   },
   async testConnection() {
     const value = apiKey()
@@ -274,7 +299,7 @@ export const runninghub = {
   },
   async submitVideo(input) {
     confirm(input); validateVideoPrompt(input)
-    return withSubmissionSlot(apiKey(), () => input.model === H3_MODEL ? submitH3(input) : submit(input, 'video'))
+    return withSubmissionSlot(apiKey(), () => input.model === H3_MODEL ? submitH3(input) : input.model === DEPTH_MODEL ? submitDepthVideo(input) : submit(input, 'video'))
   },
   async audio(input) {
     confirm(input)
@@ -311,6 +336,7 @@ export async function selfCheck() {
   validateH3References({ input_mode: 'FL2VA', reference_manifest: [{ type: 'image', order: 1, role: 'first_frame' }, { type: 'image', order: 2, role: 'last_frame' }] }, [['images', ['a', 'b']], ['videos', []], ['audios', []]])
   try { validateH3References({ input_mode: 'I2VA', reference_manifest: [] }, [['images', []], ['videos', []], ['audios', []]]); throw new Error('RunningHub H3 模式自检失败') } catch (error) { if (!String(error.message).includes('I2VA')) throw error }
   if (H3_TEMPLATE['31']?.class_type !== 'MiniMaxH3ReferenceToVideo') throw new Error('RunningHub H3 内置工作流无效')
+  if (DEPTH_TEMPLATE['21']?.class_type !== 'VHS_LoadVideo' || DEPTH_TEMPLATE['6']?.class_type !== 'VHS_VideoCombine') throw new Error('RunningHub 深度视频内置工作流无效')
   if (KREA2_TEMPLATE['5']?.class_type !== 'CLIPTextEncode' || KREA2_DIMENSIONS['2K']['9:16'].join('x') !== '1152x2048') throw new Error('RunningHub Krea2 内置工作流无效')
   if (SEEDVR25_MAPPING.workflow_id !== SEEDVR25_WORKFLOW_ID || SEEDVR25_MAPPING.video_input?.node_id !== '25' || SEEDVR25_MAPPING.video_output?.node_id !== '27') throw new Error('RunningHub SeedVR2.5 内置映射无效')
   let active = 0, maximum = 0

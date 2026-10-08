@@ -11,6 +11,7 @@ import { fingerprint, validateTaskOutput } from './task-ledger.mjs'
 import { validateManifest, validateReview, validateTimeline } from './editing-store.mjs'
 import { validDocumentReferenceShape, validateGenerationDocumentReference } from './document-reference.mjs'
 import { validateVideoReferenceBindings } from './reference-bindings.mjs'
+import { reusableBuildTargetOutputs } from './hypit-runtime.mjs'
 import { probePrevizMedia, validatePrevizContract, validatePrevizMedia } from './previz-contract.mjs'
 import { validateRecreationConsumerBinding, validateRecreationEvidence } from './recreation-workflow.mjs'
 import { EPISODE_DOCUMENT_KINDS } from './episode-document-types.mjs'
@@ -82,6 +83,19 @@ function run(script, ...args) {
   const result = spawnSync(process.execPath, [resolve(scripts, script), ...args], { encoding: 'utf8' })
   if (result.status !== 0) failures.push(`${script}：${(result.stderr || result.stdout).trim()}`)
 }
+export function createHypitBuildOutputValidator(inspect) {
+  const cache = new Map()
+  return (buildId, output) => {
+    if (!cache.has(buildId)) cache.set(buildId, new Set(reusableBuildTargetOutputs(inspect(buildId))))
+    return cache.get(buildId).has(output)
+  }
+}
+
+const validHypitBuildOutput = createHypitBuildOutputValidator((buildId) => {
+  const result = spawnSync('hypit', ['inspect', buildId, '--workspace', root, '--json'], { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
+  if (result.status !== 0) return null
+  try { return JSON.parse(result.stdout) } catch { return null }
+})
 async function selected(directory, extensions) {
   const markerPath = resolve(directory, 'selected.json')
   if (!await exists(markerPath)) return
@@ -176,8 +190,10 @@ async function validateAssets() {
         validatePrevizMedia(probePrevizMedia(actualPath), contract, shot)
       } catch (error) { failures.push(`${key}@${version.id} 白模证据链：${error.message}`) }
       const providerOutput = version.provenance?.created_by === 'provider' && ['generated', 'transformed'].includes(version.provenance?.origin)
+      const hypitOutput = providerOutput && version.provenance?.parameters?.hypit_build_id === version.provenance?.task_id
+        && typeof version.provenance?.parameters?.hypit_output === 'string'
       if (providerOutput) {
-        const requiredKind = asset.type === 'video' ? undefined : asset.type === 'audio' ? 'audio-plan' : asset.type === 'storyboard' ? 'storyboard' : ['character', 'scene', 'prop'].includes(asset.type) ? 'asset-plan' : null
+        const requiredKind = asset.type === 'video' ? (/^shot-ep\d{3}-depth-\d{3}$/.test(key) ? 'production-plan' : undefined) : asset.type === 'audio' ? 'audio-plan' : asset.type === 'storyboard' ? 'storyboard' : ['character', 'scene', 'prop'].includes(asset.type) ? 'asset-plan' : null
         if (requiredKind !== null && (!prompt || prompt.kind !== requiredKind)) failures.push(`${key}@${version.id} 生成${asset.type}缺少匹配的制作文档来源`)
       }
       if (prompt) {
@@ -186,10 +202,15 @@ async function validateAssets() {
           const promptPath = resolve(root, 'episodes', prompt.episode_key, 'video-prompts', `${prompt.version_id}.json`)
           if (!await exists(promptPath)) failures.push(`${key}@${version.id} 引用的视频提示词版本不存在`)
           else if (!(await json(promptPath))?.shots?.some((shot) => shot.shot_number === prompt.shot_number)) failures.push(`${key}@${version.id} 引用的视频提示词镜号不存在`)
+        } else if (prompt.kind === 'production-plan') {
+          const planPath = resolve(root, 'episodes', prompt.episode_key, 'production-plan', `${prompt.version_id}.json`)
+          if (!await exists(planPath)) failures.push(`${key}@${version.id} 引用的制作计划版本不存在`)
+          else if (!(await json(planPath))?.shots?.some((shot) => shot.shot_number === prompt.shot_number && shot.video_strategy?.depth_reference?.expected_output_asset_key === key)) failures.push(`${key}@${version.id} 引用的制作计划深度镜头不存在或目标不匹配`)
         }
       }
-      if (providerOutput && tasks.tasks?.[version.provenance.task_id]?.status !== 'completed') failures.push(`${key}@${version.id} Provider 任务不存在或未完成`)
-      if (providerOutput && tasks.tasks?.[version.provenance.task_id]) {
+      if (hypitOutput && !validHypitBuildOutput(version.provenance.task_id, version.provenance.parameters.hypit_output)) failures.push(`${key}@${version.id} Hypit Build Output 不存在、Build 未终止或不是目标媒体资源`)
+      if (providerOutput && !hypitOutput && tasks.tasks?.[version.provenance.task_id]?.status !== 'completed') failures.push(`${key}@${version.id} Provider 任务不存在或未完成`)
+      if (providerOutput && !hypitOutput && tasks.tasks?.[version.provenance.task_id]) {
         const task = tasks.tasks[version.provenance.task_id]
         try {
           const request = await json(resolve(root, task.requestPath))
@@ -216,7 +237,7 @@ async function validateUploads() {
   for (const file of await readdir(directory)) {
     if (!/^upload-[0-9a-f-]+\.json$/.test(file)) { failures.push(`临时上传收据文件名无效：${file}`); continue }
     const receipt = await json(resolve(directory, file))
-    if (!receipt || Object.keys(receipt).sort().join() !== fields.sort().join() || receipt.version !== 1 || receipt.id !== file.slice(0, -5) || !allowedServices.has(receipt.service) || receipt.media_type !== 'image' || receipt.permanent !== false || !expiryMs[receipt.expires_in] || !['non-commercial', 'commercial-authorized'].includes(receipt.usage_scope) || JSON.stringify(receipt.confirmations) !== JSON.stringify({ rights: true, public_exposure: true, terms_of_use: true })) { failures.push(`临时上传收据合同无效：${file}`); continue }
+    if (!receipt || Object.keys(receipt).sort().join() !== fields.sort().join() || receipt.version !== 1 || receipt.id !== file.slice(0, -5) || !allowedServices.has(receipt.service) || !['image', 'video', 'audio'].includes(receipt.media_type) || receipt.permanent !== false || !expiryMs[receipt.expires_in] || !['non-commercial', 'commercial-authorized'].includes(receipt.usage_scope) || JSON.stringify(receipt.confirmations) !== JSON.stringify({ rights: true, public_exposure: true, terms_of_use: true })) { failures.push(`临时上传收据合同无效：${file}`); continue }
     let url
     try { url = new URL(receipt.url) } catch {}
     const allowedHosts = { litterbox: 'litter.catbox.moe', tempfile: 'tempfile.org', tmpfiles: 'tmpfiles.org', uguu: 'uguu.se' }
@@ -224,6 +245,7 @@ async function validateUploads() {
     const asset = ledger?.assets?.[receipt.asset_key]
     const version = asset?.versions?.find((item) => item.id === receipt.version_id)
     if (!version || version.localPath !== receipt.local_path || version.sha256 !== receipt.sha256 || version.sizeBytes !== receipt.size_bytes) failures.push(`${file} 与本地资产版本不一致`)
+    else if ((receipt.media_type === 'video' && asset.type !== 'video') || (receipt.media_type === 'audio' && asset.type !== 'audio') || (receipt.media_type === 'image' && ['video', 'audio'].includes(asset.type))) failures.push(`${file} 媒体类型与本地资产不一致`)
     if (!Number.isFinite(Date.parse(receipt.created_at)) || Date.parse(receipt.expires_at) !== Date.parse(receipt.created_at) + expiryMs[receipt.expires_in]) failures.push(`${file} 到期时间无效`)
     noSecrets(receipt, file)
   }
@@ -261,7 +283,10 @@ async function validateControl() {
     const request = await json(resolve(requestDirectory, file))
     if (!request || request.version !== 1 || `${request.requestId}.json` !== file || !['generate_image', 'submit_video', 'generate_audio', 'generate_music'].includes(request.tool) || !validRequestFingerprint(request)) failures.push(`生成请求快照无效：${file}`)
     else if (request.tool === 'submit_video') try {
-      await validateVideoReferenceBindings(root, request.provider, request.arguments, request.arguments.reference_manifest || [], { requireSelected: false, at: Date.parse(request.createdAt) })
+      const depthRequest = request.provider === 'runninghub' && request.modelOrWorkflow === '2098674379113979905' && /^shot-ep\d{3}-depth-\d{3}$/.test(request.target)
+      const manifest = request.arguments.reference_manifest || []
+      const referenceMode = manifest.some((item) => item?.role === 'reference_video') ? 'previz' : 'depth'
+      await validateVideoReferenceBindings(root, request.provider, request.arguments, manifest, { requireSelected: false, requireComplete: !depthRequest, referenceMode, at: Date.parse(request.createdAt) })
     } catch (error) { failures.push(`视频请求参考证据链无效：${file}：${error.message}`) }
     noSecrets(request, file)
   }
@@ -352,4 +377,4 @@ async function main() {
   console.log(JSON.stringify({ valid: true, schema_version: 1, project: relative(dirname(root), root) || '.', status: 'covered' }))
 }
 
-main().catch((error) => { console.error(error.message); process.exitCode = 1 })
+if (process.argv[1] === fileURLToPath(import.meta.url)) main().catch((error) => { console.error(error.message); process.exitCode = 1 })

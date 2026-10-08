@@ -1,14 +1,15 @@
 import { readFile, realpath } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import { resolve } from 'node:path'
+import { isDeepStrictEqual } from 'node:util'
 import { validateTemporaryReferenceUrl } from './media-hosting/publish.mjs'
 import { selectedAssetVersion } from './asset-ledger.mjs'
 import { assertCharacterReadyForVisuals } from './character-appeal.mjs'
 
 const compact = (values) => (values || []).filter((value) => typeof value === 'string' && value.trim())
+const AUDIO_EVIDENCE_SOURCES = new Set(['script', 'storyboard', 'scene_asset', 'audio_reference'])
 
 const REQUIRED_VIDEO_REFERENCES = new Map([
-  ['depth_reference', 'video'],
   ['temporal_storyboard', 'image'],
   ['shot_board', 'image'],
   ['audio_reference', 'audio'],
@@ -23,8 +24,70 @@ function exactText(value, label) {
   if (typeof value !== 'string' || !value.trim()) throw new Error(`${label} 必须是非空字符串`)
 }
 
-export function validateRequiredVideoReferences(manifest) {
+function keySet(value, label, { prefix } = {}) {
+  if (!Array.isArray(value)) throw new Error(`${label} 必须是数组`)
+  const keys = value.map((item) => {
+    exactText(item, label)
+    if (prefix && !item.startsWith(prefix)) throw new Error(`${label} 只能包含 ${prefix}*`)
+    return item
+  })
+  if (new Set(keys).size !== keys.length) throw new Error(`${label} 不得重复`)
+  return new Set(keys)
+}
+
+function compareSets(expected, actual, label) {
+  const missing = [...expected].filter((key) => !actual.has(key))
+  const extra = [...actual].filter((key) => !expected.has(key))
+  if (missing.length || extra.length) throw new Error(`${label}与制作计划不一致${missing.length ? `，缺少：${missing.join('、')}` : ''}${extra.length ? `，多出：${extra.join('、')}` : ''}`)
+}
+
+function storyboardCharacterKey(character) {
+  for (const value of [character?.asset_key, character?.key, character?.appearance]) {
+    if (typeof value !== 'string') continue
+    const key = value.split('@', 1)[0]
+    if (key.startsWith('char-')) return key
+  }
+  return null
+}
+
+export function deriveMotionReferenceMode(planShot) {
+  if (planShot?.video_strategy?.depth_reference) return 'depth'
+  if (planShot?.previz_strategy?.mode === 'blender' && planShot.previz_strategy.purpose === 'motion-reference') return 'previz'
+  return 'none'
+}
+
+export function validateShotGenerationContract({ planShot, storyboardPanel, manifest, audioPolicy }) {
+  const plannedCharacters = keySet(planShot?.video_strategy?.visible_character_keys, '制作计划 visible_character_keys', { prefix: 'char-' })
+  const storyboardCharacters = keySet((storyboardPanel?.characters || []).map(storyboardCharacterKey), '分镜人物 character keys', { prefix: 'char-' })
+  const referenceCharacters = keySet((manifest || []).filter((item) => item?.role === 'character_identity').map((item) => item.asset_key), '人物参考 character keys', { prefix: 'char-' })
+  compareSets(plannedCharacters, storyboardCharacters, '分镜人物')
+  compareSets(plannedCharacters, referenceCharacters, '人物参考')
+
+  const plannedEvents = keySet(planShot?.video_strategy?.visible_event_keys, '制作计划 visible_event_keys')
+  const storyboardEvents = keySet(storyboardPanel?.visible_event_keys, '分镜 visible_event_keys')
+  compareSets(plannedEvents, storyboardEvents, '分镜可见事件')
+
+  for (const [index, item] of (audioPolicy?.ambience || []).entries()) {
+    const evidence = item?.evidence
+    if (!evidence || !AUDIO_EVIDENCE_SOURCES.has(evidence.source) || typeof evidence.detail !== 'string' || !evidence.detail.trim()) throw new Error(`环境底 ambience[${index}] 缺少有效来源证据`)
+  }
+  for (const [index, item] of (audioPolicy?.action_sounds || []).entries()) {
+    if (typeof item?.evidence_event_key !== 'string' || !item.evidence_event_key.trim()) throw new Error(`动作声 action_sounds[${index}] 缺少 evidence_event_key`)
+    if (!plannedEvents.has(item.evidence_event_key)) throw new Error(`动作声 action_sounds[${index}] 绑定了不存在的可见事件：${item.evidence_event_key}`)
+  }
+  return { visible_character_keys: [...plannedCharacters], visible_event_keys: [...plannedEvents] }
+}
+
+export function validateRequiredVideoReferences(manifest, { referenceMode = 'depth' } = {}) {
   if (!Array.isArray(manifest)) throw new Error('视频 reference_manifest 必须是数组')
+  if (!['depth', 'previz', 'none'].includes(referenceMode)) throw new Error('视频主运动参考模式无效')
+  const identities = manifest.filter((item) => item?.role === 'character_identity')
+  if (identities.some((item) => item.type !== 'image' || !item.asset_key?.startsWith('char-'))) throw new Error('character_identity 必须引用 char-* 图片资产')
+  const depthReferences = manifest.filter((item) => item?.role === 'depth_reference')
+  const previzReferences = manifest.filter((item) => item?.role === 'reference_video')
+  if (referenceMode === 'depth' && (depthReferences.length !== 1 || depthReferences[0].type !== 'video' || previzReferences.length)) throw new Error('复刻视频生成必须且只能包含一个 video/depth_reference，且不得混用 reference_video')
+  if (referenceMode === 'previz' && (previzReferences.length !== 1 || previzReferences[0].type !== 'video' || depthReferences.length)) throw new Error('启用空间预演的视频生成必须且只能包含一个 video/reference_video，且不得混用 depth_reference')
+  if (referenceMode === 'none' && (depthReferences.length || previzReferences.length)) throw new Error('未启用主运动参考的镜头不得携带 depth_reference 或 reference_video')
   for (const [role, type] of REQUIRED_VIDEO_REFERENCES) {
     const matches = manifest.filter((item) => item?.role === role)
     if (matches.length !== 1 || matches[0].type !== type) throw new Error(`视频生成必须且只能包含一个 ${type}/${role} 参考`)
@@ -34,6 +97,18 @@ export function validateRequiredVideoReferences(manifest) {
   if (temporal.asset_key === shot.asset_key && temporal.version_id === shot.version_id) throw new Error('故事版与分镜板必须是两个独立参考版本')
   for (const item of manifest.filter((entry) => entry?.role === 'asset_board')) if (item.type !== 'image') throw new Error('asset_board 只能是图片参考')
   return manifest
+}
+
+export function validateDepthReferenceBinding(planShot, manifest, assets) {
+  const contract = planShot?.video_strategy?.depth_reference
+  const reference = manifest?.find((item) => item?.role === 'depth_reference')
+  if (!contract || !reference || reference.asset_key !== contract.expected_output_asset_key) throw new Error('深度视频引用与制作计划预期输出不一致')
+  const asset = assets?.assets?.[reference.asset_key]
+  const version = asset?.versions?.find((item) => item.id === reference.version_id)
+  const provenance = version?.provenance
+  if (asset?.selectedVersionId !== reference.version_id || asset.staleVersionIds?.includes(reference.version_id) || provenance?.origin !== 'generated' || provenance.created_by !== 'provider' || provenance.provider !== contract.provider || provenance.model_or_workflow !== contract.workflow_id) throw new Error('深度视频必须是当前 selected、未失效且由计划中的 RunningHub 工作流生成的版本')
+  if (!provenance.source_assets?.some((item) => item.key === contract.source_asset_key && item.version_id === contract.source_version_id)) throw new Error('深度视频 provenance 未绑定制作计划中的时间参考源版本')
+  return reference
 }
 
 export async function resolveCharacterProfile(rootArg, reference) {
@@ -59,13 +134,17 @@ export async function resolveCharacterProfile(rootArg, reference) {
 export async function validateCharacterIdentityBinding(rootArg, reference) {
   const profile = await resolveCharacterProfile(rootArg, reference)
   exactFields(reference?.identity_constraints, ['age_class', 'grooming_and_makeup', 'costume_signature', 'memory_anchors'], 'identity_constraints')
+  exactFields(reference?.performance_constraints, ['center_of_gravity', 'gait', 'habitual_actions', 'eyeline_behavior', 'blink_rhythm', 'stress_response', 'forbidden_performance'], 'performance_constraints')
   const constraints = reference.identity_constraints
+  const performance = reference.performance_constraints
   const appeal = assertCharacterReadyForVisuals(profile)
   if (constraints.age_class !== appeal.age_class) throw new Error('角色身份年龄分级与人物档案不一致')
   if (constraints.grooming_and_makeup !== appeal.grooming_and_makeup) throw new Error('角色身份妆造与人物档案不一致')
   if (constraints.costume_signature !== appeal.costume_signature) throw new Error('角色身份服装标识与人物档案不一致')
   if (JSON.stringify(constraints.memory_anchors) !== JSON.stringify(appeal.memory_anchors)) throw new Error('角色身份记忆锚点与人物档案不一致')
-  return { profile_name: profile.name, appearance_id: reference.identity_binding.appearance_id, ...structuredClone(constraints) }
+  // JSON 对象的字段顺序不承载业务含义；按结构比较，避免等价约束因序列化顺序不同被误拒。
+  if (!isDeepStrictEqual(performance, profile.performance_bible)) throw new Error('角色表演约束与人物档案不一致')
+  return { profile_name: profile.name, appearance_id: reference.identity_binding.appearance_id, ...structuredClone(constraints), performance_constraints: structuredClone(performance) }
 }
 
 function inputs(provider, args) {
@@ -99,7 +178,7 @@ function inputs(provider, args) {
 
 export async function validatePreviousTailBinding(rootArg, shot, manifest) {
   if (shot?.continuity?.mode !== 'previous-tail') return
-  if (!['first-last-frame', 'I2VA', 'FL2VA'].includes(shot.input_mode)) throw new Error('previous-tail 要求模型与输入模式支持 video.first-frame')
+  if (!['full-reference', 'Ref2VA'].includes(shot.input_mode)) throw new Error('previous-tail 必须在完整参考模式中携带上一镜尾帧连续性锚点')
   if (shot.continuity.required_provider_capability !== 'video.first-frame' || !Number.isInteger(shot.continuity.source_shot_number) || shot.continuity.source_shot_number < 1) throw new Error('previous-tail 连续性合同缺少 video.first-frame 或有效来源镜号')
   const firstImage = (manifest || []).filter((item) => item?.type === 'image').sort((left, right) => left.order - right.order)[0]
   if (!firstImage || firstImage.order !== 1 || firstImage.role !== 'first_frame') throw new Error('previous-tail 必须是第一个 image 引用并使用 role=first_frame')
@@ -117,8 +196,8 @@ export async function validatePreviousTailBinding(rootArg, shot, manifest) {
   if (promptReference?.kind !== 'continuity-plan' || promptReference.episode_key !== match[1].replace('ep', 'ep-') || promptReference.shot_number !== shot.shot_number) throw new Error('previous-tail 缺少匹配目标镜头的连续性计划来源')
 }
 
-export async function validateVideoReferenceBindings(rootArg, provider, args, manifest, { requireSelected = true, requireComplete = true, at = Date.now() } = {}) {
-  if (requireComplete) validateRequiredVideoReferences(manifest)
+export async function validateVideoReferenceBindings(rootArg, provider, args, manifest, { requireSelected = true, requireComplete = true, referenceMode = 'depth', at = Date.now() } = {}) {
+  if (requireComplete) validateRequiredVideoReferences(manifest, { referenceMode })
   const root = await realpath(resolve(rootArg))
   const actual = inputs(provider, args)
   if (actual.sequential) {
@@ -135,7 +214,7 @@ export async function validateVideoReferenceBindings(rootArg, provider, args, ma
     const value = actual.sequential?.[index] ?? actual[reference.type]?.[reference.order - 1]
     if (!value) throw new Error(`参考素材缺少实际输入：${reference.asset_key}@${reference.version_id}`)
     if (actual.local) {
-      if (await realpath(resolve(value)) !== await realpath(resolve(root, version.localPath))) throw new Error(`本地参考路径与资产版本不一致：${reference.asset_key}@${reference.version_id}`)
+      if (await realpath(resolve(root, value)) !== await realpath(resolve(root, version.localPath))) throw new Error(`本地参考路径与资产版本不一致：${reference.asset_key}@${reference.version_id}`)
     } else await validateTemporaryReferenceUrl(root, value, reference, at)
   }
 }

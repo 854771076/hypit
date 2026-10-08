@@ -9,6 +9,8 @@ import type { CredentialRef, ResourceStore } from "@hypit/runtime";
 import { starRouterMaxReferenceImageBytes, starRouterRouteForCapability, starRouterRoutes } from "./routes.js";
 import type { StarRouterRoute } from "./routes.js";
 import { prepareSeedanceAsset } from "./seedance-asset.js";
+import { createStarRouterPublicAssetPublisher } from "./public-assets.js";
+import type { StarRouterPublicAssets } from "./public-assets.js";
 
 export const starRouterProviderModuleRef = { name: "@hypit/provider-starrouter", version: "1" } as const;
 export type CreateStarRouterProviderOptions = {
@@ -17,6 +19,7 @@ export type CreateStarRouterProviderOptions = {
   readonly pollIntervalMs?: number; readonly requestTimeoutMs?: number; readonly operationTimeoutMs?: number;
   readonly fetch?: typeof globalThis.fetch;
   readonly publicAssetUrl?: (artifact: BlobRef, artifacts: ResourceStore, fields?: Readonly<Record<string, string | number | boolean>>) => Promise<string>;
+  readonly publicAssets?: StarRouterPublicAssets;
   readonly bytePlusAccessKeyId?: CredentialRef; readonly bytePlusAccessKeySecret?: CredentialRef;
   readonly seedanceAssetGroupId?: string; readonly seedanceAssetProjectName?: string;
 };
@@ -64,13 +67,14 @@ class StarRouterClient {
   }
 }
 
-function resolverFor(context: EndpointInvocationContext, publish: CreateStarRouterProviderOptions["publicAssetUrl"]): GenerationArtifactUrlResolver {
+function resolverFor(context: EndpointInvocationContext, publish: CreateStarRouterProviderOptions["publicAssetUrl"], publicAssets: StarRouterPublicAssets | undefined): GenerationArtifactUrlResolver {
   const cache = new Map<string, Promise<string>>();
+  const publisher = publish ?? (publicAssets === undefined ? undefined : createStarRouterPublicAssetPublisher(publicAssets, context.credentials));
   return (artifact, fields) => {
-    assert(publish !== undefined, "StarRouter reference media requires publicAssetUrl");
+    assert(publisher !== undefined, "StarRouter reference media requires a public asset publisher");
     const key = JSON.stringify([artifact.resource, Object.entries(fields ?? {}).sort(([left], [right]) => left.localeCompare(right))]);
     const existing = cache.get(key); if (existing !== undefined) return existing;
-    const value = publish(artifact, context.resources, fields); cache.set(key, value); return value;
+    const value = publisher(artifact, context.resources, fields); cache.set(key, value); return value;
   };
 }
 function outputUrls(value: unknown, found: string[] = []): string[] {
@@ -81,9 +85,9 @@ function outputUrls(value: unknown, found: string[] = []): string[] {
   }
   return [...new Set(found)];
 }
-function support(route: StarRouterRoute, publish: CreateStarRouterProviderOptions["publicAssetUrl"], request: EndpointRequest): EndpointSupport {
+function support(route: StarRouterRoute, hasPublisher: boolean, request: EndpointRequest): EndpointSupport {
   const result = route.supports(request);
-  if (result.status === "unsupported" || route.result === "image" || publish !== undefined) return result;
+  if (result.status === "unsupported" || route.result === "image" || hasPublisher) return result;
   const ports = (request.constraints as unknown as { readonly ports?: Readonly<Record<string, readonly unknown[]>> }).ports ?? {};
   const hasReferences = ["firstFrame", "lastFrame", "referenceImage", "referenceVideo", "referenceAudio"].some((port) => (ports[port]?.length ?? 0) > 0);
   return hasReferences ? { status: "unsupported", reason: "StarRouter video references require a public asset publisher" } : result;
@@ -115,7 +119,7 @@ async function reviewedSeedanceBody(body: Record<string, unknown>, credentials: 
   };
 }
 
-function endpoint(client: StarRouterClient, pollIntervalMs: number, operationTimeoutMs: number, publish: CreateStarRouterProviderOptions["publicAssetUrl"], asset: SeedanceAssetConfig | undefined): AsyncEndpoint {
+function endpoint(client: StarRouterClient, pollIntervalMs: number, operationTimeoutMs: number, publish: CreateStarRouterProviderOptions["publicAssetUrl"], publicAssets: StarRouterPublicAssets | undefined, asset: SeedanceAssetConfig | undefined): AsyncEndpoint {
   const timedOut = (handle: Handle): boolean => Date.now() - handle.startedAt > operationTimeoutMs;
   const timeout = (handle: Handle): EndpointOutcome => ({ status: "failed", failure: { code: "STARROUTER_OPERATION_TIMEOUT", message: `StarRouter task ${handle.taskId} timed out` }, receipt: { id: handle.taskId } });
   return {
@@ -124,7 +128,7 @@ function endpoint(client: StarRouterClient, pollIntervalMs: number, operationTim
       try {
         const route = starRouterRouteForCapability(context.need.capability); assert(route !== undefined, "StarRouter does not implement this capability");
         const prepared = route.prepare(context.need.constraints);
-        const body = await prepared.compile(prepared.references.length > 0 ? async (artifact) => artifact.resource : resolverFor(context, publish));
+        const body = await prepared.compile(prepared.references.length > 0 ? async (artifact) => artifact.resource : resolverFor(context, publish, publicAssets));
         let init: RequestInit = { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
         if (prepared.references.length > 0) {
           const form = new FormData();
@@ -217,8 +221,9 @@ export function createStarRouterProvider(options: CreateStarRouterProviderOption
   const assetConfigured = options.bytePlusAccessKeyId !== undefined || options.bytePlusAccessKeySecret !== undefined || options.seedanceAssetGroupId !== undefined;
   assert(!assetConfigured || (options.bytePlusAccessKeyId !== undefined && options.bytePlusAccessKeySecret !== undefined && options.seedanceAssetGroupId?.trim()), "StarRouter Seedance face-reference review requires both BytePlus credentials and seedanceAssetGroupId");
   const asset = !assetConfigured ? undefined : { groupId: options.seedanceAssetGroupId!.trim(), projectName: options.seedanceAssetProjectName?.trim() || "hypit", fetch: fetcher };
-  const asyncEndpoint = endpoint(client, options.pollIntervalMs ?? 10_000, operationTimeoutMs, options.publicAssetUrl, asset);
-  const credentials = { apiKey: options.apiKey ?? credentialRef("os", "starrouter.api-key"), ...(asset === undefined ? {} : { bytePlusAccessKeyId: options.bytePlusAccessKeyId!, bytePlusAccessKeySecret: options.bytePlusAccessKeySecret! }) };
-  const credentialInputs = { apiKey: { label: "StarRouter API key" }, ...(asset === undefined ? {} : { bytePlusAccessKeyId: { label: "BytePlus Ark access key ID" }, bytePlusAccessKeySecret: { label: "BytePlus Ark access key secret" } }) };
-  return defineEndpointPackage({ module: starRouterProviderModuleRef, facet: "gateway", instance: options.instance ?? "starrouter.default", pool: options.pool ?? options.instance ?? "starrouter.default", pricing: { kind: "page", url: "https://starrouter.io" }, credentials, credentialInputs, defaultConcurrency: options.defaultConcurrency ?? 4, ...(options.actionLimits === undefined ? {} : { actionLimits: options.actionLimits }), capabilities: starRouterRoutes.map((route) => ({ capability: route.capability, returns: route.returns, lifecycle: "asynchronous" as const, endpoint: asyncEndpoint, capacity: route.capability.name, supports: (request) => support(route, options.publicAssetUrl, request) })) });
+  const asyncEndpoint = endpoint(client, options.pollIntervalMs ?? 10_000, operationTimeoutMs, options.publicAssetUrl, options.publicAssets, asset);
+  const credentials = { apiKey: options.apiKey ?? credentialRef("os", "starrouter.api-key"), ...(asset === undefined ? {} : { bytePlusAccessKeyId: options.bytePlusAccessKeyId!, bytePlusAccessKeySecret: options.bytePlusAccessKeySecret! }), ...(options.publicAssets === undefined ? {} : { publicAssetAccessKeyId: options.publicAssets.accessKeyId, publicAssetSecretAccessKey: options.publicAssets.secretAccessKey, ...(options.publicAssets.sessionToken === undefined ? {} : { publicAssetSessionToken: options.publicAssets.sessionToken }) }) };
+  const credentialInputs = { apiKey: { label: "StarRouter API key" }, ...(asset === undefined ? {} : { bytePlusAccessKeyId: { label: "BytePlus Ark access key ID" }, bytePlusAccessKeySecret: { label: "BytePlus Ark access key secret" } }), ...(options.publicAssets === undefined ? {} : { publicAssetAccessKeyId: { label: "Public asset S3 access key ID" }, publicAssetSecretAccessKey: { label: "Public asset S3 secret access key" }, ...(options.publicAssets.sessionToken === undefined ? {} : { publicAssetSessionToken: { label: "Public asset S3 session token" } }) }) };
+  const hasPublisher = options.publicAssetUrl !== undefined || options.publicAssets !== undefined;
+  return defineEndpointPackage({ module: starRouterProviderModuleRef, facet: "gateway", instance: options.instance ?? "starrouter.default", pool: options.pool ?? options.instance ?? "starrouter.default", pricing: { kind: "page", url: "https://starrouter.io" }, credentials, credentialInputs, defaultConcurrency: options.defaultConcurrency ?? 4, ...(options.actionLimits === undefined ? {} : { actionLimits: options.actionLimits }), capabilities: starRouterRoutes.map((route) => ({ capability: route.capability, returns: route.returns, lifecycle: "asynchronous" as const, endpoint: asyncEndpoint, capacity: route.capability.name, supports: (request) => support(route, hasPublisher, request) })) });
 }

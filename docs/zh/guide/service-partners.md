@@ -66,7 +66,7 @@ Agent 可以在项目包中实现这次所需的请求与结果映射。
 ### StarRouter
 
 [`@hypit/provider-starrouter`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-starrouter/README.md)
-提供 GPT Image 2、MiniMax H3、Seedance 2 和 Seedance 2 Fast。GPT Image 参考图可直接上传；视频参考素材需要嵌入 Host 提供公网素材 URL。Seedance 2 人物图可选用 BytePlus Ark 素材审核：当 StarRouter 返回已知的隐私或取图错误时审核素材并重试一次；Endpoint 需要单独配置 BytePlus 凭据和素材组。
+提供 GPT Image 2、MiniMax H3、Seedance 2 和 Seedance 2 Fast。GPT Image 参考图可直接上传；Runtime Profile 可配置 S3 兼容的 `publicAssets` 对象存储，使 H3 与 Seedance 的图片、视频、音频参考在原生 Build 生命周期内发布，不再由插件侧厂商脚本提交。Seedance 2 人物图可选用 BytePlus Ark 素材审核：当 StarRouter 返回已知的隐私或取图错误时审核素材并重试一次；Endpoint 需要单独配置 BytePlus 凭据和素材组。
 
 ## 自己部署模型
 

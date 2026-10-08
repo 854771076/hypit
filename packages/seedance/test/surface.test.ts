@@ -138,6 +138,20 @@ test("ReferenceVideo keeps generated Text and heterogeneous references on explic
     "runtime references must remain graph edges rather than authored draft metadata");
 });
 
+test("ReferenceVideo preserves firstFrame beside multimodal references", async () => {
+  const result = await decode(
+    `<seedance:ReferenceVideo id="continued" model="mini" prompt={direction} duration="6" first-frame={first.image} first-frame-person-reference="true">
+      <seedance:Reference image={generated.image} person-reference="true"/>
+      <seedance:Reference audio={voice.audio}/>
+    </seedance:ReferenceVideo>`,
+    decodeSeedanceReferenceVideoSurface,
+  );
+  const bindings = result.records.filter((record) => record.id.endsWith(".binding"));
+  assert.equal(bindings.length, 3);
+  assert.match(bindings[0]!.type.name, /FirstFrame/u);
+  assert.deepEqual(result.components[0]!.inputs["media-0001:artifact"], refs.get("first.image")!.ref);
+});
+
 test("the three Surfaces make incompatible invocation shapes unrepresentable", async () => {
   await assert.rejects(
     async () => await decode(
@@ -180,6 +194,11 @@ test("visual reference classification survives authoring as per-input metadata",
   const providerSpecificBinding = providerSpecificDuration.records.find((record) => record.id.endsWith(".binding"))!;
   assert.deepEqual(providerSpecificBinding.value.kind === "inline" ? providerSpecificBinding.value.value : null, {
     role: "video", fields: { personReference: false, durationSeconds: 16 },
+  });
+  const timedAudio = await decode('<seedance:ReferenceVideo id="voice" model="2.5" prompt={direction} duration="6"><seedance:Reference audio={voice.audio} duration-seconds="6"/></seedance:ReferenceVideo>', decodeSeedanceReferenceVideoSurface);
+  const timedAudioBinding = timedAudio.records.find((record) => record.id.endsWith(".binding"))!;
+  assert.deepEqual(timedAudioBinding.value.kind === "inline" ? timedAudioBinding.value.value : null, {
+    role: "audio", fields: { durationSeconds: 6 },
   });
   await assert.rejects(decode('<seedance:FrameVideo id="bad" model="mini" prompt={direction} duration="6" first-frame={first.image} first-frame-person-reference="true" last-frame-person-reference="true"/>', decodeSeedanceFrameVideoSurface), /requires last-frame/);
 });

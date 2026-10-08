@@ -94,7 +94,7 @@ const parameterCatalog = {
     ],
     'minimax-h3-reference-to-video': [
       { key: 'duration', label: '默认时长（秒）', type: 'number', min: 5, max: 15, default: 5, overridable: true },
-      { key: 'resolution', label: '分辨率', type: 'select', options: ['480p', '720p', '1K', '2K'], default: '1K' },
+      { key: 'resolution', label: '分辨率', type: 'select', options: ['768P', '2K'], default: '768P' },
       { key: 'ratio', label: '画幅', type: 'select', options: ['16:9', '9:16'], default: '9:16' },
     ],
     'seedvr2.5-video-upscale': [],

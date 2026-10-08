@@ -2,8 +2,8 @@
 
 Exact author/compute contracts and package-owned author Surfaces for MiniMax H3 video generation.
 
-Text, frame-guided and subject-reference modes are separate Surfaces rather than one dynamic
-port mode. Each produces an ordinary video Artifact. This package owns request semantics
+Text, frame-guided and subject-reference modes use explicit Surfaces rather than one dynamic
+port mode; `ReferenceVideo` additionally accepts a first-frame continuation anchor. Each produces an ordinary video Artifact. This package owns request semantics
 and validation only; Provider calls, credentials, retries and queueing belong to a Runtime Endpoint
 selected in the Runtime Profile.
 
@@ -11,7 +11,8 @@ selected in the Runtime Profile.
 <h3:TextVideo id="idea" prompt={prompt} duration="6" resolution="768P" aspect-ratio="9:16"/>
 <h3:FrameVideo id="motion" prompt={motionPrompt} duration="6" resolution="2K"
   first-frame={cover.image} last-frame={ending.image}/>
-<h3:ReferenceVideo id="montage" prompt={montagePrompt} duration="8" resolution="768P" aspect-ratio="9:16">
+<h3:ReferenceVideo id="montage" prompt={montagePrompt} duration="8" resolution="768P" aspect-ratio="9:16"
+  first-frame={priorTail.image}>
   <h3:Reference image={person.image}/>
   <h3:Reference video={gesture.video}/>
 </h3:ReferenceVideo>
@@ -19,6 +20,8 @@ selected in the Runtime Profile.
 
 The Surface makes every prompt/media dependency an explicit graph edge and leaves execution to a Provider.
 `FrameVideo` accepts a first frame, a last frame, or both; either frame is an ordinary image Artifact edge.
+`ReferenceVideo` may additionally carry `first-frame` beside its complete image/video/audio reference set,
+which supports reviewed previous-tail continuation without dropping the Ref2VA inputs.
 
 Write prompts with the Hypit Skill's bundled H3 prompt-writing guide. `TextVideo` and `FrameVideo` use the exact
 T2VA/I2VA/FL2VA/L2VA structure: `integrated_multimodal_description`, `overall_soundscape`, then

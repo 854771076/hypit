@@ -13,6 +13,8 @@ import { starRouterMappings } from "../src/mapping.js";
 import { starRouterRouteForCapability } from "../src/routes.js";
 
 const image: BlobRef = { kind: "blob", resource: "res_image", size: 3, mediaType: "image/png" };
+const video: BlobRef = { kind: "blob", resource: "res_video", size: 3, mediaType: "video/mp4" };
+const audio: BlobRef = { kind: "blob", resource: "res_audio", size: 3, mediaType: "audio/wav" };
 const resolve = async (artifact: BlobRef) => `https://example.test/${artifact.resource}`;
 
 test("every StarRouter mapping covers its model ports", () => {
@@ -25,12 +27,16 @@ test("MiniMax H3 request becomes StarRouter multimodal content", async () => {
   const request = sealMinimaxH3Request({
     prompt: ["move"], duration: [6], resolution: ["2K"],
     firstFrame: [{ role: "image", artifact: image }],
+    referenceVideo: [{ role: "video", artifact: video }],
+    referenceAudio: [{ role: "audio", artifact: audio }],
   });
   assert.deepEqual(await route.prepare(request as unknown as CanonicalValue).compile(resolve), {
     model: "MiniMax-H3", prompt: "move", duration: 6, size: "2K",
     metadata: { content: [
       { type: "text", text: "move" },
       { type: "image_url", image_url: { url: "https://example.test/res_image" }, role: "first_frame" },
+      { type: "video_url", video_url: { url: "https://example.test/res_video" }, role: "reference_video" },
+      { type: "audio_url", audio_url: { url: "https://example.test/res_audio" }, role: "reference_audio" },
     ] },
   });
 });
@@ -88,11 +94,17 @@ test("StarRouter validates image and Seedance request boundaries", async () => {
   });
   assert.equal(videoRoute.supports({ capability: videoRoute.capability, returns: videoRoute.returns, constraints: missingVideoLabel as unknown as CanonicalValue }).status, "unsupported");
   const audioReference = sealSeedanceRequest("seedance-2", {
-    prompt: ["move @图片1"], duration: [5], resolution: ["720p"], aspectRatio: ["16:9"], generateAudio: [true], webSearch: [false],
+    prompt: ["move @图片1 with @音频1"], duration: [5], resolution: ["720p"], aspectRatio: ["16:9"], generateAudio: [true], webSearch: [false],
+    referenceImage: [{ role: "image", artifact: image, fields: { personReference: false } }],
+    referenceAudio: [{ role: "audio", artifact: { ...image, resource: "res_audio", mediaType: "audio/wav" }, fields: { durationSeconds: 5 } }],
+  });
+  assert.equal(videoRoute.supports({ capability: videoRoute.capability, returns: videoRoute.returns, constraints: audioReference as unknown as CanonicalValue }).status, "supported");
+  const missingAudioDuration = sealSeedanceRequest("seedance-2", {
+    prompt: ["move @图片1 with @音频1"], duration: [5], resolution: ["720p"], aspectRatio: ["16:9"], generateAudio: [true], webSearch: [false],
     referenceImage: [{ role: "image", artifact: image, fields: { personReference: false } }],
     referenceAudio: [{ role: "audio", artifact: { ...image, resource: "res_audio", mediaType: "audio/wav" } }],
   });
-  assert.equal(videoRoute.supports({ capability: videoRoute.capability, returns: videoRoute.returns, constraints: audioReference as unknown as CanonicalValue }).status, "unsupported");
+  assert.equal(videoRoute.supports({ capability: videoRoute.capability, returns: videoRoute.returns, constraints: missingAudioDuration as unknown as CanonicalValue }).status, "unsupported");
   const oversizedVideo = sealSeedanceRequest("seedance-2", {
     prompt: ["move @视频1"], duration: [5], resolution: ["720p"], aspectRatio: ["16:9"], generateAudio: [true], webSearch: [false],
     referenceVideo: [{ role: "video", artifact: { ...image, resource: "res_video", size: 200 * 1024 * 1024 + 1, mediaType: "video/mp4" }, fields: { personReference: false, durationSeconds: 5 } }],

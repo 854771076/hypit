@@ -169,6 +169,7 @@ export function validateContinuityPlan(document, episodeKey) {
     const label = `continuity-plan.shots[${index}]`
     exactFields(shot, SHOT_FIELDS, label)
     if (!Number.isInteger(shot.shot_number) || shot.shot_number < 1 || shotNumbers.has(shot.shot_number)) throw new Error(`${label}.shot_number 无效或重复`)
+    if (previous && shot.shot_number <= previous.shot_number) throw new Error('continuity-plan shots 必须按递增 shot_number 排列')
     shotNumbers.add(shot.shot_number)
     if (!sceneKeys.has(shot.scene_key)) throw new Error(`${label}.scene_key 未在 scenes 中声明`)
     text(shot.camera_setup_id, `${label}.camera_setup_id`)

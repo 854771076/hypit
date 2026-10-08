@@ -47,7 +47,6 @@
 | 镜头变体分析 | `revise-drama-storyboards` | `agent_shot_variant_analysis` |
 | 镜头变体生成 | `revise-drama-storyboards` | `agent_shot_variant_generate` |
 | 分镜定向编辑 | `revise-drama-storyboards` | `storyboard_edit` |
-| 单格分镜图 | `generate-storyboard-images` | `single_panel_image` |
 | 宫格分镜图 | `generate-storyboard-images` | `panel_grid_image` |
 | 手绘故事板 | `generate-storyboard-images` | `panel_storyboard_image` |
 | 宫格单格增强 | `generate-storyboard-images` | `panel_grid_enhance` |

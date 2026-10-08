@@ -1,5 +1,7 @@
 import { validateAudioLine, validateAudioStrategy } from './audio-plan-contract.mjs'
 
+const AUDIO_EVIDENCE_SOURCES = new Set(['script', 'storyboard', 'scene_asset', 'audio_reference'])
+
 function eligibleCandidates(candidates, visualCapabilities) {
   if (!Array.isArray(candidates)) throw new Error('视频 Provider 候选列表必填')
   return candidates.filter((candidate) => candidate && typeof candidate.provider === 'string' && typeof candidate.model === 'string' && visualCapabilities.every((capability) => candidate.capabilities?.[capability] === true))
@@ -26,8 +28,22 @@ export function validateShotAudioPolicy(policy) {
   if (!policy || typeof policy !== 'object' || Array.isArray(policy)) throw new Error('镜头 audio_policy 必须是对象')
   if (policy.audio_strategy) validateAudioStrategy(policy.audio_strategy)
   if (!Array.isArray(policy.lines)) throw new Error('镜头 audio_policy.lines[] 必填')
-  policy.lines.forEach((line, index) => validateAudioLine({ ...line, line_index: line.line_index || index + 1 }, index))
+  policy.lines.forEach((line, index) => {
+    validateAudioLine({ ...line, line_index: line.line_index || index + 1 }, index)
+    if (typeof line.language !== 'string' || !line.language.trim()) throw new Error(`镜头 audio_policy.lines[${index}].language 必填`)
+  })
   if (policy.no_undeclared_bgm !== true) throw new Error('镜头 audio_policy 必须明确禁止未声明 BGM')
+  for (const field of ['ambience', 'action_sounds']) {
+    if (!Array.isArray(policy[field])) throw new Error(`镜头 audio_policy.${field}[] 必填`)
+    policy[field].forEach((item, index) => {
+      if (!Number.isInteger(item?.range?.start_ms) || !Number.isInteger(item?.range?.end_ms) || item.range.start_ms < 0 || item.range.end_ms <= item.range.start_ms || typeof item.sound !== 'string' || !item.sound.trim()) throw new Error(`镜头 audio_policy.${field}[${index}] 必须包含有效时间范围和具体声源`)
+      if (field === 'ambience') {
+        if (!item.evidence || !AUDIO_EVIDENCE_SOURCES.has(item.evidence.source) || typeof item.evidence.detail !== 'string' || !item.evidence.detail.trim()) throw new Error(`镜头 audio_policy.ambience[${index}] 必须携带 script、storyboard、scene_asset 或 audio_reference 来源证据`)
+      } else if (typeof item.evidence_event_key !== 'string' || !item.evidence_event_key.trim()) {
+        throw new Error(`镜头 audio_policy.action_sounds[${index}] 必须携带 evidence_event_key`)
+      }
+    })
+  }
   return policy
 }
 
@@ -44,20 +60,20 @@ export function compileAudioPolicy(shot) {
   for (const line of policy.lines) {
     const when = range(line.range)
     if (line.delivery_mode !== 'native') {
-      output.push(`${when}: ${line.presentation} ${line.speaker || 'speaker'} performs the exact timing of ${JSON.stringify(line.content || '')}, but generate ambience and action sound only; no finished speech.`)
+      output.push(`${when}: ${line.presentation} ${line.speaker || 'speaker'} performs the exact timing of [${line.language}] ${JSON.stringify(line.content || '')}, but generate ambience and action sound only; no finished speech.`)
       continue
     }
     if (line.presentation === 'narration') {
       const performance = line.performance || {}
-      output.push(`${when}: off-screen narration ${JSON.stringify(line.content || '')}; tone arc ${performance.tone_arc}; emotion beats ${(performance.emotion_beats || []).join(' -> ')}; pace ${performance.pace}; breath and pause ${performance.breath_and_pause}; distance and space ${performance.distance_and_space}; every visible character keeps natural closed lips.`)
+      output.push(`${when}: off-screen narration in [${line.language}], exact words ${JSON.stringify(line.content || '')}; tone arc ${performance.tone_arc}; emotion beats ${(performance.emotion_beats || []).join(' -> ')}; pace ${performance.pace}; breath and pause ${performance.breath_and_pause}; distance and space ${performance.distance_and_space}; every visible character keeps natural closed lips.`)
     } else if (line.presentation === 'offscreen-dialogue') {
-      output.push(`${when}: ${line.speaker} speaks off screen, exact words ${JSON.stringify(line.content || '')}; visible non-speakers keep natural closed lips.`)
+      output.push(`${when}: ${line.speaker} speaks off screen in [${line.language}], exact words ${JSON.stringify(line.content || '')}; visible non-speakers keep natural closed lips.`)
     } else {
-      output.push(`${when}: visible speaker ${line.speaker} says exact words ${JSON.stringify(line.content || '')} with synchronized natural mouth motion.`)
+      output.push(`${when}: visible speaker ${line.speaker} says in [${line.language}] the exact words ${JSON.stringify(line.content || '')} with synchronized natural mouth motion.`)
     }
   }
-  for (const item of policy.ambience || []) output.push(`${range(item.range)}: native ambience ${item.sound}.`)
-  for (const item of policy.action_sounds || []) output.push(`${range(item.range)}: synchronized physical action sound ${item.sound}.`)
+  for (const item of policy.ambience || []) output.push(`${range(item.range)}: native ambience ${item.sound}; evidence ${item.evidence.source}: ${item.evidence.detail}.`)
+  for (const item of policy.action_sounds || []) output.push(`${range(item.range)}: synchronized physical action sound ${item.sound}; visible event ${item.evidence_event_key}.`)
   output.push('Generate no undeclared BGM; background sound here means ambience and physical action sound only. Licensed score is handled independently.')
   return output.join('\n')
 }

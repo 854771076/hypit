@@ -11,6 +11,32 @@ export function comparableShot(kind, item) {
 
 export function shotItems(kind, document) { return kind === 'storyboard' ? document.panels : document.shots }
 
+export function samePlanReferences(plan, prompt) {
+  // 视频模型槽位有限：提示词可从计划候选池省略非人物素材，但不能引入计划外素材、改写语义角色或漏掉人物身份。
+  const planned = (plan || []).map(({ key, version_id, role }) => ({ asset_key: key, version_id, role }))
+  const prompted = (prompt || []).filter((item) => !(
+    ['depth_reference', 'temporal_storyboard', 'shot_board', 'audio_reference', 'first_frame'].includes(item.role)
+    || item.role === 'storyboard-frame' && item.asset_key?.startsWith('other-')
+    || item.type === 'video' && item.role === 'reference_video' && /^other-previz-ep\d{3}-\d{3}$/.test(item.asset_key || '')
+  )).map(({ asset_key, version_id, role }) => ({ asset_key, version_id, role }))
+  const id = (item) => JSON.stringify(item)
+  const plannedIds = new Set(planned.map(id))
+  const promptedIds = prompted.map(id)
+  const requiredIds = planned.filter((item) => item.role === 'character_identity').map(id)
+  return promptedIds.length === new Set(promptedIds).size
+    && promptedIds.every((item) => plannedIds.has(item))
+    && requiredIds.every((item) => promptedIds.includes(item))
+}
+
+export function sameShotContract(plan, prompt) {
+  return plan?.provider === prompt?.provider
+    && plan.model_or_workflow === prompt.model_or_workflow
+    && plan.prompt_profile === prompt.prompt_profile
+    && plan.input_mode === prompt.input_mode
+    && plan.duration_seconds === prompt.duration
+    && samePlanReferences(plan.reference_assets, prompt.references)
+}
+
 export function changedShotNumbers(kind, previous, next) {
   const map = (document) => new Map((shotItems(kind, document) || []).map((item) => [item.shot_number, JSON.stringify(comparableShot(kind, item))]))
   const before = map(previous)

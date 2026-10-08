@@ -78,10 +78,11 @@ video and audio references; each uploaded item is limited to 200MB.
 ### StarRouter
 
 [`@hypit/provider-starrouter`](https://github.com/hypit-ai/hypit/blob/main/packages/provider-starrouter/README.md)
-serves GPT Image 2, MiniMax H3, Seedance 2 and Seedance 2 Fast. GPT Image references upload directly;
-video references require an embedding Host that supplies a public asset URL. Seedance 2 character
-images can optionally use BytePlus Ark asset review before one retry when StarRouter reports its known
-privacy or fetch errors; the Endpoint must configure the separate BytePlus credentials and asset group.
+serves GPT Image 2, MiniMax H3, Seedance 2 and Seedance 2 Fast. GPT Image references upload directly.
+Runtime Profiles can configure an S3-compatible `publicAssets` store so H3 and Seedance image, video
+and audio references are published inside the native Build lifecycle. Seedance 2 character images can
+optionally use BytePlus Ark asset review before one retry when StarRouter reports its known privacy or
+fetch errors; the Endpoint must configure the separate BytePlus credentials and asset group.
 
 ## Your own model deployment
 

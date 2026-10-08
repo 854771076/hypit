@@ -43,9 +43,18 @@
 - 旁白或内心独白按画外音处理，不触发画内角色说话口型。
 - 同镜多人对白仅在 Provider 明确支持、说话时段不重叠且每张可见嘴部状态可写清时使用；否则拆镜，仅在 Provider 无原生音频能力时才 post-dub。
 
+【自然运动前置合同】
+
+- 对每个可见人物在 video_prompt 的时间线上落实主要动作、注意对象、反应触发和未参与时状态；除剧情明确要求同步外，错开多人起势、幅度、视线与反应延迟。
+- 景别可读时，静止人物使用不规则且不同步的眨眼、短暂重新聚焦、呼吸或小幅重心调整保持生命感，不得机械循环或抢戏。
+- 身体动作必须有支撑脚、重心转移、髋肩带动、关节路径、加减速、随动和恢复；接触道具后持续保持正确握持与承重。
+- 头发、衣摆、宽袖、饰物和道具只响应已有风、人物加速度、重力或接触，并以更小幅度延迟、衰减、稳定；环境只对有证据的局部力产生反应。指令过载、多人精确接触归属不清时必须拆镜。
+
 【人物视觉身份】
 
 - 角色参考中的 `identity_binding` 只用于校验档案版本和 `appearance_id`，不得输出到可见描述；把 `identity_constraints` 的 `grooming_and_makeup`、`costume_signature` 与全部 `memory_anchors` 原样落实到每个可见角色。
+- 把同一角色引用的 `performance_constraints` 原样带入分镜表演合同。`eyeline_behavior`、`blink_rhythm`、`stress_response` 与带触发条件的 `habitual_actions` 只在当前剧情触发成立时转成可见节拍，`forbidden_performance` 始终生效；不得仅凭性格标签编造心理活动。
+- 心理变化必须写成刺激或信息、注视对象与眼神转移、表情面具、短暂泄露、决定/动作和镜尾残留；为近景/特写指定一至两个可见面部区域及低幅起势—峰值—释放，中远景改用头部、呼吸、姿态、停顿、距离和走位。不得输出 FACS/AU 编码或只写“复杂、震惊、腹黑”等不可执行标签。
 - 同一 `appearance_id` 的妆发、服装标识和记忆锚点必须跨镜一致；不得根据姓名、职业或画面自行增加、删减或改写 `memory_anchors`。只有连续性计划中带明确剧情证据的允许变化才能换装或换造型。
 
 【输入】
@@ -67,7 +76,7 @@
 
 【输出】
 
-返回 JSON 数组，每个 panel 为原输入完整对象并补全或细化 description、shot_type、camera_move、video_prompt；可保留合法 duration。video_prompt 用年龄段+性别指代人物，gender=unknown 时使用年龄段+“人士”，不得根据名字、职业、外观或动作猜测性别。
+返回 JSON 数组，每个 panel 为原输入完整对象并补全或细化 description、shot_type、camera_move、video_prompt、visible_event_keys；可保留合法 duration。video_prompt 用年龄段+性别指代人物，gender=unknown 时使用年龄段+“人士”，不得根据名字、职业、外观或动作猜测性别。
 
 规则：
 1. 数组长度和 panel 顺序不变；逐项原样回传 panel_number、characters、location、scene_type、source_text 及全部导演合同字段，不新增、删除、重复或重排镜头。
@@ -76,4 +85,5 @@
 4. video_prompt 以当前镜头有证据的稳定结束画面收尾，并写明 `镜尾转场【类型】`。特殊转场必须有当前镜头可见触发；否则使用硬切，不提前生成下一镜剧情。
 5. 保留稳定站位角色的完整 slot，并作为优先锚点；移动、进出、路径、过渡空间、空镜、梦境、回忆或抽象空间可不使用 slot。不得缩写、改写或用短 token 替换已有 slot。
 6. 不得从 characters 删除输入角色。特写、插入或反打拍不到某角色时，在 description 说明镜头范围；只有 source_text 或 description 明确引入新的可见资产库角色时才可补入。
-7. 只返回严格 JSON 数组，不要 Markdown、解释或注释。JSON 字符串内需要引用时使用「」，禁止未转义的英文双引号。
+7. 每个实际可见人物必须存在于 characters，且 appearance 必须保留可解析的 `char-*@vNNN`；座次、群像、镜面或背景中可辨认的人物不能只写进 description。visible_event_keys 只列本镜真实可见、可作为动作声依据的稳定事件 key；没有动作声事件时为空数组。脚步、衣料、碰撞、开门或能量声分别必须有对应的走动、衣物运动、接触、门体运动或可见能量事件，不得按气氛虚构。
+8. 只返回严格 JSON 数组，不要 Markdown、解释或注释。JSON 字符串内需要引用时使用「」，禁止未转义的英文双引号。

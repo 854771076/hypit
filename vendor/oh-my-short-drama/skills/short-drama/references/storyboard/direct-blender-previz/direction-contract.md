@@ -72,7 +72,7 @@ JSON 顶层同时保存编导依据和 Blender 可执行场景：
 
 单机位摄影使用 `camera`；正反打、多机位覆盖使用具名 `cameras[]` 和从第 1 帧开始的 `camera_cuts[]`。每个摄影机的 `keyframes[]` 可分别设置 `location`、`target` 和可选 `lens`。正反打机位必须位于同一轴线侧，匹配相邻镜头的视线方向、头部留白和景别尺度；接触或命中优先回到能同时说明双方空间关系的机位。默认保持固定焦段；只有叙事需要透视变化时才给 `lens` 做关键帧。
 
-白模模式允许 `board_asset=null`；图片模式引用白模时必须填写当前 selected 图片分镜。生成的白模资产 provenance 必须在 `parameters.direction_contract` 记录本合同的项目内相对路径，在 `parameters.direction_contract_sha256` 记录合同文件 SHA-256，并用 `parameters.duration` 记录制作计划时长。门禁会重新探测 MP4 的实际时长、平均帧率、帧数和分辨率，同时复核合同与媒体哈希，声明值不能替代实际媒体证据。
+双分镜板的版本与审核由项目账本独立校验，不复制进白模合同；因此白模模式保持 `board_asset=null`，`source.storyboard_version` 绑定同镜结构化分镜。生成的白模资产 provenance 必须在 `parameters.direction_contract` 记录本合同的项目内相对路径，在 `parameters.direction_contract_sha256` 记录合同文件 SHA-256，并用 `parameters.duration` 记录制作计划时长。门禁会重新探测 MP4 的实际时长、平均帧率、帧数和分辨率，同时复核合同与媒体哈希，声明值不能替代实际媒体证据。
 
 `beats` 必须按时间顺序排列；相邻节拍可共享一个边界帧或首尾相接，但不得倒序、被前一节拍完全覆盖或大段重叠。`review_contract.hard_gates` 至少完整包含示例中的五项固定硬门禁，不得用模糊名称删减。
 

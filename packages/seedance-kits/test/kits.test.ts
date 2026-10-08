@@ -14,6 +14,7 @@ const cases = [
   { file: "motion-reference-v1.svs", id: "motion-reference-v1", bindings: {}, marker: "body motion" },
   { file: "camera-reference-v1.svs", id: "camera-reference-v1", bindings: {}, marker: "camera framing" },
   { file: "recreation-shot-v1.svs", id: "recreation-shot-v1", bindings: { "reference-dialect": "provider", "depth-video": "@video1 supplies depth.", "temporal-storyboard": "@image1 supplies action order.", "shot-board": "@image2 supplies staging.", "audio-reference": "@audio1 supplies the voice and sound identity.", "video-prompt": "She lifts the cup.", timing: "The contact starts on event cup-contact at frame 42.", continuity: "The cup ends in her right hand.", sound: "Quiet room tone and one ceramic contact." }, marker: "follow the selected Endpoint" },
+  { file: "recreation-shot-v1.svs", id: "recreation-shot-v1", bindings: { "reference-dialect": "starrouter", "depth-video": "@视频1 supplies depth.", "temporal-storyboard": "@图片1 supplies action order.", "shot-board": "@图片2 supplies staging.", "audio-reference": "@音频1 supplies the voice and sound identity.", "video-prompt": "She lifts the cup.", timing: "The contact starts on event cup-contact at frame 42.", continuity: "The cup ends in her right hand.", sound: "Quiet room tone and one ceramic contact." }, marker: "@音频N" },
 ] as const;
 
 test("Seedance Kits are finite data programs with distinct rendered semantics", () => {
@@ -46,7 +47,7 @@ test("recreation-shot requires depth, both boards, video prompt and audio refere
     delete missing[required];
     assert.throws(() => renderText(template, sealTextBindings(missing)), new RegExp(`${required}.*missing`, "iu"));
   }
-  assert.throws(() => renderText(template, sealTextBindings({ ...bindings, "reference-dialect": "starrouter" })), /choice matched no case/iu);
+  assert.match(renderText(template, sealTextBindings({ ...bindings, "reference-dialect": "starrouter" })).value, /@图片N.*@视频N.*@音频N/iu);
 });
 
 test("recreation-shot preserves per-turn languages and regenerates instead of patching video", () => {

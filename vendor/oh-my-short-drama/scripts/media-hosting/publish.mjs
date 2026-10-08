@@ -27,6 +27,7 @@ async function assertImage(path) {
 }
 const AUDIO_EXTENSIONS = new Set(['.wav', '.mp3', '.m4a', '.aac', '.ogg', '.flac', '.webm'])
 const AUDIO_SNIFF_MATCH = { '.wav': new Set(['.wav']), '.mp3': new Set(['.mp3']), '.ogg': new Set(['.ogg']), '.flac': new Set(['.flac']), '.webm': new Set(['.webm']), '.m4a': new Set(['.m4a', '.aac']) }
+const VIDEO_EXTENSIONS = new Set(['.mp4', '.mov', '.webm', '.mkv'])
 
 export async function sniffAudioKind(path) {
   const handle = await open(path, 'r')
@@ -44,6 +45,19 @@ export async function sniffAudioKind(path) {
     throw new Error('待发布文件内容不是受支持的 WAV/MP3/M4A/AAC/OGG/FLAC/WebM 音频')
   } finally { await handle.close() }
 }
+async function assertVideo(path) {
+  const extension = extname(path).toLowerCase()
+  if (!VIDEO_EXTENSIONS.has(extension)) throw new Error(`视频格式不支持：${extension}`)
+  const handle = await open(path, 'r')
+  try {
+    const bytes = Buffer.alloc(12)
+    const { bytesRead } = await handle.read(bytes, 0, bytes.length, 0)
+    const head = bytes.subarray(0, bytesRead)
+    const mp4 = head.subarray(4, 8).toString('ascii') === 'ftyp'
+    const ebml = head.subarray(0, 4).toString('hex') === '1a45dfa3'
+    if (!(mp4 && ['.mp4', '.mov'].includes(extension) || ebml && ['.webm', '.mkv'].includes(extension))) throw new Error(`视频魔数与扩展名不一致：${extension}`)
+  } finally { await handle.close() }
+}
 function rejectSecrets(value, path = '') {
   if (!value || typeof value !== 'object') return
   for (const [key, child] of Object.entries(value)) {
@@ -58,13 +72,13 @@ export function publishReferenceImage(rootArg, input, fetchImpl = fetch) {
 }
 
 export async function publishReferenceMedia(rootArg, input, mediaType = 'image', fetchImpl = fetch) {
-  if (!['image', 'audio'].includes(mediaType)) throw new Error('不支持的临时媒体类型')
+  if (!['image', 'video', 'audio'].includes(mediaType)) throw new Error('不支持的临时媒体类型')
   rejectSecrets(input)
-  if (input.confirmed !== true) throw new Error(mediaType === 'image' ? '公开上传参考图前必须 confirmed=true' : '公开上传参考音频前必须 confirmed=true')
+  if (input.confirmed !== true) throw new Error(`公开上传参考${mediaType}前必须 confirmed=true`)
   if (input.rights_confirmed !== true || input.public_exposure_confirmed !== true || input.usage_terms_confirmed !== true || !['non-commercial', 'commercial-authorized'].includes(input.usage_scope)) throw new Error('必须确认素材权利、公开暴露风险、使用范围及服务条款')
-  if (mediaType === 'image' && !/^v\d{3}$/.test(input.version_id || '')) throw new Error('version_id 必须是 v001 格式')
+  if (input.asset_key && !/^v\d{3}$/.test(input.version_id || '')) throw new Error('version_id 必须是 v001 格式')
   const root = await realpath(resolve(rootArg))
-  const lockMaterial = mediaType === 'image' ? `${input.service}:${input.asset_key}:${input.version_id}` : `${input.service}:audio:${input.local_path}`
+  const lockMaterial = input.asset_key ? `${input.service}:${mediaType}:${input.asset_key}:${input.version_id}` : `${input.service}:audio:${input.local_path}`
   const lockKey = createHash('sha256').update(lockMaterial).digest('hex')
   return withFileLock(resolve(root, '.short-drama', 'locks', `publish-${lockKey}`), async () => {
     const assetsRoot = await realpath(resolve(root, 'assets'))
@@ -72,18 +86,25 @@ export async function publishReferenceMedia(rootArg, input, mediaType = 'image',
     let host
     let receiptBase
     let reusableReceipts
-    if (mediaType === 'image') {
+    if (input.asset_key) {
       const ledger = JSON.parse(await readFile(resolve(root, '.short-drama/assets.json'), 'utf8'))
       const asset = ledger.assets?.[input.asset_key]
       const version = asset?.versions?.find((item) => item.id === input.version_id)
-      if (!asset || !IMAGE_TYPES.has(asset.type) || asset.selectedVersionId !== input.version_id || asset.staleVersionIds?.includes(input.version_id) || !version) throw new Error('只能上传 selected、未失效的本地图片资产版本')
+      const validType = mediaType === 'image' ? IMAGE_TYPES.has(asset?.type) : asset?.type === mediaType
+      if (!asset || !validType || asset.selectedVersionId !== input.version_id || asset.staleVersionIds?.includes(input.version_id) || !version) throw new Error(`只能上传 selected、未失效的本地${mediaType}资产版本`)
       path = await realpath(resolve(root, version.localPath))
       if (path !== assetsRoot && !path.startsWith(`${assetsRoot}${sep}`)) throw new Error('只能上传当前项目 assets/ 内文件')
       const file = await stat(path)
       host = mediaHost(input.service)
-      if (!host.capabilities.media_types.includes('image') || file.size > host.capabilities.max_bytes) throw new Error('图片类型或大小超出托管服务能力')
-      await assertImage(path)
-      if (await sha256(path) !== version.sha256 || file.size !== version.sizeBytes) throw new Error('本地图片已变化，拒绝公开上传')
+      if (!host.capabilities.media_types.includes(mediaType) || file.size > host.capabilities.max_bytes) throw new Error(`${mediaType} 类型或大小超出托管服务能力`)
+      if (mediaType === 'image') await assertImage(path)
+      else if (mediaType === 'video') await assertVideo(path)
+      else {
+        const extension = extname(path).toLowerCase()
+        const detected = await sniffAudioKind(path)
+        if (!AUDIO_EXTENSIONS.has(extension) || !AUDIO_SNIFF_MATCH[detected]?.has(extension)) throw new Error(`音频魔数与扩展名不一致：${extension}`)
+      }
+      if (await sha256(path) !== version.sha256 || file.size !== version.sizeBytes) throw new Error(`本地${mediaType}已变化，拒绝公开上传`)
       receiptBase = { asset_key: asset.key, version_id: version.id, local_path: version.localPath, sha256: version.sha256, size_bytes: version.sizeBytes }
       reusableReceipts = await listReferenceUploads(root, { service: input.service, asset_key: asset.key, version_id: version.id, state: 'active' })
     } else {
@@ -106,7 +127,7 @@ export async function publishReferenceMedia(rootArg, input, mediaType = 'image',
     const url = await host.upload(path, input.expires_in, fetchImpl)
     const createdAt = new Date()
     const receipt = { version: 1, id: `upload-${randomUUID()}`, service: input.service, media_type: mediaType, ...receiptBase, url, expires_in: input.expires_in, usage_scope: input.usage_scope, confirmations: { rights: true, public_exposure: true, terms_of_use: true }, created_at: createdAt.toISOString(), expires_at: new Date(createdAt.getTime() + EXPIRY_MS[input.expires_in]).toISOString(), permanent: false }
-    const changedMessage = mediaType === 'image' ? '上传期间本地图片发生变化，拒绝登记公开链接' : '上传期间本地音频发生变化，拒绝登记公开链接'
+    const changedMessage = `上传期间本地${mediaType}发生变化，拒绝登记公开链接`
     if (await sha256(path) !== receipt.sha256 || (await stat(path)).size !== receipt.size_bytes) throw new Error(changedMessage)
     const target = resolve(root, '.short-drama', 'uploads', `${receipt.id}.json`)
     await mkdir(dirname(target), { recursive: true })

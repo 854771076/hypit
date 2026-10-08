@@ -17,10 +17,20 @@ const reviews = stage === 'media-production'
   : null
 const assets = {}
 for (const [key, asset] of Object.entries(ledger.assets || {})) {
-  if (!TYPES[stage].has(asset.type) || !asset.selectedVersionId) continue
-  const version = asset.versions?.find((item) => item.id === asset.selectedVersionId)
-  if (!version || asset.staleVersionIds?.includes(version.id)) throw new Error(`不能快照失效或缺失的选版：${key}@${asset.selectedVersionId}`)
-  assets[key] = { type: asset.type, selectedVersionId: asset.selectedVersionId, version, ...(reviews?.reviews?.[`${key}@${asset.selectedVersionId}`] ? { review: reviews.reviews[`${key}@${asset.selectedVersionId}`] } : {}) }
+  if (!TYPES[stage].has(asset.type)) continue
+  const selected = asset.selectedVersionId && asset.versions?.find((item) => item.id === asset.selectedVersionId)
+  if (asset.selectedVersionId && (!selected || asset.staleVersionIds?.includes(selected.id))) throw new Error(`不能快照失效或缺失的选版：${key}@${asset.selectedVersionId}`)
+  const candidates = stage === 'media-production'
+    ? (asset.versions || []).filter((item) => !asset.staleVersionIds?.includes(item.id))
+    : []
+  if (!selected && !candidates.length) continue
+  assets[key] = {
+    type: asset.type,
+    selectedVersionId: asset.selectedVersionId || null,
+    ...(selected ? { version: selected } : {}),
+    ...(candidates.length ? { candidates } : {}),
+    ...(selected && reviews?.reviews?.[`${key}@${asset.selectedVersionId}`] ? { review: reviews.reviews[`${key}@${asset.selectedVersionId}`] } : {}),
+  }
 }
 const evidence = { version: 1, stage, assets, createdAt: new Date().toISOString() }
 const directory = resolve(root, '.short-drama/evidence')

@@ -29,6 +29,8 @@ export const artStyleCatalog = (workspaceRoot = process.cwd()) => {
 
 export async function saveCustomArtStyle(style, workspaceRoot = process.cwd()) {
   if (!style?.id || configuredStyles.some((system) => system.id === style.id)) return
+  const contract = style.renderingContract
+  if (!contract || typeof contract !== 'object' || Array.isArray(contract) || ['medium', 'rendering_method', 'surface_language', 'image_formation'].some((field) => typeof contract[field] !== 'string' || !contract[field].trim()) || !Array.isArray(contract.forbidden_substitutions)) throw new Error('自定义画风必须先补齐并确认 renderingContract，不能从画风名称自动猜媒介')
   const customStyles = await readCustomStyles(workspaceRoot)
   const index = customStyles.findIndex((custom) => custom.id === style.id)
   if (index >= 0) customStyles[index] = structuredClone(style)

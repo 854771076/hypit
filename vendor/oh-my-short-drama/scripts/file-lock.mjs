@@ -25,15 +25,28 @@ async function refresh(lock, token) {
 }
 
 async function reclaim(lock, staleMs) {
-  let age
-  try { age = Date.now() - (await stat(lock)).mtimeMs }
-  catch (error) { if (error?.code === 'ENOENT') return true; throw error }
-  if (age <= staleMs || processAlive((await owner(lock))?.pid)) return false
-  const recovery = `${lock}.reclaim-${randomUUID()}`
-  try { await rename(lock, recovery) }
-  catch (error) { if (error?.code === 'ENOENT') return false; throw error }
-  await rm(recovery, { recursive: true, force: true })
-  return true
+  const guard = `${lock}.reclaiming`
+  try { await mkdir(guard) }
+  catch (error) {
+    if (error?.code !== 'EEXIST') throw error
+    try {
+      if (Date.now() - (await stat(guard)).mtimeMs > Math.max(staleMs, 1_000)) await rm(guard, { recursive: true, force: true })
+    } catch (statError) { if (statError?.code !== 'ENOENT') throw statError }
+    return false
+  }
+  try {
+    let age
+    try { age = Date.now() - (await stat(lock)).mtimeMs }
+    catch (error) { if (error?.code === 'ENOENT') return true; throw error }
+    if (age <= staleMs || processAlive((await owner(lock))?.pid)) return false
+    const recovery = `${lock}.reclaim-${randomUUID()}`
+    try { await rename(lock, recovery) }
+    catch (error) { if (error?.code === 'ENOENT') return false; throw error }
+    await rm(recovery, { recursive: true, force: true })
+    return true
+  } finally {
+    await rm(guard, { recursive: true, force: true })
+  }
 }
 
 export async function withFileLock(target, action, { timeoutMs = 10_000, staleMs = 60_000 } = {}) {

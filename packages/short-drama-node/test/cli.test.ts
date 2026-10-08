@@ -35,6 +35,9 @@ test("短剧 CLI 拒绝未知选项和错误参数", async () => {
   await assert.rejects(runShortDramaCli(["status", "--profile", "standard"], { write() {} }), /只适用于 init/u);
   await assert.rejects(runShortDramaCli(["advance"], { write() {} }), /目标阶段/u);
   await assert.rejects(runShortDramaCli(["preflight"], { write() {} }), /需要/u);
+  await assert.rejects(runShortDramaCli(["production", "plan", "ep-001"], { write() {} }), /必须显式指定 --runtime/u);
+  await assert.rejects(runShortDramaCli(["production", "check", "ep-001", "--confirmed"], { write() {} }), /只适用于 production build/u);
+  await assert.rejects(runShortDramaCli(["production", "build", "ep-001", "--confirmed"], { write() {} }), /必须显式指定 --runtime/u);
   await assert.rejects(runShortDramaCli(["unknown"], { write() {} }), /未知 short-drama 命令/u);
 });
 
@@ -50,4 +53,6 @@ test("非 tool 子命令保留帮助行为", async () => {
   let output = "";
   await runShortDramaCli(["status", "--help"], { write: (text) => { output += text; } });
   assert.match(output, /hypit short-drama/u);
+  assert.match(output, /production plan <ep-NNN> --runtime <profile>/u);
+  assert.match(output, /production build <ep-NNN> --runtime <profile> --confirmed/u);
 });

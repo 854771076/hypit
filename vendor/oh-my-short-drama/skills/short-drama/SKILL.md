@@ -42,8 +42,8 @@ description: 短剧全流程唯一入口。用于创建、恢复、分析、编�
 | director-book | `write-drama-director-book` |
 | asset-analysis | `plan-drama-assets` → `generate-drama-art-style`，存在人物时增加 `generate-character-profiles` |
 | asset-generation | `manage-drama-assets`，缺少可复用资产时按需增加人物、场景、道具生成与生成服务模块 |
-| production-plan | 按条件加入 `design-fight-video`，再执行分镜、制作计划、连续性与视频提示词模块 |
-| media-production | 生成服务、镜头审核、视频生成和任务监控；按逐镜策略增加图片分镜或 Blender 白模，按声音策略增加音频模块 |
+| production-plan | 按条件加入 `design-fight-video`，再执行结构化分镜、制作计划与连续性模块 |
+| media-production | 有原片复刻逐镜生成深度，无原片项目逐镜生成 Blender 白模；再制作双分镜板、视频提示词、镜头审核、视频生成和任务监控，按声音策略增加音频模块 |
 | editing | `remotion-best-practices` → `edit-drama-timeline` |
 | delivery | `edit-deliver-drama` |
 
@@ -57,11 +57,12 @@ description: 短剧全流程唯一入口。用于创建、恢复、分析、编�
 
 ### 图片分镜与 Blender 白模
 
-制作计划逐镜选择 `storyboard_strategy.mode=image|blender`：
+制作计划按项目来源决定主运动参考，并逐镜记录 `storyboard_strategy.mode=image|blender`：
 
-- `image` 加载图片分镜生成与八维审核，不加载白模生成。
-- `blender` 加载 [白模编导](references/storyboard/direct-blender-previz.md)、[白模生成](references/storyboard/generate-blender-previz.md) 和七项导演验收，不制造占位分镜图。
-- 打斗、多人调度、空间/轴线风险和连续运镜优先建议白模；静态特写、细腻表演、妆造与画风确认优先图片。
+- 所有镜头都生成并分别审核时间故事版与镜头分镜板；两者是视频生成必需参考。
+- `standard` 无参考视频项目默认依赖双分镜板，不把白模设为硬门禁；只有复杂路线、多人交互、精确接触、轴线风险或连续运镜无法由静态板无歧义证明时才用 `blender` 白模作为运动参考。不得先生成伪参考视频再转深度。
+- `viral-recreation` 以原片逐镜深度作为主运动参考；只有打斗、多人调度、空间/轴线风险和连续运镜需要再追加白模做 review，静态特写通常不追加。
+- 需要白模时加载 [白模编导](references/storyboard/direct-blender-previz.md)、[白模生成](references/storyboard/generate-blender-previz.md) 和七项导演验收。
 - UE Mannequin 是默认人物模型；镜头时长、导演合同、媒体实际时长和制作计划必须一致。生成成功不等于通过，必须完整观看并完成多维审计。
 
 ### 参考视频复刻
@@ -83,8 +84,10 @@ description: 短剧全流程唯一入口。用于创建、恢复、分析、编�
 ## 全局硬门禁
 
 - 不伪造原文、用户确认、权利、资产、Provider 调用、任务状态、媒体观看或审核结果。
-- 付费生成前展示 Provider、模型、参数、候选数和预计次数；没有授权不得提交。
+- Agent 检视本地图片时必须把生产原件与分析输入分开：先读取尺寸和文件体积，默认生成最长边不超过 2048 px、文件不超过 2 MB 的临时预览，并以普通/高细节模式读取，禁止首次直接读取或上传原图。预览仍不足时只裁切或分块读取关注区域，每块沿用相同上限；只有确需像素级核验且确认请求体安全时才读取原图。临时预览不得替换资产账本、哈希、Provider 参考或交付中的原件。
+- 远端生成前展示完整制作计划，包括 Provider、模型、参数、素材用途、候选数和请求次数；不计算具体价格，计划未确认不得提交。
 - 所有剧情事实、人物关系、结局、逐字对白与旁白变更先获得用户确认。
+- 画风确认必须先形成包含 `renderingContract` 的完整 style 对象；人物、场景、道具、双分镜板和视频提示词一律从该对象编译媒介与渲染规则。不得把真人写实当成通用默认，也不得让“设定板/故事板/电影感”等版式或质量词覆盖用户选择的二维、三维、定格、像素或自定义媒介。
 - 成年人物突出帅气、漂亮、飒、性张力、独立妆造和记忆点；儿童突出可爱并禁止成人化或性化。
 - 任何人物、场景、道具、分镜、视频、音频和剪辑产物都必须登记真实本地路径、版本、来源和 SHA-256；不得用占位文件通过门禁。
 - 图片分镜、白模、视频、原生声音、兜底配音和成片必须执行各自 reference 的完整多维审核。未观看/未听完不得批准。

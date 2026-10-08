@@ -1,6 +1,7 @@
 import { assertCharacterReadyForVisuals } from './character-appeal.mjs'
+import { validateArtStyleFidelity } from './art-style-review.mjs'
 
-const DIMENSIONS = ['age_classification', 'identity', 'grooming_costume', 'memory_anchors', 'audience_appeal']
+const DIMENSIONS = ['age_classification', 'identity', 'grooming_costume', 'memory_anchors', 'audience_appeal', 'art_style_fidelity']
 
 function dimension(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`人物视觉审核缺少 ${label}`)
@@ -10,10 +11,11 @@ function dimension(value, label) {
   return value
 }
 
-export function validateCharacterAppealReview(character, review) {
+export function validateCharacterAppealReview(character, review, artStyle) {
   const appeal = assertCharacterReadyForVisuals(character)
   if (!review || typeof review !== 'object' || Array.isArray(review)) throw new Error('人物视觉审核必须是对象')
-  for (const field of DIMENSIONS) dimension(review[field], field)
+  for (const field of DIMENSIONS.filter((field) => field !== 'art_style_fidelity')) dimension(review[field], field)
+  validateArtStyleFidelity(artStyle, review.art_style_fidelity)
   if (!['adult', 'child', 'not-applicable'].includes(review.age_classification.observed_age_class) || review.age_classification.observed_age_class !== appeal.age_class) throw new Error('人物视觉审核 age_classification 与档案年龄分级不一致')
   if (!Array.isArray(review.protection_flags) || review.protection_flags.some((item) => typeof item !== 'string' || !item.trim())) throw new Error('人物视觉审核缺少 protection_flags')
   if (review.watched_or_inspected_full !== true) throw new Error('人物视觉必须查看原图并完整检查')

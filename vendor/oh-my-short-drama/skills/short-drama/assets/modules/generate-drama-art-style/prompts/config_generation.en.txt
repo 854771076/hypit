@@ -10,7 +10,7 @@ User description: {description}
 Quality requirements:
 1. Write prompt in English and faithfully represent the requested style. Cover medium/rendering method, material detail, color relationships, composition tendencies, and motivated lighting. Do not add trendy motifs unrelated to the name or description.
 2. Write description in English, briefly stating the core visual traits, suitable subjects, and likely misuse.
-3. visualBible is independent from prompt and defines cross-shot continuity. Do not copy the prompt into it.
+3. renderingContract is the pre-production medium and rendering contract. It explicitly defines medium, rendering_method, surface_language, image_formation, and forbidden medium substitutions. Never default to live action and never replace the medium with vague words such as cinematic or premium. visualBible is independent from prompt and renderingContract and defines cross-shot continuity. Do not copy the prompt into it.
 4. All four palette keys must exist, but only primary and neutral must be non-empty; secondary or accent may be empty for monochrome, low-chroma, or source-limited designs. Prefer explicit hexadecimal colors and use at most five values per group. Use accent only for a defined story object, character, or information beat, never evenly across the whole film.
 5. narrative_arc covers the opening, development, turn/climax, and resolution phases actually needed by the project. Change color only for an evidenced shift in story, time-space, or viewpoint; keep the baseline when no motivated change exists instead of inventing a grade change to fill a phase.
 6. Complete every lighting and motion-language field. Each rule must serve this specific style instead of relying on vague terms such as cinematic or premium. Lighting states an explainable environmental source, direction, quality, and continuity; never default to arbitrary rim light, neon, or colored smoke.
@@ -21,6 +21,13 @@ Return shape:
 {
   "prompt": "English art style prompt",
   "description": "English description",
+  "renderingContract": {
+    "medium": "explicit medium such as live-action-photography / 2d-animation / 3d-animation / stop-motion / user-defined-medium",
+    "rendering_method": "specific image-making or rendering method",
+    "surface_language": "shared surface and material language for characters, wardrobe, environments, and props",
+    "image_formation": "how lens, linework, shaders, brushwork, or compositing forms the final image",
+    "forbidden_substitutions": ["other media or cheap substitutes that must not replace the selection"]
+  },
   "visualBible": {
     "version": 1,
     "palette": {

@@ -45,7 +45,7 @@ function resolvedReferences(request: GenerationRequest, ports: readonly string[]
   }));
 }
 
-function numberedReferenceLabelRejection(prompt: string, label: "图片" | "视频", count: number): string | undefined {
+function numberedReferenceLabelRejection(prompt: string, label: "图片" | "视频" | "音频", count: number): string | undefined {
   const found = new Set([...prompt.matchAll(new RegExp(`@${label}(\\d+)`, "gu"))].map((match) => match[1]!));
   for (let index = 1; index <= count; index++) {
     if (!found.has(String(index))) return `StarRouter Seedance prompt must include @${label}${index}`;
@@ -77,13 +77,19 @@ function rejection(mapping: GenerationWireMapping, request: GenerationRequest): 
     if (videoDurations.some((value) => typeof value !== "number" || !Number.isFinite(value) || value <= 0)) return "StarRouter Seedance video references require durationSeconds metadata";
     const totalVideoSeconds = videoDurations.reduce<number>((sum, value) => sum + Number(value), 0);
     if (videos.length > 0 && (totalVideoSeconds < 2 || totalVideoSeconds > 15)) return "StarRouter Seedance reference videos must total 2–15 seconds";
-    if (count(request, "referenceAudio") > 0) return "StarRouter Seedance audio references require duration metadata that this Model does not expose";
+    const audios = request.ports.referenceAudio ?? [];
+    const audioDurations = audios.map((item) => typeof item === "object" && item !== null ? item.fields?.durationSeconds : undefined);
+    if (audioDurations.some((value) => typeof value !== "number" || !Number.isFinite(value) || value <= 0)) return "StarRouter Seedance audio references require durationSeconds metadata";
+    const totalAudioSeconds = audioDurations.reduce<number>((sum, value) => sum + Number(value), 0);
+    if (audios.length > 0 && totalAudioSeconds > 15) return "StarRouter Seedance reference audios must total at most 15 seconds";
     const prompt = String(scalar(request, "prompt") ?? "");
     const images = count(request, "firstFrame") + count(request, "lastFrame") + count(request, "referenceImage");
     const imageLabelRejection = numberedReferenceLabelRejection(prompt, "图片", images);
     if (imageLabelRejection !== undefined) return imageLabelRejection;
     const videoLabelRejection = numberedReferenceLabelRejection(prompt, "视频", videos.length);
     if (videoLabelRejection !== undefined) return videoLabelRejection;
+    const audioLabelRejection = numberedReferenceLabelRejection(prompt, "音频", audios.length);
+    if (audioLabelRejection !== undefined) return audioLabelRejection;
   }
   return undefined;
 }

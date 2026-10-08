@@ -1,6 +1,8 @@
 # 构建分镜
 
-先核对源剧本语言、交付语言、人物说话语言和字幕语言，并从已选 Provider/制作计划取得 `shot_duration_constraints`。由 Codex 使用本 Skill 的 `../../assets/modules/build-drama-storyboard/prompts/agent_storyboard_plan.{zh,en}.txt` 生成严格 JSON；需要整集合同输出时，向 `professional_storyboard` 显式传入 screenplay_contract、asset_whitelist、cinema_knowledge、production_constraints、correction 和 target_language。再按需使用 `agent_cinematographer`、`agent_acting_direction` 与 `agent_storyboard_detail` 细化。
+先核对源剧本语言、交付语言、人物说话语言和字幕语言，并从已选 Provider/制作计划取得 `shot_duration_constraints`。由 Codex 使用本 Skill 的 `../../assets/modules/build-drama-storyboard/prompts/agent_storyboard_plan.{zh,en}.txt` 生成严格 JSON；需要整集合同输出时，向 `professional_storyboard` 显式传入 screenplay_contract、asset_whitelist、cinema_knowledge、production_constraints、correction 和 target_language。新生成分镜必须依次执行 `agent_cinematographer`、`agent_acting_direction` 与 `agent_storyboard_detail`，不得把表演、眼神、自然运动和声音证据留到最终视频提示词阶段才临时补写；只有读取旧项目且不重制分镜时允许保留历史薄合同。
+
+分镜初稿开始前必须读取每个在场角色的 `performance_bible`，但不能把长期档案机械复制到每镜。初稿先确定每个可见角色的主要动作、注意对象、反应触发和未参与时状态；表演指导再把有证据的重心、步态、视线、眨眼节奏、压力反应与习惯触发编译为逐镜可见节拍；分镜细化最后核对多人起势与反应延迟不齐步、头发衣摆等次级运动有物理原因、眼神与微表情符合景别、动作声有 `visible_event_keys`。任一步缺少来源证据都应删去该细节或阻塞，不得靠“自然一点”“电影感”补全。
 
 每镜必须可追溯到本地已选剧本和导演本，资产名必须来自 selected 清单。`viral-recreation` 项目还要读取当前分集编译约束包，把其中 Media 语义触发器和 Film 布局转译为逐镜设计，并在 `source_versions.recreation_workflow` 写入当前 selected 版本。逐镜检查剧情覆盖、重复、身份/版本、道具、场景、轴线、视线、运动方向和相邻转场合同。保存时将模板返回数组包装为 `{episode_key, source_versions, panels}`，P0/P1 清零后用 `project-store.mjs put-episode-document ... storyboard ...` 校验连续 panel_number 并保存不可变版本，再用 `select-episode-document` 选定。
 

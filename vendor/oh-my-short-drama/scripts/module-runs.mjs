@@ -273,11 +273,13 @@ export async function requiredModules(root, stage) {
   }
 
   if (stage === 'media-production') {
+    required.delete('generate-depth-videos')
     let needsIndependentAudio = false
     for (const episode of await selectedEpisodes(root)) {
       const plan = await selectedDocument(root, episode, 'production-plan')
+      if (plan?.shots?.some((shot) => shot.video_strategy?.depth_reference)) required.add('generate-depth-videos')
       for (const shot of plan?.shots || []) {
-        if ((shot.storyboard_strategy?.mode || 'image') === 'image') required.add('generate-storyboard-images')
+        required.add('generate-storyboard-images')
         if (shot.previz_strategy?.mode === 'blender') {
           required.add('direct-blender-previz')
           required.add('generate-blender-previz')
@@ -289,6 +291,10 @@ export async function requiredModules(root, stage) {
     if (needsIndependentAudio) required.add('design-drama-audio')
   }
 
+  if (stage === 'media-production') {
+    const ordered = ['generate-depth-videos', 'generate-storyboard-images', 'review-drama-shots', 'direct-blender-previz', 'generate-blender-previz', 'write-drama-video-prompts']
+    return [...ordered.filter((id) => required.has(id)), ...[...required].filter((id) => !ordered.includes(id))]
+  }
   return [...required]
 }
 

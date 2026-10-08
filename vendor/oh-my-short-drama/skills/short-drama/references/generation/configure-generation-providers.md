@@ -27,4 +27,4 @@ node "${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-.}}/scripts/provider-setup.mjs"
 
 用户明确授权逐模型付费验收后，可运行 `node "${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-.}}/scripts/generation/live-smoke-test.mjs" --confirmed --output <本地目录>`。脚本对内置的 1 个图片、9 个视频和 2 个语音模型各调用一次，轮询视频到终态，下载全部结果并写 `report.json`；没有 `--confirmed` 或输出目录时拒绝执行。
 
-SeedVR2.5 超分必须先对当前 selected 视频执行不付费摘要：`node "${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-.}}/scripts/generation/live-smoke-test.mjs" runninghub seedvr2.5-video-upscale <项目目录> <资产 key> <版本 id>`。把摘要中的 SHA-256、时长、分辨率、帧率、音轨、工作流 `2099866760106491906`、节点 `25.video`、上传事实和可用价格信息逐项展示给用户；只有用户针对这一个资产明确确认后才追加 `--confirmed`。确认不可沿用到换资产、换版本、重试或再次付费。
+SeedVR2.5 超分必须先对当前 selected 视频执行只读摘要：`node "${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-.}}/scripts/generation/live-smoke-test.mjs" runninghub seedvr2.5-video-upscale <项目目录> <资产 key> <版本 id>`。把摘要中的 SHA-256、时长、分辨率、帧率、音轨、工作流 `2099866760106491906`、节点 `25.video`、上传事实和请求次数逐项展示给用户，不计算具体价格；只有用户针对这一个资产明确确认后才追加 `--confirmed`。确认不可沿用到换资产、换版本或重试。

@@ -69,7 +69,7 @@ Every shot should state:
 
 Every generated shot requires both a temporal storyboard and a shot board. The first fixes successive
 states inside the shot; the second fixes coverage, blocking and relationships. Additional single-frame
-or spatial previz material is optional when it exposes a separate risk:
+or spatial previz material is optional and should be added only when it exposes a separate risk that the temporal storyboard and shot board cannot prove:
 
 | Board | Use it for |
 | --- | --- |
@@ -143,10 +143,9 @@ the selected model's syntax and preserve the actual submission order.
 - H3 uses the bundled H3 guide. Full-reference work uses Ref2VA labels and its six English sections;
   dialogue, lyrics and visible story text keep their original language.
 - Seedance reference syntax belongs to the selected Endpoint. StarRouter uses independently ordered
-  `@图片N` and `@视频N` labels and currently rejects Seedance audio-reference inputs; other Endpoints and
-  existing Kits may use `@imageN`, `@videoN` and `@audioN`. Do not put any Seedance dialect in H3 prompts
-  or H3 sections in Seedance prompts. StarRouter Seedance therefore cannot satisfy this default mandatory
-  contract; choose an Endpoint that accepts its audio reference.
+  `@图片N`, `@视频N` and `@音频N` labels; every video and audio Reference carries measured
+  `duration-seconds`. Other Endpoints and existing Kits may use `@imageN`, `@videoN` and `@audioN`.
+  Do not put any Seedance dialect in H3 prompts or H3 sections in Seedance prompts.
 - For an atomic Seedance recreation shot, `@hypit/seedance-kits/recreation-shot` compiles the ordered
   manifest, shot, continuity, dialogue, native sound and approved visible-text contracts. Its wording
   does not create references: connect the actual Resources in the same order. Seedance Surfaces default

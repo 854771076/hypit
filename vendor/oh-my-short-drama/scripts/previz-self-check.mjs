@@ -90,7 +90,7 @@ try {
   let version = assets.assets['other-previz-ep001-001'].versions[0]
   const shot = { shot_number: 1, duration_seconds: 2, previz_strategy: { mode: 'blender', purpose: 'review', fps: 12 } }
   const breakdown = { '剧情因果与节拍': 18, '人物调度与表演': 13, '相机动机与运动曲线': 18, '构图与视觉层级': 13, '空间、轴线与连续性': 13, '物理与接触': 8, '技术交付': 5 }
-  const review = { assetKey: 'other-previz-ep001-001', versionId: 'v001', visual: 'passed', audio: 'not-applicable', transition: 'not-applicable', captions: 'not-applicable', issues: [], asset_sha256: version.sha256, watchedFull: true, watch_evidence: { duration_seconds: 2, start: '建立空间', middle: '接触清楚', end: '结果停稳' }, hard_gates: PREVIZ_REQUIRED_HARD_GATES.map((gate, index) => ({ gate, status: 'passed', frame: index + 1, observation: `${gate}在实际画面中成立` })), score: { total: 88, breakdown }, criteria: PREVIZ_REVIEW_CRITERIA.map((criterion) => ({ criterion, status: 'passed', observation: '实际画面可见' })) }
+  const review = { assetKey: 'other-previz-ep001-001', versionId: 'v001', visual: 'passed', audio: 'not-applicable', transition: 'not-applicable', captions: 'not-applicable', issues: [], asset_sha256: version.sha256, watchedFull: true, watch_evidence: { method: 'agent-video-tool', duration_seconds: 2, start: { time_seconds: 0, observation: '0秒建立空间关系完整可见' }, middle: { time_seconds: 1, observation: '1秒接触动作清楚且无穿插' }, end: { time_seconds: 2, observation: '2秒动作结果停稳可剪辑' } }, hard_gates: PREVIZ_REQUIRED_HARD_GATES.map((gate, index) => ({ gate, status: 'passed', frame: index + 1, observation: `${gate}在实际画面中成立` })), score: { total: 88, breakdown }, criteria: PREVIZ_REVIEW_CRITERIA.map((criterion) => ({ criterion, status: 'passed', observation: `第12帧${criterion}在实际画面可见` })) }
   await writeFile(resolve(root, 'review-invalid.json'), `${JSON.stringify({ ...review, hard_gates: [] })}\n`)
   try { run('review-ledger.mjs', 'put', root, resolve(root, 'review-invalid.json')); throw new Error('白模硬门禁证据缺失未被拒绝') } catch (error) { if (!String(error.message).includes('hard_gates')) throw error }
   const failedGateReview = { ...review, hard_gates: review.hard_gates.map((item, index) => index === 0 ? { ...item, status: 'failed', observation: '剧情因果在该帧不可读' } : item) }
@@ -101,18 +101,15 @@ try {
   run('review-ledger.mjs', 'put', root, resolve(root, 'review.json'))
   const referenceFiles = new Map([
     ['other-previz-ep001-001', mediaPath],
-    ['shot-ep001-depth-001', resolve(root, 'assets/videos/shot-ep001-depth-001/v001.mp4')],
     ['board-ep001-temporal-001', resolve(root, 'assets/storyboards/board-ep001-temporal-001/v001.png')],
     ['board-ep001-shot-001', resolve(root, 'assets/storyboards/board-ep001-shot-001/v001.png')],
     ['audio-ep001-reference-001', resolve(root, 'assets/audio/audio-ep001-reference-001/v001.wav')],
   ])
-  await mkdir(resolve(referenceFiles.get('shot-ep001-depth-001'), '..'), { recursive: true })
-  video(referenceFiles.get('shot-ep001-depth-001'), 2)
   for (const key of ['board-ep001-temporal-001', 'board-ep001-shot-001', 'audio-ep001-reference-001']) {
     await mkdir(resolve(referenceFiles.get(key), '..'), { recursive: true })
     await writeFile(referenceFiles.get(key), key)
   }
-  for (const [key, type] of [['shot-ep001-depth-001', 'video'], ['board-ep001-temporal-001', 'storyboard'], ['board-ep001-shot-001', 'storyboard'], ['audio-ep001-reference-001', 'audio']]) {
+  for (const [key, type] of [['board-ep001-temporal-001', 'storyboard'], ['board-ep001-shot-001', 'storyboard'], ['audio-ep001-reference-001', 'audio']]) {
     await writeFile(resolve(root, `${key}-asset.json`), `${JSON.stringify({ key, type, name: key })}\n`)
     await writeFile(resolve(root, `${key}-version.json`), `${JSON.stringify({ id: 'v001', localPath: referenceFiles.get(key).slice(root.length + 1), provenance: { origin: 'imported', created_by: 'user', provider: null, model_or_workflow: null, task_id: null, prompt_document: null, source_assets: [], parameters: {} } })}\n`)
     run('asset-ledger.mjs', 'put', root, resolve(root, `${key}-asset.json`))
@@ -125,7 +122,6 @@ try {
   const motionPlan = { ...shot, provider: 'runninghub', model_or_workflow: 'minimax-h3-reference-to-video', previz_strategy: { ...shot.previz_strategy, purpose: 'motion-reference' } }
   const motionPrompt = { references: [
     { type: 'video', order: 1, asset_key: 'other-previz-ep001-001', version_id: 'v001', role: 'reference_video' },
-    { type: 'video', order: 2, asset_key: 'shot-ep001-depth-001', version_id: 'v001', role: 'depth_reference' },
     { type: 'image', order: 1, asset_key: 'board-ep001-temporal-001', version_id: 'v001', role: 'temporal_storyboard' },
     { type: 'image', order: 2, asset_key: 'board-ep001-shot-001', version_id: 'v001', role: 'shot_board' },
     { type: 'audio', order: 1, asset_key: 'audio-ep001-reference-001', version_id: 'v001', role: 'audio_reference' },
@@ -133,7 +129,7 @@ try {
   validateMotionReferenceBinding('ep-001', motionPlan, motionPrompt, assets)
   const mapped = referenceInputs('runninghub', { ...motionPlan, ...motionPrompt }, (reference) => referenceFiles.get(reference.asset_key))
   if (mapped.missing.length || mapped.args.reference_video_paths?.[0] !== mediaPath) throw new Error('白模运动参考未映射到 RunningHub 本地视频输入')
-  await validateVideoReferenceBindings(root, 'runninghub', { model: motionPlan.model_or_workflow, input_mode: 'Ref2VA', reference_manifest: motionPrompt.references, ...mapped.args }, motionPrompt.references)
+  await validateVideoReferenceBindings(root, 'runninghub', { model: motionPlan.model_or_workflow, input_mode: 'Ref2VA', reference_manifest: motionPrompt.references, ...mapped.args }, motionPrompt.references, { requireComplete: false })
   try { validateMotionReferenceBinding('ep-001', motionPlan, { references: [] }, assets); throw new Error('缺少白模运动参考未被拒绝') } catch (error) { if (!String(error.message).includes('必须精确引用')) throw error }
   if ((await missingPrevizAssets(root, 'ep-001', 'v001', [shot], assets, 'v001')).length) throw new Error('有效白模资产未通过门禁')
   await writeFile(mediaPath, Buffer.concat([await readFile(mediaPath), Buffer.from('tampered')]))

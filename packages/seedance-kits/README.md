@@ -71,9 +71,9 @@ template reveals what each choice actually asks the generator to do. Rendering t
 Run Target lets an author inspect the assembled prompt without generating media.
 
 The recreation template's required slots describe required Resource edges; connect the corresponding
-video, two board images and audio Resource to the selected Surface in the same order. StarRouter's
-Seedance route currently cannot attach the mandatory audio reference, so its dialect deliberately
-blocks this default contract instead of silently dropping that input.
+video, two board images and audio Resource to the selected Surface in the same order. StarRouter uses
+the explicit `starrouter` dialect and requires measured `duration-seconds` on every video and audio
+Reference.
 
 Speaker, B-roll, Podcast, Call and Street Interview expose prompt choices through their Text
 Templates. The examples above use author-chosen literal durations. Measure adopted speech with
@@ -100,9 +100,9 @@ Surface. Setting a prompt option cannot create a media reference or execute a po
 
 For `recreation-shot`, fill the required depth-video, temporal-storyboard, shot-board, audio-reference
 and video-prompt slots with the exact model labels and responsibilities used by the corresponding
-`seedance:Reference` children. The default `provider` dialect follows the selected Endpoint. StarRouter
-does not currently accept Seedance audio-reference inputs, so this Kit does not expose a StarRouter
-dialect; select a compatible Endpoint instead of silently dropping the reference.
+`seedance:Reference` children. The default `provider` dialect follows the selected Endpoint. Select the
+`starrouter` dialect for its ordered `@图片N`, `@视频N` and `@音频N` labels, and attach measured
+duration metadata to video and audio Reference children.
 
 Include only references the shot needs; never name a missing edge. Seedance Surfaces default to
 `generate-audio="true"`, including wordless action shots. Set it to `false` only when an explicit

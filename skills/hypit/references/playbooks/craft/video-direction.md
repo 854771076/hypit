@@ -65,6 +65,86 @@ Direct physical actions through contact states rather than action names alone: a
 joint path, contact point, transferred weight, prop response, recovery and a briefly stable tail. Split
 an interaction when one request would need several independent contacts or exact hand choreography.
 
+## Build natural motion from causes, not adjectives
+
+Do not use `natural movement`, `realistic motion` or `cinematic motion` as a substitute for direction.
+Give every visible person one current primary action, an attention target, a trigger for reacting and a
+clear state while uninvolved. In a group, name people by stable position or identity and stagger onset,
+amplitude, gaze and reaction latency unless the Script truly calls for marching, ritual unison or a
+shared startle. A group that turns, nods, blinks or starts walking on the same frame reads as generated.
+
+Stillness is not a frozen frame. At a shot size where the behavior is visible, let breathing move the
+chest and shoulders slightly, let gaze refocus through small eye movements, allow irregular independent
+blinks and carry expression through a continuous transition. Use only a few of these cues and keep
+background behavior below the narrative subject; a list of periodic micro-actions creates another kind
+of mechanical performance. Voice-over keeps visible lips closed, but the face, eyes, breath and posture
+remain alive.
+
+Give larger movement a physical chain: planted support, center-of-mass transfer, hip or shoulder lead,
+joint path, acceleration, deceleration, follow-through and recovery. After contact, keep the correct
+grip, load and connected-object response. Hair, hems, loose sleeves, accessories and carried objects are
+secondary motion: they lag the driving body or wind, travel at smaller amplitude and settle with damping.
+Do not add windless flutter, whole-body phase locking or an instant stop. The setting may respond only to
+an evidenced force—a cushion compresses after sitting, a door creates a brief draft, a footfall disturbs
+nearby dust—not because the shot needs generic movement.
+
+Keep the prompt's motion budget small: one narrative primary action and only the secondary motions that
+make its cause, weight or reaction legible. Split a shot when several exact interactions compete. Give
+the camera one motivated curve with a start, speed development and end; a locked-off camera never drifts.
+This follows the practical separation of subject, camera and scene motion in Runway's official Gen-4
+guidance, the structured subject/action/context approach in Google's Veo guidance, and the prompt-
+extension practice published with Wan. These sources support richer, explicit motion description; they
+do not make text alone a substitute for depth, motion tracks or other temporal references when exact
+timing matters.
+
+Primary references:
+
+- Runway, `Gen-4 Video Prompting Guide`: https://help.runwayml.com/hc/en-us/articles/39789879462419-Gen-4-Video-Prompting-Guide
+- Google DeepMind, `How to create effective prompts with Veo 3`: https://deepmind.google/models/veo/prompt-guide/
+- Wan-Video, `Wan2.1`: https://github.com/Wan-Video/Wan2.1
+- Lightricks, `ComfyUI-LTXVideo` motion-track workflows: https://github.com/Lightricks/ComfyUI-LTXVideo
+
+## Turn subtext into gaze and facial behavior
+
+An internal state is not a visible instruction. Convert it into a causal performance chain: the person
+receives a word, sound, sight or touch; attention moves; they try to preserve a social mask; one small
+feature leaks the change; they decide or act; a residual expression survives into the cut. Stop when the
+Script, storyboard or approved character profile supplies no evidence for the next link. Do not invent a
+secret motive merely to make the shot feel dramatic.
+
+Give gaze an object and screen geography. Name the person, prop or off-screen position being watched;
+state whether the character holds, glances, averts or returns; and choose whether the eyes lead the head
+or the head turns with them. Preserve the off-screen target across the axis. Looking into the lens is a
+specific direct-address or POV choice, not a default sign of intensity. Direct the listener too: receiving,
+judging, resisting or anticipating can be legible through attention and timing without copying the
+speaker's movement.
+
+Facial direction should describe visible change instead of a broad emotion label. In a close shot, use
+one or two readable regions—brow tension, eyelid narrowing, a held lower lip, one lip corner losing its
+smile, nostril tension or a jaw set—and give the change a low-amplitude onset, apex and release. Do not put
+FACS Action Unit numbers into a model prompt; FACS is useful here because it separates observable muscle
+components, not because its codes are model vocabulary. Do not stack the whole face or hold a
+micro-expression as a pose. At medium distance, carry the same beat through gaze, head, breath and jaw;
+at wide distance, use posture, pause, interpersonal distance and blocking.
+
+Bind these choices to the character profile. `eyeline_behavior`, `blink_rhythm`, `stress_response`,
+triggered `habitual_actions` and `forbidden_performance` travel with the selected character reference as
+`performance_constraints`. A habitual action appears only when its recorded trigger occurs, while a
+forbidden performance remains forbidden in every shot. Profile behavior supplies continuity; the current
+dramatic stimulus determines whether and how it becomes visible.
+
+OpenFace's public implementation treats gaze, head pose and facial Action Units as distinct measurable
+channels, while FACS decomposes facial movement into anatomical components. GoHD likewise separates pose,
+gaze and expression driving. These are useful design boundaries: coordinate the channels around one
+dramatic beat, but do not collapse them into one synchronized facial gesture.
+
+Primary references:
+
+- Paul Ekman Group, `Facial Action Coding System`: https://www.paulekman.com/facial-action-coding-system/
+- OpenFace, `Action Units` and gaze APIs: https://github.com/TadasBaltrusaitis/OpenFace/wiki/Action-Units
+- GoHD official implementation: https://github.com/Jia1018/GoHD
+- EMOCA official implementation: https://github.com/radekd91/emoca
+
 For a longer action, distinguish the duration of source footage the model can accept from the
 duration it can produce in one request. Use one request when the model's capability and the work's
 continuity allow it. A forty-second fight might contain several exchanges and reversals, or its

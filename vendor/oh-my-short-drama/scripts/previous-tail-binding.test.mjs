@@ -6,6 +6,7 @@ import { dirname, resolve } from 'node:path'
 import { addAssetVersion, putAsset, selectAssetVersion } from './asset-ledger.mjs'
 import { validatePreviousTailBinding } from './reference-bindings.mjs'
 import { validateVideoPrompts } from './project-store.mjs'
+import { ANTI_GRID_CLAIM_ZH, NO_GENERATED_TEXT_CLAIM_ZH } from './grid-detect.mjs'
 
 async function makeFile(root, localPath, contents) {
   const target = resolve(root, localPath)
@@ -37,7 +38,7 @@ async function fixture() {
   return root
 }
 
-const shot = (inputMode = 'I2VA') => ({ shot_number: 2, input_mode: inputMode, continuity: { mode: 'previous-tail', source_shot_number: 1, required_provider_capability: 'video.first-frame' } })
+const shot = (inputMode = 'full-reference') => ({ shot_number: 2, input_mode: inputMode, continuity: { mode: 'previous-tail', source_shot_number: 1, required_provider_capability: 'video.first-frame' } })
 const validManifest = [{ type: 'image', order: 1, asset_key: 'other-transition-ep001-002', version_id: 'v001', role: 'first_frame' }]
 
 test('previous-tail 必须占用第一个 image/first_frame 引用', async () => {
@@ -50,10 +51,10 @@ test('previous-tail 必须占用第一个 image/first_frame 引用', async () =>
   }
 })
 
-test('previous-tail 拒绝无首帧能力的输入模式和过期来源版本', async () => {
+test('previous-tail 拒绝非完整参考模式和过期来源版本', async () => {
   const root = await fixture()
   try {
-    await assert.rejects(validatePreviousTailBinding(root, shot('Ref2VA'), validManifest), /video\.first-frame/)
+    await assert.rejects(validatePreviousTailBinding(root, shot('first-last-frame'), validManifest), /完整参考模式/)
     await addAssetVersion(root, 'shot-ep001-001', { id: 'v002', localPath: await makeFile(root, 'assets/videos/shot-ep001-001/v002.mp4', 'source-v2'), provenance: provenance('imported') })
     await selectAssetVersion(root, 'shot-ep001-001', 'v002')
     await assert.rejects(validatePreviousTailBinding(root, shot(), validManifest), /当前 selected|来源版本/)
@@ -62,11 +63,11 @@ test('previous-tail 拒绝无首帧能力的输入模式和过期来源版本', 
   }
 })
 
-test('视频提示词文档在保存前拒绝错误的 previous-tail 模式', () => {
-  const prompt = '成片必须是单一连续的电影画面并铺满整个屏幕，严禁宫格、分屏、分框、拼贴、分割线、分镜编号或任何多画面构图。'
+test('视频提示词文档在保存前拒绝 previous-tail 降级为首尾帧模式', () => {
+  const prompt = `${ANTI_GRID_CLAIM_ZH}\n${NO_GENERATED_TEXT_CLAIM_ZH}\n${ANTI_GRID_CLAIM_ZH}`
   const document = {
     episode_key: 'ep-001', source_versions: {}, unresolved: [], approved: true,
-    shots: [{ shot_number: 2, production_plan_version: 'v001', storyboard_version: 'v001', provider: 'starrouter', model_or_workflow: 'dreamina-seedance-2-0-260128', prompt_profile: 'seedance2', input_mode: 'full-reference', prompt, duration: 5, references: validManifest, continuity: shot().continuity, audio_policy: { mode: 'post-dub' }, errors: [] }],
+    shots: [{ shot_number: 2, production_plan_version: 'v001', storyboard_version: 'v001', provider: 'starrouter', model_or_workflow: 'dreamina-seedance-2-0-260128', prompt_profile: 'seedance2', input_mode: 'first-last-frame', prompt, duration: 5, references: validManifest, continuity: shot().continuity, audio_policy: { mode: 'post-dub' }, errors: [] }],
   }
-  assert.throws(() => validateVideoPrompts(document, 'ep-001'), /video\.first-frame/)
+  assert.throws(() => validateVideoPrompts(document, 'ep-001'), /完整参考模式/)
 })

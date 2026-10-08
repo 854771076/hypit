@@ -105,10 +105,8 @@ references, never a visible grid in the final video.
   [H3 prompt writing](../craft/h3-prompt-writing.md); Seedance uses its Endpoint's actual ordered labels.
   Do not mix dialects.
 
-Every final generated shot requires depth video, temporal storyboard, shot board, video prompt and
-audio reference. `generate-storyboard-images` is therefore mandatory; optional asset boards are selected
-per shot. Configure `needsBlenderPreviz` and `needsIndependentAudio` so `direct-blender-previz`,
-`generate-blender-previz` and `design-drama-audio` run only when applicable. The
+Every final generated shot requires an independently generated temporal storyboard, an independently generated shot board, video prompt and audio reference. For `viral-recreation`, derive depth from each source shot. For a standard project with no reference video, do not manufacture a source clip or depth pass: add Blender previz only when the two still boards cannot prove a complex route, multi-person interaction, exact contact, axis risk, or continuous camera move, then bind that previz as the motion reference. Depth and previz are mutually exclusive. `generate-storyboard-images` remains mandatory for every shot; optional asset boards are selected
+per shot. Configure independent audio only when applicable. The
 selected production plan and video prompt documents record those references by immutable asset version;
 the vendored workflow gates verify their paths, hashes, approvals and selection state before a paid call.
 For exact countdown or device states, isolate each state in a reviewed temporal-storyboard cell and
@@ -118,6 +116,15 @@ regenerate the smallest failing shot; never paint, inpaint or splice-repair reje
 
 - `drama-generation-service`: use the selected Hypit Runtime and Provider. The request carries the same
   ordered Resources and labels as the shot contract.
+- Run `hypit short-drama production plan ep-001 --runtime <profile> --workspace <project>` first. Its
+  `generation_groups` are derived from consecutive `previous-tail` links: different groups may expose
+  one ready shot each, while one group advances strictly one shot at a time. After the current shot is
+  reviewed and selected, call the bundled `prepare_previous_tail` tool for the next shot, then plan and
+  build again. The tool reuses an unchanged tail and rejects an unreviewed, stale or replaced source.
+- Submit only with `hypit short-drama production build ep-001 --runtime <profile> --confirmed --workspace <project>`.
+  A continued shot keeps its full depth/previz, temporal-board, shot-board,
+  character and audio reference set; the prepared previous tail is an additional first-frame anchor,
+  not a replacement for those references.
 - `generate-drama-videos`: default to joint picture-and-audio generation, including ambience and action
   sounds. Every dialogue turn names speaker, exact source-language text, confirmed language code,
   measured delivery, mouth state and acoustic perspective. Dialogue must not appear as subtitles.

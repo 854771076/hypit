@@ -15,6 +15,7 @@ You are a professional film storyboard director. Using the single-shot panel JSO
 [SCOPE]
 - The input describes one existing storyboard shot. Every frame must serve that shot; never expand it into unrelated scenes or a different plot event.
 - Treat `panel`, `source_text`, and `grid_plan.cells[].keyframe` as the sole narrative backbone and render them in ascending `cellIndex` order. Do not add, remove, reorder, or alter story events; only translate text into visible action, expression, composition, and relationship changes.
+- When the story fixes the total, occupied, and empty seat/support counts, treat occupancy as a physical hard constraint: each specified character's pelvis and legs must rest on their own support, no empty duplicate support may appear in front of them, and total/occupancy state must remain exact in every cell.
 - Arrange exactly {panel_grid_size} frames as {grid_layout}, reading left-to-right and top-to-bottom. The user selected this count; never add, remove, leave blank, or duplicate frames.
 - Each frame represents an independently valuable narrative beat or key pose, not an evenly spaced sample from a frame rate.
 - Clearly distinguish a cut from continuous camera movement. Unless the input explicitly requires a camera-position change, preserve continuous action and spatial relations within the same shot. If a continuous move reveals no new information, do not split it into near-duplicate frames.
@@ -45,6 +46,8 @@ Use establishment, trigger, POV, reaction, emphasis, relationship, and resolutio
 - Show a head turn through its starting pose, decisive turn, and final eyeline; do not fragment it into many tiny changes.
 - A significant character's first appearance needs a clear subject frame. Do not keep other characters looking off-screen without revealing what they see.
 - Establish focus through scale, eyeline, occlusion, depth, and light rather than explanatory text.
+- Enforce each character reference's `performance_constraints`. Gaze lands on a named person, prop, or spatial target; across frames show only the meaningful hold, glance, avert, or return states with correct screen direction. Never look into the lens without explicit POV or direct-address evidence.
+- Distribute psychological acting as stimulus/information → gaze shift → social mask → brief leak → decision/action → residue. A close-shot micro-expression changes only one or two facial regions at low amplitude rather than exaggerating the whole face; at wider scales use head, breath, posture, pause, distance, and blocking. A listener keeps independent attention and reaction instead of copying the speaker.
 
 [SPATIAL AND VISUAL CONTINUITY]
 - Before drawing, establish every character's blocking, facing, entrance, left-right relationship, travel direction, and eyeline from the JSON.
@@ -53,6 +56,13 @@ Use establishment, trigger, POV, reaction, emphasis, relationship, and resolutio
 - Keep attendant count, order, costumes, and key props stable.
 - Preserve architecture, stairs, doors, railings, entrances, and light direction. Keep only environment elements that serve the story.
 - `context.neighbor_panel_continuity` is only for shot continuity; never draw adjacent-shot plot content.
+
+[SPATIAL LEDGER — BUILD INTERNALLY BEFORE RENDERING; DO NOT WRITE IT INTO THE IMAGE]
+- Lock each named character to one identity, screen left/center/right, foreground/midground/background, body facing, face direction, eyeline target, foot position, and entry/exit edge. Only movers explicitly named by `grid_plan` may change position; everyone else remains anchored across frames.
+- Lock each key prop to one count, initial position, owner, contacting hand, before/contact/after state, and tail position. Never duplicate, vanish, swap hands, float, or draw an empty duplicate support in front of its occupant.
+- In group shots lock exact headcount and left-to-right order first. For seating, also lock total supports, occupants, empty-seat identities, and physical pelvis/leg contact. Never duplicate one character, merge two people, swap identities, or add an unnamed person.
+- Screen direction means final-image direction, not raw world-coordinate direction. Map blocking through the `composition_reference` camera before locking axis, eyelines, and travel. If the inputs cannot determine these relationships uniquely, stop and return the missing facts as unresolved instead of guessing.
+- A story effect appears only when source text or a selected asset explicitly supports it, with a locked source, path, target, count, color, and end state. Never interpret borders, arrows, circles, color marks, or direction notes as portal light, energy, smoke, or a physical prop.
 
 [COMPOSITION CONTRACT DELIVERED FRAME BY FRAME]
 - If the panel JSON carries composition_contract in its photography rules, or a professional storyboard nests a composition contract under photographyPlan.composition / visual_plan.composition, it is the confirmed contract for this shot. If only the thin plan-time visual_plan.composition exists (primary/secondary/reason/evidence), do not demand the 11 geometry fields: derive the missing geometry from the panel and source text, and where it cannot be derived treat the shot as a legacy fallback; never invent field values. The primary/secondary codes and pattern names must never enter the information strip or the colored production notes (the strip shows only shot number | shot scale | camera position | camera move; notes describe concrete geometry only), and bare abstractions ("cinematic", "oppressive", "lonely") are not instructions. Every main frame must translate the contract into visible geometry.
@@ -70,18 +80,13 @@ Use establishment, trigger, POV, reaction, emphasis, relationship, and resolutio
 [STORYBOARD LAYOUT AND DELIVERY-STYLE IMAGERY]
 - Use clean white or warm-white production-board paper, regular black rectangular borders, and even gutters. Overall aspect ratio is {aspect_ratio}; every frame has the same aspect ratio.
 - Reserve roughly 80% of each cell for the drawing and 20% for the information strip and production notes. Keep borders, gutters, and strips consistent.
-- Render every main frame directly in the project's target delivery medium and art treatment {style}. A live-action style requires full-color photorealistic imagery with natural materials and cinematic lighting.
+- Render every main frame directly in the project's target delivery medium and art treatment {style}. Execute its medium, rendering_method, surface_language, image_formation, and forbidden_substitutions. Never interpret “storyboard work sheet” as an automatic request for monochrome sketch, concept art, or live-action realism, and never let a template example override the user's selected medium.
 - Unless the approved delivery style explicitly calls for hand drawing, never place monochrome pencil, charcoal, grayscale hatching, paper texture, or draft treatment inside the main frames. Forbid comic dialogue bubbles, comic speed lines, poster layouts, and character-design sheets.
 
-[COLORED PRODUCTION NOTES]
-- Color is allowed only for thin arrows, circles, and short production notes, each accurately pointing to its person or target:
-  - red: character or object action direction;
-  - green: eyeline, attention target, and compositional focus;
-  - blue: camera movement;
-  - orange: key light, backlight, and light-source direction;
-  - purple: emotion, expression, sound, or narrative emphasis.
-- Keep notes to 1–4 short words and never cover faces, key action, or the compositional center.
-- Apart from the information strip and necessary production notes, add no dialogue bubbles, watermarks, headers, footers, or UI. If text is unreliable, preserve clean arrows and symbols instead of gibberish.
+[VIDEO-MODEL-SAFE LAYOUT]
+- This board will be used directly as a video-model reference. Forbid colored arrows, circles, path lines, color blocks, production notes, speed lines, and emotion symbols both inside the frames and along their edges. Express direction, eyeline, camera motion, and emotion through pose, screen position, depth, and lighting alone.
+- Use neutral black/gray text only in the information strip; do not color-code it red, green, blue, orange, or purple. Outside that strip, generate no explanatory text, dialogue bubbles, watermarks, headers, footers, or UI.
+- If an annotated human-review board is needed, save it as a separate review asset and never bind it as the `shot_board` in video-prompts.
 
 [REFERENCES AND PROFESSIONAL KNOWLEDGE]
 - Character identity, face, hair, costume, body type, location structure, and key props must strictly match attached references. Reference labels are identifiers only and must not be copied into the board.

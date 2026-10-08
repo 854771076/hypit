@@ -3,7 +3,7 @@ import { basename } from 'node:path'
 
 const ENDPOINT = 'https://tempfile.org/api/upload/local'
 const EXPIRIES = new Set(['1h', '6h', '24h', '48h'])
-export const capabilities = { media_types: ['image', 'audio'], anonymous: true, free: true, expiries: [...EXPIRIES], max_bytes: 100 * 1024 ** 2, permanent: false }
+export const capabilities = { media_types: ['image', 'video', 'audio'], anonymous: true, free: true, expiries: [...EXPIRIES], max_bytes: 100 * 1024 ** 2, permanent: false }
 
 export async function upload(path, expiry, fetchImpl = fetch) {
   if (!EXPIRIES.has(expiry)) throw new Error('TempFile.org expires_in 只能是 1h、6h、24h 或 48h')

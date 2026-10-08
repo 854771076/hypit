@@ -14,7 +14,7 @@
 | 人物、场景、道具分析 | `plan-drama-assets`、三类资产 Skills | 证据化提取、版本和未决项门禁 |
 | 人物/场景/道具设定板 | 各资产生成 Skill、`character-appeal.mjs`、`character-appeal-review.mjs` | 人物含脸部、三主视图与辅助设定；成年魅力、儿童可爱保护、专属妆造和记忆锚点使用不可互相补偿的生成与选版门禁；场景含九视角、平面/轴测；道具含主视图、三视图与结构细节 |
 | 分镜与镜头修订 | storyboard/revision Skills | 资产白名单、来源覆盖、连续性与版本化 |
-| 跨镜空间与尾帧承接 | `plan-shot-continuity`、`continuity-plan.mjs`、`prepare_previous_tail` | 独立记录起止状态、轴线和机位；只从已审核 selected 上一镜派生带 SHA-256 来源链的首帧 |
+| 镜头组、跨镜空间与尾帧承接 | `shot_group`、`plan-shot-continuity`、`hypit-runtime.mjs`、`prepare_previous_tail` | 校验叙事组连续性；按 previous-tail 链派生生成组，不同组并行、同组串行；只从已审核 selected 上一镜派生带 SHA-256 来源链的首帧 |
 | 分镜图、视频提示词、镜头视频 | storyboard image/video Skills | 视频提示词按 Seedance 2.0、MiniMax H3 或已确认通用协议编译并本地版本化；由 Provider 实时能力控制参数 |
 | 原生声音、配音与口型 | `design-drama-audio`、`native-audio-audit.mjs`、MuseTalk 可选连接器 | native-first 路由、电影感旁白、七维复听、受控区间兜底、外部音频和专项审核后的对口型 |
 | 授权配乐目录 | `music-catalog`、`music-license-ledger.mjs`、`register_licensed_music` | 剧情条件编译、官方入口、本地试听下载边界、不可变许可证收据与时间线用途校验 |
@@ -52,7 +52,7 @@
 - StarRouter 当前声明图片、视频、同步语音、语音转写和翻译能力；长文本异步语音返回 TAR，尚未开放为可直接剪辑的音频资产。RunningHub 继续支持用户自定义音频工作流。
 - 口型同步可使用 RunningHub 用户工作流或本地 MuseTalk 1.5 连接器。MuseTalk 仅在用户配置 `MUSETALK_ROOT` 后声明 `transform.lip-sync`，插件不携带、安装或下载外部模型；两条路径都必须使用统一媒体操作请求快照、来源版本和专项审核，不能直接覆盖 selected 镜头。
 - 音乐目录不提供抓站下载器。在线结果只打开官方搜索入口，登录、试听、下载和当次许可证判断由用户在站点完成；插件只接收本地文件与证据，并在 audio-plan 和时间线两次核对用途。
-- 插件不内置大型模型价格表或替用户估价；生成前读取实时 Provider 目录并要求用户确认费用影响。
+- 插件不内置大型模型价格表或替用户估价；生成前读取实时 Provider 目录并要求用户确认完整制作计划。
 - Litterbox 免费匿名接口仅用于临时参考图传输，文件公开且受 Catbox 使用条款约束；不保证长期可用，也不替代本地资产。
 - Remotion 工程按项目创建，不在插件里复制固定业务工程；这样可保持素材路径、画幅、字幕和交付规格可追溯。
 

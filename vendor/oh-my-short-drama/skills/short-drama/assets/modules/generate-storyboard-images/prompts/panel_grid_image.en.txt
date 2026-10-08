@@ -22,7 +22,7 @@ Requirements:
 1. The output is a single grid image, not separate panels.
 2. Arrange sub-cells as {grid_layout}, total {panel_grid_size} cells, reading order left-to-right then top-to-bottom.
 3. The {panel_grid_size} sub-cells are temporal keyframes of one continuous shot. Keep the same camera position, axis, shot scale, focal length, and background relationship by default; advance only action, expression, lip movement, blocking, and secondary environmental motion. Only `panel.camera_move` or `composition_reference` may continuously change composition along its explicit path. Never invent a close-up, insert shot, cut, or alternate viewpoint.
-4. Maintain unified art style across the whole image (governed by the references and the style directive "{style}") — all cells, all characters, all backgrounds in the same style.
+4. Maintain one unified style across the whole image, governed by the selected style contract and references: "{style}". Every cell, character, and background uses the same medium, rendering_method, surface_language, and image_formation. If a reference belongs to an old style or conflicts with the current contract, stop and return it for asset reselection instead of silently following the stale image.
 5. Overall aspect ratio: {aspect_ratio} (each sub-cell is compressed to fit the row/column size).
 6. No unrelated Chinese/English text, watermarks, numbering, dialogue bubbles, or UI elements. When the panel explicitly requires system text or interface content, preserve it verbatim and reveal it in `grid_plan` order without breaking brackets, quotation marks, or numbers.
 7. Clear borders between sub-cells but the border should not overpower the subjects.
@@ -33,6 +33,8 @@ Requirements:
     - Mid-speech: mouth opening/closing variations, expression progressing with emotion
     - End of speech: mouth closed or holding final expression
     Ensure lip movements match the emotion and rhythm of the dialogue content.
+11. When `panel` or the source specifies N total seats/supports with X occupied and Y empty, every cell must show exactly N: the specified X characters' pelvises and legs visibly rest on their own supports, with no empty duplicate support drawn in front of them; only the remaining Y supports may be unoccupied. Any mismatch in people, support count, occupied count, or empty count is a failure.
+12. Enforce each character reference's `performance_constraints`. Distribute psychological change across key cells as stimulus/information → gaze shift → social mask → brief leak → decision/action → residue. Gaze lands on a named person, prop, or spatial target with correct screen direction and never enters the lens without explicit POV/direct-address evidence. A close shot changes only one or two facial regions subtly; at wider scales use head, breathing posture, pause, distance, and blocking. A listener keeps independent attention and reaction rather than copying the speaker. Use a habitual_actions item only when its recorded trigger occurs and always avoid forbidden_performance.
 
 [Composition reference — HIGHEST PRIORITY]
 - If storyboard data contains `composition_reference`, follow its camera framing and character blocking precisely.
@@ -52,6 +54,13 @@ Compact panel JSON:
 - `grid_plan.cells` in the panel JSON gives each cell's temporal order and keyframe intent. Draw them strictly in `cellIndex` order.
 - Cell 1 is the starting moment, the final cell is the ending moment, and middle cells bridge action, expression, lip movement, blocking, and camera motion.
 - Every cell must serve the same continuous shot; do not turn the grid into unrelated storyboard shots.
+
+[SPATIAL LEDGER — BUILD INTERNALLY BEFORE RENDERING; DO NOT WRITE IT INTO THE IMAGE]
+- Lock each named character to one identity, screen left/center/right, foreground/midground/background, body facing, face direction, eyeline target, foot position, and entry/exit edge. Only movers explicitly named by `grid_plan` may change position; everyone else remains anchored across cells.
+- Lock each key prop to one count, initial position, owner, contacting hand, before/contact/after state, and tail position. Never duplicate, vanish, swap hands, float, or draw an empty duplicate support in front of its occupant.
+- In group shots lock exact headcount and left-to-right order first. For seating, also lock total supports, occupants, empty-seat identities, and physical sitting contact. Never duplicate one character, merge two people, swap identities, or add an unnamed person in any cell.
+- Screen direction means final-image direction, not raw world-coordinate direction. Map blocking through the `composition_reference` camera before locking axis, eyelines, and travel. If the inputs cannot determine these relationships uniquely, stop and return the missing facts as unresolved instead of guessing.
+- A story effect appears only when source text or a selected prop/location asset explicitly supports it, with a locked source, path, target, count, color, and end state. Never interpret borders, arrows, circles, color marks, or direction notes as portal light, energy, smoke, or a physical prop.
 
 [⚠️ COMPOSITION CONTRACT OVER TIME — GEOMETRY CHANGES BETWEEN CELLS]
 - If the panel JSON carries composition_contract in its photography rules, or a professional storyboard nests a composition contract under photographyPlan.composition / visual_plan.composition, it is the confirmed contract for this shot. If only the thin plan-time visual_plan.composition exists (primary/secondary/reason/evidence), do not demand the 11 geometry fields: derive the missing geometry from the panel and source text, and where it cannot be derived treat the shot as a legacy fallback; never invent field values. The primary/secondary composition codes and pattern names must never appear as text in any cell, and bare abstractions ("cinematic", "oppressive", "lonely") are not instructions. Every cell translates the contract into visible geometry progressing over time:

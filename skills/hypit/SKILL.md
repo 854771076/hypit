@@ -19,6 +19,14 @@ identify the work being commissioned and the material connected to it.
 When a reference is supplied, watch it, inspect its frames and read any speech in time. Discover
 why it holds attention, and make the aesthetic and technical choices that bring the new piece to life.
 
+For agent-side visual inspection, keep production originals separate from analysis inputs. Inspect
+dimensions and file size first, then normally create a temporary preview no larger than 2048 px on
+its longest edge and 2 MB and read it without original-detail mode. If that preview cannot resolve
+text or a local visual fact, inspect cropped regions or tiles under the same limits instead of
+uploading the whole original. Read the original only when pixel-level evidence is necessary and the
+request size is known to be safe. A preview never replaces the original in project provenance,
+hashes, model references, Provider requests, or delivery.
+
 Take responsibility for realizing the requested viewing experience. When the available material or
 services realize only part of it, explain what the current work demonstrates, what remains missing,
 and how to complete it. Let that gap guide the next useful action while keeping the commissioned
@@ -114,9 +122,9 @@ For reference-led recreation or a multi-shot generated narrative, read
 [Asset and shot preproduction](references/playbooks/craft/asset-and-shot-preproduction.md) before final
 video prompts. Account for every visible character, prop, location and dressing element, giving stable
 keys and setting boards to continuity-bearing assets while retaining one-use dressing in its scene
-contract; atomize the shot; approve its appropriate storyboard or spatial previz;
-then bind an ordered per-shot manifest containing the required depth video, temporal storyboard, shot
-board, audio reference and video prompt; selected asset boards and boundary frames are optional additions.
+contract; atomize the shot; approve its temporal storyboard and shot board, adding spatial previz only when still boards cannot prove a complex route, multi-person interaction, exact contact, axis risk, or continuous camera move;
+then bind an ordered per-shot manifest containing any plan-required motion reference, temporal storyboard, shot
+board, audio reference and video prompt. Reference-led recreation derives depth from each selected source shot; work without a reference video uses approved Blender previz directly only for shots that need it and must not manufacture a clip merely to create depth. Selected asset boards and boundary frames are optional additions.
 Missing required evidence blocks paid shot generation rather than becoming
 an instruction the model is expected to invent.
 
@@ -157,7 +165,7 @@ Ref2VA uses `subject_definitions`, `summary`, `retention_analysis`, `detailed_de
 `overall_soundscape` and `non_diegetic_music` in that order. Write these sections in English while
 preserving dialogue, lyrics and visible scene text in their original language. Verify that the
 effective request uses the H3 Surface before submitting it; never send an H3-formatted prompt through
-a Seedance Surface or reuse StarRouter Seedance `@图片N` / `@视频N` prompt syntax for H3. Use the
+a Seedance Surface or reuse StarRouter Seedance `@图片N` / `@视频N` / `@音频N` prompt syntax for H3. Use the
 installed `@hypit/minimax-h3/reference-shot` Prompt Kit for reusable Ref2VA assembly.
 
 For A-roll, B-roll, Caption, MG or sound relationships, read the Craft that owns the directing question.
@@ -230,9 +238,10 @@ the material of the production, then refine how their arrangement expresses the 
 ## Compose and refine
 
 For reference-led recreation, produce and approve a depth video from each selected source shot before
-submitting the corresponding generated shot. Treat an optional character board as identity guidance and
-the depth video as structure, motion and camera guidance. Do not skip this mandatory prepass; if the
-selected route cannot consume it, change the route before generation.
+submitting the corresponding generated shot. Without a reference video, generate and approve Blender
+previz only when the two still boards cannot prove a complex spatial or movement risk, then bind it directly as the motion reference; do not generate a synthetic source clip and
+convert it to depth. Treat character boards as identity guidance and any chosen motion reference as
+structure, motion and camera guidance. If the selected route cannot consume it, change the route.
 
 When the Script, prompts, references and requested durations are ready, submit the material work
 within the agreed commission. Develop components, Recipes and semantic arrangement while generation

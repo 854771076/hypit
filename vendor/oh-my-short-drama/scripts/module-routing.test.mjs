@@ -24,7 +24,7 @@ test('普通 production-plan 不加载打斗模块', async () => {
   const root = await projectFixture()
   const modules = await requiredModules(root, 'production-plan')
   assert.equal(modules.includes('design-fight-video'), false)
-  assert.deepEqual(modules, ['build-drama-storyboard', 'plan-drama-production', 'plan-shot-continuity', 'write-drama-video-prompts'])
+  assert.deepEqual(modules, ['build-drama-storyboard', 'plan-drama-production', 'plan-shot-continuity'])
 })
 
 test('导演本显式结构化复杂动作时加载打斗模块', async () => {
@@ -46,19 +46,39 @@ test('中英文导演本合同都要求结构化动作复杂度', async () => {
   }
 })
 
-test('媒体阶段按逐镜分镜策略选择图片或 Blender 模块', async () => {
+test('无参考视频的媒体阶段逐镜跳过深度并执行 Blender 白模模块', async () => {
   const root = await projectFixture()
   await putSelected(root, 'production-plan', {
     shots: [
-      { shot_number: 1, storyboard_strategy: { mode: 'image' }, previz_strategy: { mode: 'none' }, provider: 'runninghub', model_or_workflow: 'minimax-h3-reference-to-video', audio_strategy: { mode: 'native' } },
-      { shot_number: 2, storyboard_strategy: { mode: 'blender' }, previz_strategy: { mode: 'blender', purpose: 'review', fps: 12 }, provider: 'runninghub', model_or_workflow: 'minimax-h3-reference-to-video', audio_strategy: { mode: 'native' } },
+      { shot_number: 1, storyboard_strategy: { mode: 'blender' }, previz_strategy: { mode: 'blender', purpose: 'motion-reference', fps: 12 }, provider: 'runninghub', model_or_workflow: 'minimax-h3-reference-to-video', audio_strategy: { mode: 'native' } },
+      { shot_number: 2, storyboard_strategy: { mode: 'blender' }, previz_strategy: { mode: 'blender', purpose: 'motion-reference', fps: 12 }, provider: 'runninghub', model_or_workflow: 'minimax-h3-reference-to-video', audio_strategy: { mode: 'native' } },
     ],
   })
   const modules = await requiredModules(root, 'media-production')
-  assert.ok(modules.includes('generate-storyboard-images'))
+  assert.deepEqual(modules.slice(0, 5), ['generate-storyboard-images', 'review-drama-shots', 'direct-blender-previz', 'generate-blender-previz', 'write-drama-video-prompts'])
+  assert.equal(modules.includes('generate-depth-videos'), false)
   assert.ok(modules.includes('direct-blender-previz'))
   assert.ok(modules.includes('generate-blender-previz'))
   assert.equal(modules.includes('design-drama-audio'), false)
+})
+
+test('standard 静态双板足够时跳过可选白模模块', async () => {
+  const root = await projectFixture()
+  await putSelected(root, 'production-plan', {
+    shots: [{ shot_number: 1, storyboard_strategy: { mode: 'image' }, previz_strategy: { mode: 'none' }, provider: 'runninghub', model_or_workflow: 'minimax-h3-reference-to-video', audio_strategy: { mode: 'native' } }],
+  })
+  const modules = await requiredModules(root, 'media-production')
+  assert.ok(modules.includes('generate-storyboard-images'))
+  assert.equal(modules.includes('generate-depth-videos'), false)
+  assert.equal(modules.includes('direct-blender-previz'), false)
+  assert.equal(modules.includes('generate-blender-previz'), false)
+})
+
+test('有参考原片的复刻项目保留逐镜深度模块', async () => {
+  const root = await projectFixture('viral-recreation')
+  await putSelected(root, 'production-plan', { shots: [{ shot_number: 1, video_strategy: { depth_reference: { mode: 'generate' } }, audio_strategy: { mode: 'native' } }] })
+  const modules = await requiredModules(root, 'media-production')
+  assert.equal(modules.includes('generate-depth-videos'), true)
 })
 
 test('viral-recreation analysis 保持 Dashboard、Provider、Hypit 与复刻模块顺序', async () => {

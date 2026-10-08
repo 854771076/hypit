@@ -9,6 +9,7 @@ export function validDocumentReferenceShape(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value) || !/^ep-\d{3}$/.test(value.episode_key) || !/^v\d{3}$/.test(value.version_id)) return false
   if (value.kind === 'audio-plan') return ((Number.isInteger(value.line_index) && value.line_index > 0) || (typeof value.track_key === 'string' && value.track_key.length > 0)) && Object.keys(value).length === 4
   if (value.kind === 'storyboard') return Number.isInteger(value.shot_number) && value.shot_number > 0 && Object.keys(value).length === 4
+  if (value.kind === 'production-plan') return Number.isInteger(value.shot_number) && value.shot_number > 0 && Object.keys(value).length === 4
   if (value.kind === 'continuity-plan') return Number.isInteger(value.shot_number) && value.shot_number > 0 && Object.keys(value).length === 4
   if (value.kind === 'asset-plan') return typeof value.asset_key === 'string' && value.asset_key.length > 0 && Object.keys(value).length === 4
   return value.kind === undefined && Number.isInteger(value.shot_number) && value.shot_number > 0 && Object.keys(value).length === 3
@@ -89,8 +90,9 @@ export async function validateGenerationDocumentReference(root, type, target, re
   }
   if (target.startsWith('board-')) {
     if (reference.kind !== 'storyboard') throw new Error('分镜图必须引用 storyboard 文档')
-    const expected = `board-${reference.episode_key.replace('-', '')}-${String(reference.shot_number).padStart(3, '0')}`
-    if (target !== expected || !(await referencedDocument(root, reference, requireCurrent)).panels?.some((item) => item.shot_number === reference.shot_number)) throw new Error('分镜图 target 或镜号与 storyboard 不一致')
+    const suffix = String(reference.shot_number).padStart(3, '0')
+    const expected = new Set(['temporal', 'shot'].map((kind) => `board-${reference.episode_key.replace('-', '')}-${kind}-${suffix}`))
+    if (!expected.has(target) || !(await referencedDocument(root, reference, requireCurrent)).panels?.some((item) => item.shot_number === reference.shot_number)) throw new Error('分镜图 target 或镜号与 storyboard 不一致')
   } else {
     if (reference.kind !== 'asset-plan' || reference.asset_key !== target) throw new Error('人物、场景或道具图片必须引用匹配的 asset-plan 资产')
     const document = await referencedDocument(root, reference, requireCurrent)

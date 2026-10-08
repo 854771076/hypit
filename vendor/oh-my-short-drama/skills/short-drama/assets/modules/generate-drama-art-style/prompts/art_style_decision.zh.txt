@@ -12,7 +12,7 @@
 
 规则：
 1. 用户确认沿用当前默认画风时，mode 为 confirmed-default，style 原样复制项目当前完整画风。
-2. 用户确认自定义画风时，mode 为 custom，style 必须是已用 config_generation 合同生成并确认的完整对象，包含 id、name、description、prompt、visualBible。
+2. 用户确认自定义画风时，mode 为 custom，style 必须是已用 config_generation 合同生成并确认的完整对象，包含 id、name、description、prompt、renderingContract、visualBible。系统画风也必须保留其 renderingContract，不得只复制名称或 prompt。
 3. 未获得用户确认时 approved 必须为 false；不得替用户确认画风。
 4. decision_reason 记录确认依据，不写 API Key、远程任务 ID 或无关剧情。
 5. 只输出 JSON，不要 Markdown 或解释。

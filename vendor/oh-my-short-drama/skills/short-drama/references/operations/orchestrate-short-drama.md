@@ -14,6 +14,8 @@
 
 媒体阶段内部按唯一顺序编排：`character-appeal → continuity-plan → previous-tail → native-audio → native-audio-review → audio-fallback → lip-sync → licensed-music → media-editing → video-upscale → delivery`。其中 previous-tail 只用于同场景同机位且状态连续的相邻镜；audio-fallback 只能来自未通过的原生音频维度与精确区间；lip-sync 只用于可见且绑定 selected 独立音频的对白；video-upscale 只处理已选视频候选，输出仍须完整复看和专项审核。缺少前置证据时跳过可选能力或回退其所属原子 Skill，不得靠总体评分补偿硬失败。
 
-媒体阶段开始前必须确认当前任务确实暴露 `drama-generation` MCP 工具；缺失时流程阻断，并要求使用 `⌘Q` 完全退出 Codex 后重新打开。不能创建 placeholder 媒体文件，也不能把 Codex 文本输出当作图片、视频或音频生成结果。
+媒体阶段优先生成 Hypit Author/Run Source，并通过项目选定的 Runtime 执行；模型、参考素材和厂商路由必须进入 Core 的 Need、Plan 与 Build。仅仍未迁移为 Hypit Model 的插件专属能力使用当前任务暴露的 `drama-generation` MCP；未暴露时停止该能力，不得直接导入厂商脚本绕过 Runtime。不能创建 placeholder 媒体文件，也不能把 Codex 文本输出当作媒体结果。
 
 剪辑阶段不得把旧的“候选通过”记录当作正式审片；上游镜头、提示词或选版变化会使下游时间线和审片失效，必须回退到对应阶段重新执行并记录 Skill 凭证。最终候选需同时保留原始成片、修复版、时间线、逐镜观察、全片六维审片和 manifest，明确标记尚未通过的限制，不以视觉包装掩盖叙事缺口。
+
+自动续跑必须以绝对项目目录、当前状态机、`module-runs required` 和机器可读的下一动作作为恢复锚点，不能长期绑定某个已经终态的 Build。Build 终态后按 `production compile` 的 `generation_groups` 转入验收、尾帧准备或下一前沿镜头；项目内如有修复清单，其“当前下一步”必须只有一个且与最新诊断一致，旧结论立即修订，不能同时保留互相冲突的行动指令。

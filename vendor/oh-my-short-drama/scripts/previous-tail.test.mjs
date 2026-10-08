@@ -58,6 +58,9 @@ test('从已审核上一镜派生并登记最后一帧', async () => {
     const selected = await selectedAssetVersion(root, result.asset_key)
     assert.equal(selected.version.provenance.source_assets[0].key, 'shot-ep001-001')
     assert.equal(selected.version.provenance.parameters.source_sha256, result.source_sha256)
+    const repeated = await preparePreviousTail({ projectRoot: root, episodeKey: 'ep-001', shotNumber: 2, continuityVersion: 'v001' })
+    assert.equal(repeated.version_id, result.version_id)
+    assert.equal(repeated.reused, true)
   } finally {
     await rm(root, { recursive: true, force: true })
   }

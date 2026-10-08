@@ -6,9 +6,9 @@ import { fileURLToPath } from 'node:url'
 import { mediaPipelineStages, stages } from './workflow-stages.mjs'
 import { validateManifest, validateReview, validateTimeline } from './editing-store.mjs'
 import { isModuleRunValid, readModuleRuns, requiredModules } from './module-runs.mjs'
-import { PREVIZ_REVIEW_CRITERIA, STORYBOARD_REVIEW_CRITERIA, validPrevizScore } from './review-ledger.mjs'
+import { DEPTH_REVIEW_CRITERIA, PREVIZ_REVIEW_CRITERIA, STORYBOARD_REVIEW_CRITERIA, validApprovedVideoReview, validPrevizScore, validTimedCriteria, validWatchEvidence } from './review-ledger.mjs'
 import { isH3Model } from './generation/providers.mjs'
-import { sameShotVersion } from './shot-fingerprint.mjs'
+import { samePlanReferences, sameShotContract, sameShotVersion } from './shot-fingerprint.mjs'
 import { PREVIZ_REQUIRED_HARD_GATES, fileSha256, probePrevizMedia, validatePrevizContract, validatePrevizMedia } from './previz-contract.mjs'
 import { validateRecreationEvidence } from './recreation-workflow.mjs'
 
@@ -61,25 +61,15 @@ function shotNumbers(items) {
 }
 
 function sameNumbers(a, b) { return JSON.stringify(shotNumbers(a)) === JSON.stringify(shotNumbers(b)) }
-function sameReferences(plan, prompt) {
-  // 分镜裁片和白模运动参考都在制作计划完成后产生，属于可追溯的执行期派生输入。
-  const planned = (plan || []).map(({ key, version_id, role, order }) => ({ asset_key: key, version_id, role, order }))
-  const prompted = (prompt || []).filter((item) => !(
-    item.role === 'storyboard-frame' && item.asset_key?.startsWith('other-')
-    || item.type === 'video' && item.role === 'reference_video' && /^other-previz-ep\d{3}-\d{3}$/.test(item.asset_key || '')
-  )).map(({ asset_key, version_id, role, order }) => ({ asset_key, version_id, role, order }))
-  return JSON.stringify(planned) === JSON.stringify(prompted)
-}
-function sameShotContract(plan, prompt) {
-  return plan.provider === prompt.provider
-    && plan.model_or_workflow === prompt.model_or_workflow
-    && plan.prompt_profile === prompt.prompt_profile
-    && plan.input_mode === prompt.input_mode
-    && plan.duration_seconds === prompt.duration
-    && sameReferences(plan.reference_assets, prompt.references)
-}
-
 export function storyboardMedium(shot) { return shot?.storyboard_strategy?.mode || 'image' }
+function storyboardAssets(episode, shotNumber) {
+  const suffix = String(shotNumber).padStart(3, '0')
+  const prefix = `board-${episode.replace('-', '')}`
+  return [
+    { key: `${prefix}-temporal-${suffix}`, label: '时间故事版' },
+    { key: `${prefix}-shot-${suffix}`, label: '镜头分镜板' },
+  ]
+}
 export function previzDurationMatches(shot, version, contract) {
   return contract?.duration_seconds === shot?.duration_seconds && version?.provenance?.parameters?.duration === shot?.duration_seconds
 }
@@ -87,14 +77,14 @@ export function previzDurationMatches(shot, version, contract) {
 export async function missingStoryboardAssets(root, episode, storyboardVersion, shots, assets) {
   const missing = []
   for (const shot of shots || []) {
-    if (storyboardMedium(shot) !== 'image') continue
-    const key = `board-${episode.replace('-', '')}-${String(shot.shot_number).padStart(3, '0')}`
-    const asset = assets.assets?.[key]
-    const version = asset?.versions?.find((item) => item.id === asset.selectedVersionId)
-    const source = version?.provenance?.prompt_document
-    const currentSource = source?.kind === 'storyboard' && source.episode_key === episode && source.shot_number === shot.shot_number
-      && await sameShotVersion(root, episode, 'storyboard', source.version_id, storyboardVersion, shot.shot_number).catch(() => false)
-    if (asset?.type !== 'storyboard' || !version?.localPath || asset.staleVersionIds?.includes(version.id) || !await exists(resolve(root, version.localPath)) || !currentSource) missing.push(`${episode} 第 ${shot.shot_number} 镜 selected 分镜图`)
+    for (const { key, label } of storyboardAssets(episode, shot.shot_number)) {
+      const asset = assets.assets?.[key]
+      const version = asset?.versions?.find((item) => item.id === asset.selectedVersionId)
+      const source = version?.provenance?.prompt_document
+      const currentSource = source?.kind === 'storyboard' && source.episode_key === episode && source.shot_number === shot.shot_number
+        && await sameShotVersion(root, episode, 'storyboard', source.version_id, storyboardVersion, shot.shot_number).catch(() => false)
+      if (asset?.type !== 'storyboard' || !version?.localPath || asset.staleVersionIds?.includes(version.id) || !await exists(resolve(root, version.localPath)) || !currentSource) missing.push(`${episode} 第 ${shot.shot_number} 镜 selected ${label}`)
+    }
   }
   return missing
 }
@@ -102,11 +92,24 @@ export async function missingStoryboardAssets(root, episode, storyboardVersion, 
 export function missingStoryboardReviews(episode, shots, assets, reviews) {
   const missing = []
   for (const shot of shots || []) {
-    if (storyboardMedium(shot) !== 'image') continue
-    const key = `board-${episode.replace('-', '')}-${String(shot.shot_number).padStart(3, '0')}`
+    for (const { key, label } of storyboardAssets(episode, shot.shot_number)) {
+      const asset = assets.assets?.[key]
+      const review = reviews.reviews?.[`${key}@${asset?.selectedVersionId}`]
+      if (!review?.approved || review.visual !== 'passed' || JSON.stringify(review.criteria?.map((item) => item.criterion)) !== JSON.stringify(STORYBOARD_REVIEW_CRITERIA) || review.criteria.some((item) => item.status !== 'passed' || typeof item.observation !== 'string' || !item.observation.trim())) missing.push(`${episode} 第 ${shot.shot_number} 镜${label}八维审计`)
+    }
+  }
+  return missing
+}
+
+export async function missingDepthReviews(root, episode, shots, assets, reviews) {
+  const missing = []
+  for (const shot of shots || []) {
+    const key = shot.video_strategy?.depth_reference?.expected_output_asset_key
     const asset = assets.assets?.[key]
+    const version = asset?.versions?.find((item) => item.id === asset.selectedVersionId)
     const review = reviews.reviews?.[`${key}@${asset?.selectedVersionId}`]
-    if (!review?.approved || review.visual !== 'passed' || JSON.stringify(review.criteria?.map((item) => item.criterion)) !== JSON.stringify(STORYBOARD_REVIEW_CRITERIA) || review.criteria.some((item) => item.status !== 'passed' || typeof item.observation !== 'string' || !item.observation.trim())) missing.push(`${episode} 第 ${shot.shot_number} 镜分镜图八维审计`)
+    const watched = review?.watchedFull === true && review.asset_sha256 === version?.sha256 && validWatchEvidence(review.watch_evidence, review.watch_evidence?.duration_seconds) && validTimedCriteria(review.criteria)
+    if (asset?.type !== 'video' || !version?.localPath || !await exists(resolve(root, version?.localPath || '')) || asset.staleVersionIds?.includes(version.id) || !review?.approved || review.visual !== 'passed' || !watched || JSON.stringify(review.criteria?.map((item) => item.criterion)) !== JSON.stringify(DEPTH_REVIEW_CRITERIA) || review.criteria.some((item) => item.status !== 'passed' || typeof item.observation !== 'string' || !item.observation.trim())) missing.push(`${episode} 第 ${shot.shot_number} 镜深度视频专项审核`)
   }
   return missing
 }
@@ -156,7 +159,7 @@ export function missingPrevizReviews(episode, shots, assets, reviews) {
     const key = `other-previz-${episode.replace('-', '')}-${String(shot.shot_number).padStart(3, '0')}`
     const asset = assets.assets?.[key]
     const review = reviews.reviews?.[`${key}@${asset?.selectedVersionId}`]
-    const watched = review?.watchedFull === true && review?.asset_sha256 === asset?.versions?.find((item) => item.id === asset?.selectedVersionId)?.sha256 && review.watch_evidence?.duration_seconds === shot.duration_seconds && ['start', 'middle', 'end'].every((field) => typeof review.watch_evidence?.[field] === 'string' && review.watch_evidence[field].trim())
+    const watched = review?.watchedFull === true && review?.asset_sha256 === asset?.versions?.find((item) => item.id === asset?.selectedVersionId)?.sha256 && validWatchEvidence(review.watch_evidence, shot.duration_seconds) && validTimedCriteria(review.criteria)
     const hardGates = Array.isArray(review?.hard_gates) && PREVIZ_REQUIRED_HARD_GATES.every((gate) => review.hard_gates.some((item) => item.gate === gate && item.status === 'passed' && Number.isInteger(item.frame) && typeof item.observation === 'string' && item.observation.trim()))
     if (!review?.approved || review.visual !== 'passed' || !watched || !hardGates || !validPrevizScore(review.score) || JSON.stringify(review.criteria?.map((item) => item.criterion)) !== JSON.stringify(PREVIZ_REVIEW_CRITERIA) || review.criteria.some((item) => item.status !== 'passed' || typeof item.observation !== 'string' || !item.observation.trim())) missing.push(`${episode} 第 ${shot.shot_number} 镜 Blender 白模分镜导演验收`)
   }
@@ -180,6 +183,8 @@ export async function inspectStage(root, stage) {
   const rootReal = await realpath(root)
   const moduleRuns = await readModuleRuns(root)
   const state = await json(resolve(root, '.short-drama/state.json'))
+  const project = await json(resolve(root, '.short-drama/project.json'))
+  const viral = project.workflow?.type === 'viral-recreation'
   const cutoff = state.invalidatedAt?.[stage]
   for (const moduleId of await requiredModules(root, stage)) {
     const run = moduleRuns.runs?.[`${stage}:${moduleId}`]
@@ -211,8 +216,6 @@ export async function inspectStage(root, stage) {
   }
 
   if (stage === 'analysis') {
-    const project = await json(resolve(root, '.short-drama/project.json'))
-    const viral = project.workflow?.type === 'viral-recreation'
     // 复刻项目的来源分析是 reference-video-analysis.json（由 analyze-reference-video 产出），不需要文本 source-analysis.json。
     for (const name of viral ? ['brief', 'bible', 'outline'] : ['source-analysis', 'brief', 'bible', 'outline']) await requireFile(`.short-drama/${name}.json`, name)
     if (missing.length === 0) {
@@ -291,25 +294,18 @@ export async function inspectStage(root, stage) {
   }
   if (stage === 'production-plan') {
     if (episodes.length === 0) missing.push('至少一个 selected 剧本')
+    const assets = await exists(resolve(root, '.short-drama', 'assets.json')) ? await json(resolve(root, '.short-drama', 'assets.json')) : { assets: {} }
     for (const episode of episodes) {
       const plan = await selectedDocumentRecord(root, episode, 'production-plan')
       const storyboard = await selectedDocumentRecord(root, episode, 'storyboard')
-      const prompts = await selectedDocumentRecord(root, episode, 'video-prompts')
       if (!storyboard) missing.push(`${episode} selected 分镜`)
       if (!plan?.document?.approved || plan.document.unresolved?.length) missing.push(`${episode} approved 且无未决项的制作计划`)
-      if (!prompts?.document?.approved || prompts?.document?.unresolved?.length) missing.push(`${episode} approved 且无未决项的视频提示词`)
       if (plan && storyboard && !sameNumbers(plan.document.shots, storyboard.document.panels)) missing.push(`${episode} 制作计划与分镜镜号不一致`)
-      if (plan && prompts && !sameNumbers(plan.document.shots, prompts.document.shots)) missing.push(`${episode} 制作计划与视频提示词镜号不一致`)
-      if (plan && storyboard && prompts) for (const shot of prompts.document.shots || []) {
-        const [planMatches, storyboardMatches] = await Promise.all([
-          sameShotVersion(root, episode, 'production-plan', shot.production_plan_version, plan.versionId, shot.shot_number).catch(() => false),
-          sameShotVersion(root, episode, 'storyboard', shot.storyboard_version, storyboard.versionId, shot.shot_number).catch(() => false),
-        ])
-        if (!planMatches || !storyboardMatches) missing.push(`${episode} 第 ${shot.shot_number} 镜视频提示词来源不是当前镜头内容`)
-      }
-      if (plan && prompts) for (const shot of plan.document.shots || []) {
-        const prompt = prompts.document.shots?.find((item) => item.shot_number === shot.shot_number)
-        if (prompt && !sameShotContract(shot, prompt)) missing.push(`${episode} 第 ${shot.shot_number} 镜制作计划与视频提示词参数或引用不一致`)
+      for (const shot of plan?.document?.shots?.filter((item) => item.video_strategy?.depth_reference) || []) {
+        const depth = shot.video_strategy?.depth_reference
+        const source = assets.assets?.[depth?.source_asset_key]
+        const version = source?.versions?.find((item) => item.id === depth?.source_version_id)
+        if (source?.type !== 'video' || source.selectedVersionId !== depth?.source_version_id || source.staleVersionIds?.includes(depth?.source_version_id) || !version?.localPath || !await exists(resolve(root, version.localPath))) missing.push(`${episode} 第 ${shot.shot_number} 镜深度来源必须是当前 selected 且未失效的本地视频`)
       }
     }
   }
@@ -323,24 +319,33 @@ export async function inspectStage(root, stage) {
       const storyboard = await selectedDocumentRecord(root, episode, 'storyboard')
       const prompts = await selectedDocumentRecord(root, episode, 'video-prompts')
       if (!plan || !storyboard || !prompts) { missing.push(`${episode} 缺少当前制作计划、分镜或视频提示词`); continue }
+      if (!prompts.document.approved || prompts.document.unresolved?.length || !sameNumbers(plan.document.shots, prompts.document.shots)) missing.push(`${episode} approved、无未决项且镜号完整的视频提示词`)
+      for (const shot of prompts.document.shots || []) {
+        const [planMatches, storyboardMatches] = await Promise.all([
+          sameShotVersion(root, episode, 'production-plan', shot.production_plan_version, plan.versionId, shot.shot_number).catch(() => false),
+          sameShotVersion(root, episode, 'storyboard', shot.storyboard_version, storyboard.versionId, shot.shot_number).catch(() => false),
+        ])
+        if (!planMatches || !storyboardMatches) missing.push(`${episode} 第 ${shot.shot_number} 镜视频提示词来源不是当前镜头内容`)
+      }
+      for (const shot of plan.document.shots || []) {
+        const prompt = prompts.document.shots?.find((item) => item.shot_number === shot.shot_number)
+        if (prompt && !sameShotContract(shot, prompt)) missing.push(`${episode} 第 ${shot.shot_number} 镜制作计划与视频提示词参数或引用不一致`)
+      }
       missing.push(...await missingStoryboardAssets(root, episode, storyboard.versionId, plan.document.shots, assets))
       missing.push(...missingStoryboardReviews(episode, plan.document.shots, assets, reviews))
+      const depthShots = plan.document.shots.filter((shot) => shot.video_strategy?.depth_reference)
+      if (depthShots.length) missing.push(...await missingDepthReviews(root, episode, depthShots, assets, reviews))
       missing.push(...await missingPrevizAssets(root, episode, storyboard.versionId, plan.document.shots, assets, plan.versionId))
       missing.push(...missingPrevizReviews(episode, plan.document.shots, assets, reviews))
       for (const shot of plan.document.shots || []) {
-        let match
-        for (const asset of Object.values(assets.assets || {})) {
-          if (asset.type !== 'video' || !asset.selectedVersionId) continue
-          const version = asset.versions?.find((item) => item.id === asset.selectedVersionId)
-          if (asset.staleVersionIds?.includes(version?.id)) continue
-          const source = version?.provenance?.prompt_document
-          if (source?.episode_key === episode && source?.shot_number === shot.shot_number && await sameShotVersion(root, episode, 'video-prompts', source.version_id, prompts.versionId, shot.shot_number).catch(() => false)) { match = asset; break }
-        }
-        if (!match) missing.push(`${episode} 第 ${shot.shot_number} 镜 selected 视频`)
+        const match = assets.assets?.[`shot-${episode.replace('-', '')}-${String(shot.shot_number).padStart(3, '0')}`]
+        const version = match?.versions?.find((item) => item.id === match.selectedVersionId)
+        const source = version?.provenance?.prompt_document
+        const current = match?.type === 'video' && match.selectedVersionId && !match.staleVersionIds?.includes(version?.id) && source?.episode_key === episode && source?.shot_number === shot.shot_number && await sameShotVersion(root, episode, 'video-prompts', source.version_id, prompts.versionId, shot.shot_number).catch(() => false)
+        if (!current) missing.push(`${episode} 第 ${shot.shot_number} 镜 selected 视频`)
         else {
           const review = reviews.reviews?.[`${match.key}@${match.selectedVersionId}`]
-          const criteria = review?.criteria || []
-          if (!review?.approved || JSON.stringify(criteria.map((item) => item.criterion)) !== JSON.stringify(shot.review_checks) || criteria.some((item) => item.status !== 'passed' || typeof item.observation !== 'string' || !item.observation.trim())) missing.push(`${match.key} selected 版本缺少逐项可核对验收`)
+          if (!validApprovedVideoReview(review, version.sha256, shot.duration_seconds, shot.review_checks)) missing.push(`${match.key} selected 版本缺少绑定媒体哈希的完整播放与逐项时间证据`)
           const audioMode = typeof shot.audio_strategy === 'string' ? shot.audio_strategy : shot.audio_strategy?.mode
           if (isH3Model(shot.provider, shot.model_or_workflow) && audioMode === 'native') {
             const auditPath = resolve(root, '.short-drama/audio-audits', `${match.key}@${match.selectedVersionId}.json`)
@@ -394,8 +399,8 @@ export async function inspectStage(root, stage) {
 async function main() {
   if (process.argv.includes('--self-check')) {
     try { await inspectStage('.', 'bad'); throw new Error('阶段自检失败') } catch (error) { if (!String(error.message).includes('未知阶段')) throw error }
-    if (!sameReferences([{ key: 'char-a', version_id: 'v001', role: 'identity', order: 1 }], [{ asset_key: 'char-a', version_id: 'v001', role: 'identity', order: 1 }, { asset_key: 'other-shot-frame', version_id: 'v001', role: 'storyboard-frame', order: 2 }])) throw new Error('派生分镜帧一致性自检失败')
-    if (!sameReferences([{ key: 'char-a', version_id: 'v001', role: 'identity', order: 1 }], [{ type: 'image', asset_key: 'char-a', version_id: 'v001', role: 'identity', order: 1 }, { type: 'video', asset_key: 'other-previz-ep001-001', version_id: 'v001', role: 'reference_video', order: 1 }])) throw new Error('白模执行期派生引用一致性自检失败')
+    if (!samePlanReferences([{ key: 'char-a', version_id: 'v001', role: 'identity', order: 1 }], [{ asset_key: 'char-a', version_id: 'v001', role: 'identity', order: 1 }, { asset_key: 'other-shot-frame', version_id: 'v001', role: 'storyboard-frame', order: 2 }])) throw new Error('派生分镜帧一致性自检失败')
+    if (!samePlanReferences([{ key: 'char-a', version_id: 'v001', role: 'identity', order: 1 }], [{ type: 'image', asset_key: 'char-a', version_id: 'v001', role: 'identity', order: 1 }, { type: 'video', asset_key: 'other-previz-ep001-001', version_id: 'v001', role: 'reference_video', order: 1 }])) throw new Error('白模执行期派生引用一致性自检失败')
     const durationVersion = { provenance: { parameters: { duration: 8 } } }
     if (!previzDurationMatches({ duration_seconds: 8 }, durationVersion, { duration_seconds: 8 }) || previzDurationMatches({ duration_seconds: 8 }, durationVersion, { duration_seconds: 3.5 })) throw new Error('白模时长一致性自检失败')
     return console.log('ok')

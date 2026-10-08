@@ -172,7 +172,9 @@
     "examples/depth-guided-video-replication/*.svrun",
     "examples/depth-guided-video-replication/*.svs",
     "examples/depth-guided-video-replication/hypit.runtime.json",
-    "examples/depth-guided-video-replication/assets/*"
+    "examples/depth-guided-video-replication/starrouter-runninghub.runtime.json",
+    "examples/depth-guided-video-replication/assets/*",
+    "examples/interview/assets/chad.wav"
   ],
   "scripts": {
     "pack:distribution": "node scripts/pack-distribution.mjs",
