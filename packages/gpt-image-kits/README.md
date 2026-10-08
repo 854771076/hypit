@@ -1,11 +1,44 @@
 # `@hypit/gpt-image-kits`
 
-`phone-ugc-v1` is a data-only Text Template for assembling image prompts. Its
+These data-only Text Templates assemble recurring image prompts:
+
+- `phone-ugc-v1` directs one natural phone-video frame.
+- `asset-sheet-v1` creates a selected character, scene or prop setting board.
+- `storyboard-v1` creates a single-frame, temporal or shot-board reference for one atomic shot.
+- `story-text-frame-v1` creates one exact model-generated story-text state for standalone review or use as a reference.
+
+`phone-ugc-v1`'s
 [source](kits/phone-ugc-v1.svs) emits a fixed iPhone-video capture paragraph, followed by the supplied
 Text slots in `person` → `shot` → `setting` order, with paragraph separators.
 Import it as `@hypit/gpt-image-kits/phone-ugc-v1`.
 
 For creative direction, see the Image direction page in the Hypit Skill.
+
+## Production boards
+
+Import `@hypit/gpt-image-kits/asset-sheet` and select `asset-type: character`, `scene`, or `prop`.
+Supply the canonical asset contract through `asset`; `views`, `style`, `references`, and `visible-text`
+are optional. `visible-text` is the exact allowlist for persistent packaging, clothing, prop, or scene
+markings and does not permit sheet annotations. Every output describes one stable asset version rather
+than alternatives.
+
+Import `@hypit/gpt-image-kits/storyboard` and select `board-type: single-frame`, `temporal`, or
+`shot-board`. Supply the atomic `shot` and `continuity` contracts; `references`, `style`, and
+`visible-text` are optional. `visible-text` is an allowlist for story text that belongs in the scene,
+not permission to add captions or labels.
+
+Temporal and shot boards default to six cells. Choose another count only when the action or beat
+structure reads more accurately that way. Put every hard-to-reproduce state—such as a countdown value,
+device change, hand contact, prop state or exact pose—in its own cell. After review, pass the board as a
+semantic image reference to the video model; the generated result must be one full-frame video and never
+show the board grid.
+
+Both Kits only produce Text. Connect every referenced image explicitly on the image Surface in the
+same order described by `references`, and inspect the original-resolution result before adopting it.
+
+`@hypit/gpt-image-kits/story-text-frame` remains available for a standalone single story-text image.
+For changing text inside generated video, prefer a temporal storyboard containing every required state
+and give that board to the video model. This Kit is not for dialogue subtitles.
 
 ## Blocks and inputs
 

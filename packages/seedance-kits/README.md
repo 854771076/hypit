@@ -57,17 +57,23 @@ template id. Its linked `.svs` file owns the exact fixed wording, default choice
 | Import suffix / template | Intended relationship and media references | Text slots |
 | --- | --- | --- |
 | `speaker` / [`speaker-v1`](kits/speaker-v1.svs) | One visible speaker: `@image1` is the character-and-scene view; `@audio1` is that speaker's voice. | Required `dialogue`; optional `action` |
-| `broll` / [`broll-v1`](kits/broll-v1.svs) | A silent visual micro-story; images appear in authored reference order, with their roles explained in the story. | Required `story` |
+| `broll` / [`broll-v1`](kits/broll-v1.svs) | A visual micro-story with native ambience and action sound by default; images appear in authored reference order, with their roles explained in the story. | Required `story`; `audio-mode` defaults to `joint-native`, while `silent` is an explicit waiver |
 | `podcast` / [`podcast-v1`](kits/podcast-v1.svs) | Two fixed views: images 1/2 show A/B, and audio 1/2 supplies their corresponding voices. | Required `dialogue`; optional `action` |
 | `call` / [`call-v1`](kits/call-v1.svs) | Image 1 shows A in the main tile and B in the inset; image 2 reverses them. Both are live views, with audio 1/2 for A/B. | Required `dialogue`; optional `action` |
 | `street-interview` / [`street-interview-v1`](kits/street-interview-v1.svs) | Images 1/2/3 are interviewer A, guest B and shared street setups; audio 1/2 is A/B. A holds the microphone. | Required `dialogue`; optional `action` |
 | `motion-reference` / [`motion-reference-v1`](kits/motion-reference-v1.svs) | Image 1 supplies the subject; video 1 supplies body motion, gestures and pose dynamics. | Optional `direction` |
 | `camera-reference` / [`camera-reference-v1`](kits/camera-reference-v1.svs) | Image 1 supplies the subject; video 1 supplies camera framing, lens, movement and photographic rhythm. | Optional `direction` |
+| `recreation-shot` / [`recreation-shot-v1`](kits/recreation-shot-v1.svs) | One atomic joint picture-and-sound shot. Its default contract requires a depth video, a temporal storyboard, a shot board, a video prompt and an audio reference; selected asset boards remain optional. | Required `depth-video`, `temporal-storyboard`, `shot-board`, `audio-reference`, `video-prompt`, `timing`, `continuity`, `sound`; optional `asset-boards`, `dialogue`, `visible-text`; `reference-dialect` defaults to `provider` |
 
 For example, `source="@hypit/seedance-kits/call"` imported as `kit` exposes `kit.call-v1`.
 Text slots use `text:Set`; scalar Recipe choices use the selected template's named axes. Reading the
 template reveals what each choice actually asks the generator to do. Rendering the Text Output as a
 Run Target lets an author inspect the assembled prompt without generating media.
+
+The recreation template's required slots describe required Resource edges; connect the corresponding
+video, two board images and audio Resource to the selected Surface in the same order. StarRouter uses
+the explicit `starrouter` dialect and requires measured `duration-seconds` on every video and audio
+Reference.
 
 Speaker, B-roll, Podcast, Call and Street Interview expose prompt choices through their Text
 Templates. The examples above use author-chosen literal durations. Measure adopted speech with
@@ -82,13 +88,42 @@ this passage's attitude, vocal delivery, attention, interaction and any motivate
 the Kit. In Speaker, `performance` selects the recurring approach to voice and visible expression;
 `gesture` selects body language, while `action` directs the particular thought and response.
 Do not retype the complete spoken text into action or treat each Role turn as a required new Take.
-For B-roll, `story` carries the silent visual events rather than spoken dialogue.
+For B-roll, `story` carries the visual events rather than spoken dialogue. Its default `joint-native`
+audio mode requests synchronized ambience and action sound; select `silent` only for an explicit
+silent-video requirement and set `generate-audio="false"` on that Surface.
 
 These files are reusable packaged authoring material. When one production needs a different prompt
 structure, author a project-local Text Template and import that Source explicitly rather than
 modifying the installed package. A Kit is not a Core restriction or a hidden media-generation wrapper.
 Reference order, duration, audio generation and output aspect ratio remain explicit on the model
 Surface. Setting a prompt option cannot create a media reference or execute a postprocess.
+
+For `recreation-shot`, fill the required depth-video, temporal-storyboard, shot-board, audio-reference
+and video-prompt slots with the exact model labels and responsibilities used by the corresponding
+`seedance:Reference` children. The default `provider` dialect follows the selected Endpoint. Select the
+`starrouter` dialect for its ordered `@图片N`, `@视频N` and `@音频N` labels, and attach measured
+duration metadata to video and audio Reference children.
+
+Include only references the shot needs; never name a missing edge. Seedance Surfaces default to
+`generate-audio="true"`, including wordless action shots. Set it to `false` only when an explicit
+silent-video requirement or documented Endpoint limitation is recorded as a waiver in `SHOTS.md`.
+A multi-cell storyboard is
+semantic evidence only—the generated result must remain one full-frame video.
+
+Multi-cell storyboards use six cells by default; another count is valid when it expresses the shot more
+accurately. Hard details such as countdown readings, device states, exact contacts and poses belong in
+separate reviewed cells. Attach both selected boards as actual image References and state their roles in
+`temporal-storyboard` and `shot-board`.
+
+For multilingual dialogue, write every turn as `SPEAKER [language-code]: "exact original line"`. The
+Kit instructs Seedance to preserve each turn's declared language without translation or switching to the
+clip's dominant language. A rejected generated shot is regenerated after changing its prompt, board or
+reference contract; never locally paint, patch or composite over the video.
+
+`timing` names the semantic events, dialogue-word anchors and intended retained edit span that matter
+inside this generated request. Seconds and frames are compiled evidence, not a replacement for those
+anchors. When selected speech or an upstream shot changes, recompile downstream event frames before
+submitting another paid generation.
 
 ## Speaker: edited UGC from one useful view
 

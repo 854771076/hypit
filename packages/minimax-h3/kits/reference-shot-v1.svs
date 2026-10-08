@@ -1,0 +1,16 @@
+<?svml using="@hypit/text/svs@1"?>
+
+<sheet version="1" id="reference-shot-v1">
+  text-template.reference-shot-v1 { separator: paragraph; }
+  text-template.reference-shot-v1.block.subject-definitions { kind: slot; order: 10; slot: subject-definitions; optional: false; label: "subject_definitions:"; }
+  text-template.reference-shot-v1.block.depth-video { kind: slot; order: 11; slot: depth-video; optional: false; }
+  text-template.reference-shot-v1.block.temporal-storyboard { kind: slot; order: 12; slot: temporal-storyboard; optional: false; }
+  text-template.reference-shot-v1.block.shot-board { kind: slot; order: 13; slot: shot-board; optional: false; }
+  text-template.reference-shot-v1.block.asset-boards { kind: slot; order: 14; slot: asset-boards; optional: true; }
+  text-template.reference-shot-v1.block.audio-reference { kind: slot; order: 15; slot: audio-reference; optional: false; }
+  text-template.reference-shot-v1.block.summary { kind: slot; order: 20; slot: summary; optional: false; label: "summary:"; }
+  text-template.reference-shot-v1.block.retention-analysis { kind: slot; order: 30; slot: retention-analysis; optional: false; label: "retention_analysis:"; }
+  text-template.reference-shot-v1.block.detailed-description { kind: slot; order: 40; slot: detailed-description; optional: false; label: "detailed_description:"; }
+  text-template.reference-shot-v1.block.overall-soundscape { kind: slot; order: 50; slot: overall-soundscape; optional: false; label: "overall_soundscape:"; }
+  text-template.reference-shot-v1.block.non-diegetic-music { kind: slot; order: 60; slot: non-diegetic-music; optional: false; label: "non_diegetic_music:"; }
+</sheet>

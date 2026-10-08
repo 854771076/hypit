@@ -133,7 +133,8 @@ export async function runProjectResultCommand(input: {
         ["Outcome", build.outcome],
         ...(args.outputName === undefined ? [
           ["Targets", String(build.targetCount)] as const,
-          ["Available Outputs", String(build.outputCount)] as const,
+          ["Target Outputs", `${build.availableTargetCount}/${build.targetCount}`] as const,
+          ["Reusable Intermediate Outputs", String(build.reusableOutputCount)] as const,
         ] : []),
       ], [
         ...(build.failure === undefined ? [] : [`Reason    ${build.failure}`]),
@@ -143,6 +144,10 @@ export async function runProjectResultCommand(input: {
           + (operation.failure === undefined ? "" : ` · ${operation.failure.code}: ${operation.failure.message}`)),
         ...(build.omittedOperations === undefined ? [] : [`${build.omittedOperations} more execution receipts · use --limit <count>`]),
         ...(build.note === undefined ? [] : [`Note      ${build.note}`]),
+        ...build.outputTypes.map((item) => {
+          const type = args.presentation.verbose ? item.type : item.type.slice(item.type.lastIndexOf("/") + 1);
+          return `Type      ${type} · ${item.count} available · ${item.targetCount} target`;
+        }),
         ...build.outputs.map((item) => `${item.highlighted ? "★" : item.target ? "Target" : "Output"}    ${item.name}`
           + (!args.presentation.verbose ? "" : ` · ${item.type} · ${item.kind}`
             + `${item.mediaType === undefined ? "" : ` · ${item.mediaType}`}`

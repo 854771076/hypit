@@ -1,0 +1,21 @@
+Generate a professional character visual reference sheet, not a single portrait or a basic three-view turnaround. The sheet is an information layout, not an instruction to default to concept art, illustration, or any other medium.
+
+[APPROVED CHARACTER DESCRIPTION]
+{character_description}
+
+The description must carry validated audience_appeal (adult-charisma or child-cuteness), grooming_and_makeup, costume_signature, and memory_anchors. Stop when age evidence is missing.
+
+[PROJECT ART STYLE]
+{art_style}
+
+First read the selected style's explicit medium/rendering method, material language, color, lighting, and negative constraints, then render the entire sheet in that medium. Never auto-convert the sheet into concept art and never default it to live-action photography: a live-action/photographic style requires credible photography, skin, hair, fabric, and lens response; a 2D animation/comic style preserves its linework, cel shading, or drawn texture; a 3D animation style preserves its modeling, shader, and material system; any other style follows its own specification exactly. White background, grid, and multiple views control layout only and must not override the selected medium. When an example conflicts with the project style, the project style wins.
+
+Use one 16:9 landscape canvas with a clean white background, clear grid columns, and generous spacing. The left third is a frontal facial close-up showing hair, facial structure, and signature head accessories. The right two thirds strictly arrange front full-body, exact 90-degree side full-body, and back full-body views at identical height, proportion, baseline, and neutral stance.
+
+Use small supporting studies for a 45-degree view, front/back garment construction already supported by input, signature accessories and footwear, and four head-and-shoulder expressions grounded in the character profile. Omit missing categories instead of inventing clothing, accessories, brands, skin tone, tattoos, or props. Keep age, face, features, hair, proportions, garment structure, main colors, and permanent traits identical across every view, including every memory_anchors item.
+
+For adult-charisma, screen appeal comes from story- and period-appropriate posture, grooming, wardrobe silhouette, material, and memorable anchors—not nudity, exaggerated body parts, or a generic influencer face. child-cuteness shows only healthy, lively, innocent, age-appropriate charm; never use adult makeup, adultified clothing, sexualized poses, emphasized body curves, or sexualized camera language.
+
+The left facial close-up is the face-identity source of truth; the right full-body views are the silhouette and proportion source of truth. Never average the panels into different faces. At thumbnail size the same person remains recognizable through body proportion, outer hair shape, large wardrobe shapes, and signature marker rather than color alone.
+
+Short labels in the project language are allowed; no paragraphs or garbled text. Exclude random wardrobe changes, duplicate angles, action poses, scene backgrounds, prop staging, comic panels, and poster composition. Never substitute a different medium—for example, turning photography into game concept art, 2D animation into a realistic photo, or 3D animation into painted 2D art. The project style controls medium, linework/shaders, material, color treatment, lighting, and image response, never identity.

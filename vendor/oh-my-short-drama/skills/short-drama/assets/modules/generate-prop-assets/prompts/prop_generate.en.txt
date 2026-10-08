@@ -1,0 +1,16 @@
+Generate a professional prop visual reference sheet, not a single product image. The sheet is a layout for structural evidence, not an instruction to default to concept art, illustration, or any other medium.
+
+[PROP]
+{prop_name}
+
+[APPROVED STATIC DESCRIPTION]
+{prop_description}
+
+[PROJECT ART STYLE]
+{art_style}
+
+First read the selected style's medium/rendering method, material language, color, lighting, and negative constraints, then use that medium for every view. Never default to concept art, product photography, or a 3D product render: live-action/photographic, 2D animation/comic, 3D animation, and other styles each retain their own material and image-making logic. White background and columns control layout only and must not override the selected medium. When an example conflicts with the project style, the project style wins.
+
+Use one 16:9 landscape canvas with a white background and clear columns. The left third is a main-view close-up. The right two thirds arrange front, exact side, and back views of the same prop at identical height and scale. Use small supporting studies for only the explicitly supported opening structure, patterns, material joints, edge wear, and key details. Omit missing information rather than inventing function, branding, or attachments.
+
+Keep material, color, shape, construction, quantity, proportion, and decoration identical across every view. Exclude people, hands, use action, tabletop staging, environment, extra objects, plot imagery, poster composition, watermarks, and garbled text. Never replace the selected style with a mismatched concept-art, photographic, painted-2D, or 3D product-render treatment. The project art style controls medium, linework/shaders, material, color treatment, lighting, and image response, and must not redesign the prop.

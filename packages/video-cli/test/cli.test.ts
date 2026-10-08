@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
 import { runVideoCli, videoCliDistribution } from "@hypit/video-cli";
 import { runCli as runCommand } from "@hypit/cli";
+import { FileBuildResult, FileBuildResultRepository } from "@hypit/build-result";
+import { artifactTypes } from "@hypit/artifact";
+import type { BuildState } from "@hypit/protocol";
 
 import { videoTestPackages } from "./packages.js";
 
@@ -63,6 +66,137 @@ test("provider-free example plans from installed Source packages", async () => {
   assert.equal(plan.targets.length, 1);
 });
 
+test("depth-reference example plans depth conversion before H3 generation", async () => {
+  const fixture = join(process.cwd(), "examples", "depth-guided-video-replication");
+  for (const name of ["material.svrun", "production.svrun", "reuse-depth.svrun", "reuse-shot.svrun"]) {
+    let checked = "";
+    await runCli(["check", join(fixture, name), "--workspace", process.cwd()], {
+      write: (text) => { checked += text; },
+    });
+    assert.equal((JSON.parse(checked) as { readonly sourceKind: string }).sourceKind, "run");
+  }
+
+  let output = "";
+  await runCli(["plan", join(fixture, "material.svrun"), "--workspace", process.cwd()], {
+    write: (text) => { output += text; },
+  });
+  const plan = JSON.parse(output) as {
+    readonly ok: boolean;
+    readonly requestCount: number;
+    readonly needs: readonly {
+      readonly capability: string;
+      readonly summary: { readonly fields: Readonly<Record<string, string | number>>; readonly references: Readonly<Record<string, number>> };
+      readonly pending: readonly { readonly input: string; readonly sourceStep?: string }[];
+    }[];
+  };
+  assert.equal(plan.ok, true);
+  assert.equal(plan.requestCount, 2);
+  assert.deepEqual(plan.needs.map((request) => request.capability), [
+    "@hypit/depth-video@1#depth-video",
+    "@hypit/minimax-h3@1#minimax-h3",
+  ]);
+  const h3 = plan.needs.find((request) => request.capability === "@hypit/minimax-h3@1#minimax-h3")!;
+  assert.equal(h3.summary.references.image, 5);
+  assert.equal(h3.summary.references.audio, 1);
+  assert.equal(h3.pending.some((input) => input.input === "referenceVideo"
+    && decodeURIComponent(input.sourceStep ?? "").includes("depth-map:select-primary-video")), true);
+
+  let runtimeOutput = "";
+  await runCommand([
+    "plan", join(fixture, "production.svrun"), "--workspace", process.cwd(),
+    "--runtime", join(fixture, "hypit.runtime.json"), "--json",
+  ], { write: (text) => { runtimeOutput += text; } }, videoCliDistribution);
+  const runtimePlan = JSON.parse(runtimeOutput) as {
+    readonly requestIssueCount: number;
+    readonly providers: readonly { readonly capability: string; readonly endpoint?: string; readonly status: string }[];
+  };
+  assert.equal(runtimePlan.requestIssueCount, 0);
+  for (const capability of ["@hypit/depth-video@1#depth-video", "@hypit/minimax-h3@1#minimax-h3"]) {
+    const provider = runtimePlan.providers.find((item) => item.capability === capability)!;
+    assert.deepEqual({ endpoint: provider.endpoint, status: provider.status }, { endpoint: "runninghub.default", status: "resolved" });
+  }
+
+  const root = await mkdtemp(join(tmpdir(), "hypit-depth-reference-reuse-"));
+  try {
+    const copied = join(root, "examples", "depth-guided-video-replication");
+    await mkdir(join(root, "examples"), { recursive: true });
+    await cp(fixture, copied, { recursive: true });
+    await mkdir(join(root, "examples", "interview", "assets"), { recursive: true });
+    await cp(join(process.cwd(), "examples", "interview", "assets", "chad.wav"),
+      join(root, "examples", "interview", "assets", "chad.wav"));
+
+    const copiedSource = join(copied, "depth-reference.svml");
+    const source = await readFile(copiedSource, "utf8");
+    await writeFile(copiedSource, source.replace("We made it. Keep moving.", "The Script now carries a deliberately longer replacement line."), "utf8");
+    let changedOutput = "";
+    await runCli(["plan", join(copied, "material.svrun"), "--workspace", root], {
+      write: (text) => { changedOutput += text; },
+    });
+    const changedPlan = JSON.parse(changedOutput) as { readonly needs: readonly { readonly capability: string; readonly summary: { readonly fields: Readonly<Record<string, string | number>> } }[] };
+    const changedH3 = changedPlan.needs.find((request) => request.capability === "@hypit/minimax-h3@1#minimax-h3")!;
+    assert.notEqual(changedH3.summary.fields.prompt, h3.summary.fields.prompt);
+
+    await writeFile(copiedSource, source.replace("The accepted speech timing owns event speech-start and event speech-end.", "A deliberately expanded semantic event contract now owns speech-start, speech-end, reaction-settled and edit-out."), "utf8");
+    let retimedOutput = "";
+    await runCli(["plan", join(copied, "material.svrun"), "--workspace", root], { write: (text) => { retimedOutput += text; } });
+    const retimedPlan = JSON.parse(retimedOutput) as { readonly needs: readonly { readonly capability: string; readonly summary: { readonly fields: Readonly<Record<string, string | number>> } }[] };
+    const retimedH3 = retimedPlan.needs.find((request) => request.capability === "@hypit/minimax-h3@1#minimax-h3")!;
+    assert.notEqual(retimedH3.summary.fields.prompt, h3.summary.fields.prompt);
+
+    const bytes = new Uint8Array([1, 2, 3]);
+    const result = await FileBuildResult.create(join(root, ".hypit", "results"), {
+      id: "bld_20260923T000000000Z_0000000001",
+      source: { path: join(copied, "depth-reference.svml") },
+      run: { path: join(copied, "material.svrun") },
+      targets: ["depth-map.video", "generated-shot.video"],
+      publishedOutputs: [
+        { name: "depth-map.video", output: "logical:depth" },
+        { name: "generated-shot.video", output: "logical:shot" },
+      ],
+    });
+    await result.sync({
+      state: {
+        status: "complete",
+        records: ["depth", "shot"].map((name) => ({
+          id: `record:${name}`, type: artifactTypes.blob,
+          value: { kind: "blob", resource: `res_${name}`, size: bytes.byteLength, mediaType: "video/mp4" },
+        })),
+        plan: { outputBindings: [
+          { output: "logical:depth", record: "record:depth", type: artifactTypes.blob },
+          { output: "logical:shot", record: "record:shot", type: artifactTypes.blob },
+        ] },
+      } as unknown as BuildState,
+      resources: { async open() { return (async function* () { yield bytes; })(); } },
+    });
+    await result.finish({ outcome: "complete" });
+
+    const distribution = {
+      ...videoCliDistribution,
+      bootstrapPackages: videoTestPackages,
+      async openProjectResults() {
+        return {
+          location: { root, selection: { use: "test.results", config: {} } },
+          repository: new FileBuildResultRepository(join(root, ".hypit", "results")),
+          close() {},
+        };
+      },
+    };
+    const plannedCapabilities = async (name: string) => {
+      let text = "";
+      await runCommand(["plan", join(copied, name), "--workspace", root, "--json"], {
+        write: (value) => { text += value; },
+      }, distribution);
+      return (JSON.parse(text) as { readonly needs: readonly { readonly capability: string }[] }).needs.map((need) => need.capability);
+    };
+    assert.deepEqual(await plannedCapabilities("reuse-depth.svrun"), ["@hypit/minimax-h3@1#minimax-h3"]);
+    const reusedShot = await plannedCapabilities("reuse-shot.svrun");
+    assert.equal(reusedShot.includes("@hypit/depth-video@1#depth-video"), false);
+    assert.equal(reusedShot.includes("@hypit/minimax-h3@1#minimax-h3"), false);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("check compiles a data-only package Source export without a project copy", async () => {
   const root = await mkdtemp(join(tmpdir(), "hypit-cli-package-source-"));
   try {
@@ -96,6 +230,37 @@ test("check compiles a data-only package Source export without a project copy", 
     const checked = JSON.parse(output) as { readonly sourceKind: string; readonly units: number };
     assert.equal(checked.sourceKind, "author");
     assert.equal(checked.units, 2);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("check resolves every packaged preproduction and recreation Prompt Kit", async () => {
+  const root = await mkdtemp(join(tmpdir(), "hypit-cli-production-kits-"));
+  try {
+    const source = join(root, "main.svml");
+    await writeFile(source, `<?svml using="@hypit/markup@1"?>
+<svml>
+  <import as="text" from="@hypit/text@1"/>
+  <import as="assets" source="@hypit/gpt-image-kits/asset-sheet"/>
+  <import as="boards" source="@hypit/gpt-image-kits/storyboard"/>
+  <import as="story-text" source="@hypit/gpt-image-kits/story-text-frame"/>
+  <import as="seedance-shot" source="@hypit/seedance-kits/recreation-shot"/>
+  <import as="h3-shot" source="@hypit/minimax-h3/reference-shot"/>
+  <text:Value id="base">Approved production direction.</text:Value>
+  <text:Value id="continuity">The ending state is stable.</text:Value>
+  <text:Value id="references">References follow the selected Endpoint syntax.</text:Value>
+  <text:Value id="sound">Joint native picture and sound.</text:Value>
+  <text:Render id="asset" template={assets.asset-sheet-v1}><text:Set name="asset" text={base}/></text:Render>
+  <text:Render id="board" template={boards.storyboard-v1}><text:Set name="shot" text={base}/><text:Set name="continuity" text={continuity}/></text:Render>
+  <text:Render id="story-text-frame" template={story-text.story-text-frame-v1}><text:Set name="text" text={base}/><text:Set name="appearance" text={base}/><text:Set name="composition" text={base}/></text:Render>
+  <text:Render id="seedance" template={seedance-shot.recreation-shot-v1}><text:Set name="depth-video" text={references}/><text:Set name="temporal-storyboard" text={references}/><text:Set name="shot-board" text={references}/><text:Set name="audio-reference" text={references}/><text:Set name="video-prompt" text={base}/><text:Set name="timing" text={base}/><text:Set name="continuity" text={continuity}/><text:Set name="sound" text={sound}/></text:Render>
+  <text:Render id="h3" template={h3-shot.reference-shot-v1}><text:Set name="subject-definitions" text={base}/><text:Set name="depth-video" text={references}/><text:Set name="temporal-storyboard" text={references}/><text:Set name="shot-board" text={references}/><text:Set name="audio-reference" text={references}/><text:Set name="summary" text={base}/><text:Set name="retention-analysis" text={base}/><text:Set name="detailed-description" text={base}/><text:Set name="overall-soundscape" text={sound}/><text:Set name="non-diegetic-music" text={base}/></text:Render>
+</svml>`, "utf8");
+    let output = "";
+    await runCli(["check", source, "--workspace", root], { write: (text) => { output += text; } });
+    const checked = JSON.parse(output) as { readonly sourceKind: string };
+    assert.equal(checked.sourceKind, "author");
   } finally {
     await rm(root, { recursive: true, force: true });
   }

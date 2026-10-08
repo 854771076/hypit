@@ -45,18 +45,14 @@ export const minimaxH3Ports: GenerationPortTable = sealGenerationPortTable({
     { name: "lastFrame", value: { kind: "media", accepts: ["image"] }, minItems: 0, maxItems: 1 },
   ],
   requires: [
-    { kind: "atMostOneOf", ports: ["referenceImage", "firstFrame"] },
     { kind: "atMostOneOf", ports: ["referenceImage", "lastFrame"] },
-    { kind: "atMostOneOf", ports: ["referenceVideo", "firstFrame"] },
     { kind: "atMostOneOf", ports: ["referenceVideo", "lastFrame"] },
-    { kind: "atMostOneOf", ports: ["referenceAudio", "firstFrame"] },
     { kind: "atMostOneOf", ports: ["referenceAudio", "lastFrame"] },
     { kind: "requiresAnyOf", port: "referenceAudio", anyOf: ["referenceImage", "referenceVideo"] },
-    // A first/last frame run inherits its framing from the uploaded image, so the
-    // model takes no aspect ratio in that mode.
-    { kind: "atMostOneOf", ports: ["aspectRatio", "firstFrame"] },
+    // A last-frame run stays in the dedicated frame mode; a first frame may also
+    // anchor full-reference continuation and therefore keeps the requested ratio.
     { kind: "atMostOneOf", ports: ["aspectRatio", "lastFrame"] },
-    { kind: "weightedTotal", weights: { referenceImage: 1, referenceVideo: 1, referenceAudio: 1 }, maximum: 12 },
+    { kind: "weightedTotal", weights: { firstFrame: 1, referenceImage: 1, referenceVideo: 1, referenceAudio: 1 }, maximum: 12 },
   ],
 });
 
@@ -147,9 +143,14 @@ export const minimaxH3MarkupSurfaces = [
         "The element takes no children and no text content.",
       ],
     }),
-    declaration("reference-video", "ReferenceVideo", ["referenceImage", "referenceVideo", "referenceAudio"], {
+    declaration("reference-video", "ReferenceVideo", ["firstFrame", "referenceImage", "referenceVideo", "referenceAudio"], {
       summary: "Generates one video Artifact from a Text prompt and the image, video and audio subjects it carries with the MiniMax H3 model.",
-      attributes: [...minimaxH3Common, minimaxH3AspectRatio],
+      attributes: [
+        ...minimaxH3Common,
+        minimaxH3AspectRatio,
+        { name: "first-frame", kind: "reference", required: false, accepts: [artifactTypes.blob],
+          summary: "Selects the image Artifact the generated reference video opens on." },
+      ],
       children: [
         { tag: "Reference", cardinality: "many",
           summary: "Attaches one subject Artifact the model generates from, chosen by an `image`, `video` or `audio` reference.",
@@ -164,7 +165,7 @@ export const minimaxH3MarkupSurfaces = [
       ],
       ports: minimaxH3VideoPorts,
       example: [
-        '<h3:ReferenceVideo id="montage" prompt={montagePrompt} duration="8" resolution="768P" aspect-ratio="9:16">',
+        '<h3:ReferenceVideo id="montage" prompt={montagePrompt} duration="8" resolution="768P" aspect-ratio="9:16" first-frame={priorTail.image}>',
         "  <h3:Reference image={person.image}/>",
         "  <h3:Reference video={gesture.video}/>",
         "</h3:ReferenceVideo>",
@@ -172,6 +173,7 @@ export const minimaxH3MarkupSurfaces = [
       notes: [
         minimaxH3DurationNote,
         minimaxH3ResolutionNote,
+        "`first-frame` may accompany the full image, video and audio reference set; it remains a distinct firstFrame model port.",
         "`Reference` carries exactly one of `image`, `video` or `audio`, and is empty.",
         "The element requires at least one `Reference`, and accepts at most 9 image, 3 video and 3 audio references and 12 in total.",
         "An audio `Reference` requires an image or video `Reference` beside it.",

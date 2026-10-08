@@ -2,6 +2,7 @@ import type { SpeechEvidenceAudio } from "@hypit/speech";
 
 /** Explicit language code. Executable language support belongs to the selected service. */
 export type WhisperXLanguage = string;
+export type WhisperXLanguageSelection = WhisperXLanguage | "auto";
 
 export function parseWhisperXLanguage(value: unknown, subject = "WhisperX language"): WhisperXLanguage {
   if (typeof value !== "string" || !/^[a-z]{2,3}$/u.test(value) || value === "und") {
@@ -10,8 +11,12 @@ export function parseWhisperXLanguage(value: unknown, subject = "WhisperX langua
   return value;
 }
 
+export function parseWhisperXLanguageSelection(value: unknown, subject = "WhisperX language"): WhisperXLanguageSelection {
+  return value === "auto" ? "auto" : parseWhisperXLanguage(value, subject);
+}
+
 export type WhisperXAlignmentRequest = {
   readonly audio: SpeechEvidenceAudio["artifact"];
   readonly sampleFrames: number;
-  readonly language: WhisperXLanguage;
+  readonly language: WhisperXLanguageSelection;
 };

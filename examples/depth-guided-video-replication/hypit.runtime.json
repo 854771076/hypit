@@ -1,0 +1,37 @@
+{
+  "format": "hypit.runtime-local@1",
+  "dataRoot": ".hypit/runtimes/local",
+  "credentials": {
+    "platform": { "use": "@hypit/credential-store-platform" }
+  },
+  "endpoints": {
+    "runninghub.default": {
+      "use": "@hypit/provider-runninghub",
+      "config": {
+        "apiKey": { "store": "platform", "key": "runninghub.api-key" },
+        "defaultConcurrency": 2
+      }
+    },
+    "media.local": {
+      "use": "@hypit/provider-media-local",
+      "config": { "defaultConcurrency": 2 }
+    },
+    "whisperx.local": {
+      "use": "@hypit/provider-whisperx-local",
+      "config": { "defaultConcurrency": 1 }
+    },
+    "hyperframes.local": {
+      "use": "@hypit/provider-hyperframes-local",
+      "config": { "workers": 2, "defaultConcurrency": 1 }
+    }
+  },
+  "bindings": {
+    "@hypit/depth-video@1#depth-video": "runninghub.default",
+    "@hypit/minimax-h3@1#minimax-h3": "runninghub.default",
+    "@hypit/media-pipeline@1#normalize-media": "media.local",
+    "@hypit/media-pipeline@1#render-timeline-audio": "media.local",
+    "@hypit/media-pipeline@1#mux-program-media": "media.local",
+    "@hypit/whisperx@1#whisperx-alignment": "whisperx.local",
+    "@hypit/render-hyperframes@1#render-visual": "hyperframes.local"
+  }
+}

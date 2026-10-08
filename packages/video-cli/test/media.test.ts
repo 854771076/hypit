@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtemp, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -8,7 +8,7 @@ import sharp from "sharp";
 
 import type { CliIo } from "@hypit/cli";
 
-import { cutFrame, probeMedia, runMediaCli, tileFrameCount, tileSampleTimes, visualBoundaries } from "../src/media.js";
+import { cutFrame, exactShotAnalysis, probeMedia, runMediaCli, tileFrameCount, tileSampleTimes, visualBoundaries } from "../src/media.js";
 
 const ffmpeg = spawnSync("ffmpeg", ["-version"], { stdio: "ignore" }).status === 0
   && spawnSync("ffprobe", ["-version"], { stdio: "ignore" }).status === 0;
@@ -47,6 +47,56 @@ test("tile frame counts follow the measured bounds", () => {
   assert.equal(tileFrameCount(4), 6);
   assert.equal(tileFrameCount(30), 9);
   assert.deepEqual(tileSampleTimes(1, 2, 4), [1.125, 1.375, 1.625, 1.875]);
+});
+
+test("shot analysis preserves native-frame cuts and turns 3–10 frame flashes into edit events", { skip: !ffmpeg && "ffmpeg is not installed" }, async () => {
+  const work = await mkdtemp(join(tmpdir(), "hypit-shots-"));
+  try {
+    const source = await sample(work);
+    const analysis = await exactShotAnalysis(source, 0.1);
+    assert.deepEqual(analysis.cuts.map((cut) => [cut.frame, cut.at]), [[12, 0.5], [24, 1], [36, 1.5]]);
+    assert.deepEqual(analysis.shots.map((shot) => [shot.startFrame, shot.endFrameExclusive, shot.kind]), [
+      [0, 12, "shot"], [12, 24, "shot"], [24, 36, "shot"], [36, 73, "shot"],
+    ]);
+    assert.deepEqual(analysis.editEvents, []);
+
+    const out = io();
+    await runMediaCli(["media", "shots", source, "--threshold", "0.1", "--json"], out.io, work);
+    const view = JSON.parse(out.text());
+    assert.equal(view.format, "hypit.shot-analysis@1");
+    assert.equal(view.frameRate, 24);
+    assert.equal(view.shots[0].narrativeFunction, "review_required");
+  } finally {
+    await rm(work, { recursive: true, force: true });
+  }
+});
+
+test("clean-text refuses destructive video repair", async () => {
+  await assert.rejects(
+    runMediaCli(["media", "clean-text"], io().io),
+    /clean-text is disabled.*never modifies video pixels/iu,
+  );
+});
+
+test("depth-source preparation requires an explicit original-reference role", async () => {
+  await assert.rejects(
+    runMediaCli(["media", "prepare-depth-source", "generated-shot.mp4", "--source-role", "generated-shot"], io().io),
+    /--source-role must be original-reference.*generated shots must be regenerated/iu,
+  );
+});
+
+test("depth-source preparation preserves source bytes", {
+  skip: !ffmpeg && "ffmpeg is required",
+}, async () => {
+  const work = await mkdtemp(join(tmpdir(), "hypit-depth-source-"));
+  try {
+    const source = await sample(work);
+    await runMediaCli(["media", "prepare-depth-source", source, "--source-role", "original-reference",
+      "--to", "approved.mp4"], io().io, work);
+    assert.deepEqual(await readFile(join(work, "approved.mp4")), await readFile(source));
+  } finally {
+    await rm(work, { recursive: true, force: true });
+  }
 });
 
 test("media help names the available commands and both cut forms", () => {

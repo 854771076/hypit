@@ -90,5 +90,9 @@ Other Endpoints needed by the Run must also be prepared and available.
 
 For reference analysis rather than an authored SemanticTake, use the same language code with
 `hypit transcribe source.mp4 --language ko --to transcript.json --runtime hypit.runtime.json`.
+When the source language is unknown, the CLI alone may use `--language auto`: it records the service's
+detected language and confidence, requires `--confirm-language` below the confidence threshold, then
+submits a second request with the accepted explicit code. Authored `<whisperx:SemanticTake>` remains
+explicit and never derives its language from Script or subtitles.
 Hosted execution uses the selected hosted deployment's models and preparation; the local
 `alignmentLanguages` option does not configure a remote service.

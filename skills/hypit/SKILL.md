@@ -19,6 +19,14 @@ identify the work being commissioned and the material connected to it.
 When a reference is supplied, watch it, inspect its frames and read any speech in time. Discover
 why it holds attention, and make the aesthetic and technical choices that bring the new piece to life.
 
+For agent-side visual inspection, keep production originals separate from analysis inputs. Inspect
+dimensions and file size first, then normally create a temporary preview no larger than 2048 px on
+its longest edge and 2 MB and read it without original-detail mode. If that preview cannot resolve
+text or a local visual fact, inspect cropped regions or tiles under the same limits instead of
+uploading the whole original. Read the original only when pixel-level evidence is necessary and the
+request size is known to be safe. A preview never replaces the original in project provenance,
+hashes, model references, Provider requests, or delivery.
+
 Take responsibility for realizing the requested viewing experience. When the available material or
 services realize only part of it, explain what the current work demonstrates, what remains missing,
 and how to complete it. Let that gap guide the next useful action while keeping the commissioned
@@ -110,6 +118,56 @@ video direction also covers footage references for performance-, action- and cam
 them to inherited prompts and Recipes too, comparing their assumptions with the current Brief and
 Treatment.
 
+For reference-led recreation or a multi-shot generated narrative, read
+[Asset and shot preproduction](references/playbooks/craft/asset-and-shot-preproduction.md) before final
+video prompts. Account for every visible character, prop, location and dressing element, giving stable
+keys and setting boards to continuity-bearing assets while retaining one-use dressing in its scene
+contract; atomize the shot; approve its temporal storyboard and shot board, adding spatial previz only when still boards cannot prove a complex route, multi-person interaction, exact contact, axis risk, or continuous camera move;
+then bind an ordered per-shot manifest containing any plan-required motion reference, temporal storyboard, shot
+board, audio reference and video prompt. Reference-led recreation derives depth from each selected source shot; work without a reference video uses approved Blender previz directly only for shots that need it and must not manufacture a clip merely to create depth. Selected asset boards and boundary frames are optional additions.
+Missing required evidence blocks paid shot generation rather than becoming
+an instruction the model is expected to invent.
+
+When a shot contains a hard-to-reproduce visual detail—such as a countdown, changing device state,
+precise hand contact, prop state or exact pose—make a multi-cell storyboard before video generation.
+Use six cells by default, while allowing the director to choose another count when the action reads more
+accurately that way. Approve every required state and pass the board as a semantic image reference to the
+video model. If a generated shot fails, improve its prompt, board or reference contract and regenerate
+the smallest failing shot; never paint over, composite over or locally retouch the generated video.
+
+Also read [Recreation policy and P0 gates](references/playbooks/craft/recreation-policy.md). Keep source,
+dialogue and subtitle languages, audio sources, permitted picture text and subtitle finishing as separate
+project fields. Run native-frame shot analysis and explicitly forbid unwanted visible text in every video
+prompt. Before depth extraction, use `prepare-depth-source` only for an explicitly declared original
+reference. It validates and copies bytes without modifying pixels. `clean-text` is disabled; generated
+shots with unwanted text must be rejected during review and regenerated.
+
+Before paid generation, put semantic word/action anchors and their compiled frame evidence in `SHOTS.md`,
+then complete each atomic shot contract. A newly selected audiovisual Result invalidates older speech
+timing, Caption and lip-sync derivatives. Stop after two candidates fail for the same observed cause and
+return to the owning storyboard, references, continuity or model decision instead of buying another
+equivalent draw.
+
+Final generated shots default to joint picture-and-audio generation, including ambience and physical
+sound in wordless action. An explicit silent-video requirement or an Endpoint without native audio may
+waive this; record the reason before generation rather than silently disabling audio.
+
+Source dialogue may contain several languages. Detect and confirm language per utterance or speaking
+interval, retain the original text and language code for every turn, and write that code beside the exact
+line in the video prompt. Never infer spoken language from translated subtitles, collapse a multilingual
+source to one file-level language, translate a turn implicitly, or let the model switch languages.
+
+When the selected model is MiniMax H3, read the bundled
+[H3 prompt-writing guide](references/playbooks/craft/h3-prompt-writing.md) and preserve its exact
+mode-specific structure. T2VA, I2VA, FL2VA and L2VA use
+`integrated_multimodal_description`, `overall_soundscape` and `non_diegetic_music`; full-reference
+Ref2VA uses `subject_definitions`, `summary`, `retention_analysis`, `detailed_description`,
+`overall_soundscape` and `non_diegetic_music` in that order. Write these sections in English while
+preserving dialogue, lyrics and visible scene text in their original language. Verify that the
+effective request uses the H3 Surface before submitting it; never send an H3-formatted prompt through
+a Seedance Surface or reuse StarRouter Seedance `@图片N` / `@视频N` / `@音频N` prompt syntax for H3. Use the
+installed `@hypit/minimax-h3/reference-shot` Prompt Kit for reusable Ref2VA assembly.
+
 For A-roll, B-roll, Caption, MG or sound relationships, read the Craft that owns the directing question.
 Craft supplies judgment and model-selection guidance; installed vocabulary, Kits and package-local
 documentation supply the exact Surfaces, request wording, inputs and limits.
@@ -121,8 +179,9 @@ change, locate the relevant project and tools, and explain what can proceed now.
 and [executable](references/environment/distribution.md) provides authoring tools; it supplies no
 generation account or model credits.
 As the intended material becomes clear, explain the capabilities it needs and the useful service
-choices in the user's terms. HypiHub is the recommended integrated hosted service; a user's own API key
-connects the service that issued it, through an installed or project-written Provider. Service choice
+choices in the user's terms. For reference-led video recreation, recommend the bundled StarRouter or
+RunningHub route by default; keep HypiHub as the integrated hosted fallback for broader mixed-service
+work. A user's own API key connects the service that issued it, through an installed or project-written Provider. Service choice
 and credential setup are distinct. When connecting a service or explaining a missing capability,
 read [Models and Providers](references/environment/model-and-provider.md) for the decision, connection
 work and public SDK. Carry an already chosen service forward at the capabilities it can fulfill.
@@ -178,6 +237,12 @@ the material of the production, then refine how their arrangement expresses the 
 
 ## Compose and refine
 
+For reference-led recreation, produce and approve a depth video from each selected source shot before
+submitting the corresponding generated shot. Without a reference video, generate and approve Blender
+previz only when the two still boards cannot prove a complex spatial or movement risk, then bind it directly as the motion reference; do not generate a synthetic source clip and
+convert it to depth. Treat character boards as identity guidance and any chosen motion reference as
+structure, motion and camera guidance. If the selected route cannot consume it, change the route.
+
 When the Script, prompts, references and requested durations are ready, submit the material work
 within the agreed commission. Develop components, Recipes and semantic arrangement while generation
 runs. Plan shared framing needs in Treatment and direction; judge the actual overlap of pictures and
@@ -210,12 +275,11 @@ practical, revisit that choice and carry the improvement into the work and its n
 
 ## Standing responsibilities
 
-- **Money.** Before paid work, establish the billing accounts, covered work and expected cost or
-  budget the user accepts. Preserve that agreement in Brief and apply it across the commission's
-  covered transcription, generation and processing. Changes beyond its work, cost or accounts need
-  the user's decision. Account setup establishes access; the agreement establishes spending authority.
-  [Builds](references/production/builds.md#work-within-the-agreed-paid-scope) explains estimates,
-  early transcription and how authorization applies to execution.
+- **Paid work.** Before paid work, show the production plan and its quantities—such as asset boards,
+  temporal storyboards, shot boards, depth videos, audio references and generated shots—together with
+  the billing accounts that will be used. Do not calculate or present a concrete price in this confirmation
+  gate. Preserve the approved scope in Brief; additions beyond that work or those accounts need another
+  decision. A user-supplied budget remains a hard ceiling, not a price estimate.
 - **Existing work.** Reuse serves the current commission. For a continuation, carry its completed
   work forward; for a new adaptation, develop the requested target from the supplied reference and
   changes. Judge connected earlier material against that Brief and Treatment. Preserve
@@ -272,9 +336,12 @@ practical, revisit that choice and carry the improvement into the work and its n
 | writing `<script>`: current syntax, display/speech, spaces, grouping, Roles, Cue breaks, attributes or marker affinities | `references/production/script-syntax.md` |
 | placing a component in time: semantic bindings, authored clock positions, offsets, durations or what a timeline edit changes | `references/production/timing.md` |
 | project layout, picking work back up, or handing an editable production to someone else | `references/creation/project-files.md` |
+| running the complete short-drama chain, stage evidence, conditional modules or the Production Dashboard | `references/playbooks/formats/short-drama-workflow.md` |
 | directing a generated person, setting, product, B-roll image, camera view, visual reference or image prompt | `references/playbooks/craft/image-direction.md` |
 | choosing, designing or adapting a character's voice, its appeal, vocal qualities or casting sample | `references/playbooks/craft/voice-direction.md` |
 | directing generated video, deciding when performed action or camera behavior needs source footage, visible speech, silent action, cuts or request duration | `references/playbooks/craft/video-direction.md` |
+| completing setting boards and turning assets, storyboards, depth, continuity and prompts into one per-shot reference contract | `references/playbooks/craft/asset-and-shot-preproduction.md` |
+| writing copyable `ASSETS.md` / `SHOTS.md` entries, ordered reference manifests or generation gates | `references/playbooks/craft/shot-production-contracts.md` |
 | deciding who is A-roll, recurring voice identity, covered performance, independent narration or the role of supplied speech | `references/playbooks/craft/voice-and-performance.md` |
 | directing material-led pictures or B-roll: still or moving sources, visual role, composition or handoffs | `references/playbooks/craft/b-roll.md` |
 | directing a screen demonstration: real interface evidence, captured interaction, authored illustration or how the viewer follows the screen | `references/playbooks/craft/screen-demonstrations.md` |

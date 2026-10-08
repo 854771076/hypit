@@ -142,3 +142,39 @@ for (const language of ["en", "ko"]) test(`local Provider preserves ${language} 
     globalThis.fetch = originalFetch;
   }
 });
+
+test("local Provider omits auto on the wire and preserves detected language confidence", async () => {
+  const expected = wav(16_000);
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (input, init) => {
+    if (String(input).endsWith("/health")) return new Response(JSON.stringify({
+      ok: true, protocol: "hypit.whisperx-service@1", serviceVersion: "0.1.0", whisperxVersion: "3.8.6",
+      model: "small", device: "cpu", compute: "int8", batchSize: 8,
+    }));
+    const body = JSON.parse(String(init?.body)) as { readonly language?: string };
+    assert.equal(body.language, undefined);
+    return new Response(JSON.stringify({ language: "ja", language_probability: 0.91, segments: [] }));
+  }) as typeof fetch;
+  try {
+    const resources = new MemoryResourceStore();
+    const artifact = await resources.put(expected, "audio/wav");
+    const need: Need = {
+      id: "need:whisperx-auto", capability: whisperXCapabilities.alignment, returns: speechEvidenceTypes.alignedTranscript,
+      constraints: whisperXRequestForEvidenceAudio(sealSpeechEvidenceAudio({ artifact, sampleFrames: 16_000 }), { language: "auto" }),
+      result: "record:whisperx-auto",
+    };
+    const registry = new EndpointRegistry();
+    await createLocalWhisperXProvider({}).install(registry);
+    const resolved = registry.resolve(need);
+    assert.equal(resolved.status, "resolved");
+    if (resolved.status !== "resolved") throw new Error("auto language request did not resolve");
+    assert.equal(resolved.registration.kind, "immediate");
+    const output = await resolved.registration.handler({
+      command: { kind: "fulfill-need", id: "command:whisperx-auto", need }, need, resources, credentials: {},
+    });
+    assert.equal(output.value.kind, "inline");
+    assert.deepEqual(output.value.kind === "inline" ? output.value.value : null, {
+      detectedLanguage: "ja", languageConfidence: 0.91, passages: [],
+    });
+  } finally { globalThis.fetch = originalFetch; }
+});

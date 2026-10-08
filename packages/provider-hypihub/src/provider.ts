@@ -591,11 +591,18 @@ export function createHypiHubProvider(options: CreateHypiHubProviderOptions = {}
         model: transcriptionModel,
         url,
         response_format: "verbose_json",
-        language: request.language,
+        ...(request.language === "auto" ? {} : { language: request.language }),
         timestamp_granularities: ["segment", "word"],
       }, auth, async (message) => { await context.reportDiagnostic?.({ level: "info", message }); });
+      const transcript = response as WhisperXTranscriptResponse;
+      const detectedLanguage = request.language === "auto" && typeof transcript.language === "string" ? transcript.language : undefined;
+      const confidenceValue = transcript.language_probability ?? transcript.language_confidence;
+      const languageConfidence = request.language === "auto" && typeof confidenceValue === "number" && Number.isFinite(confidenceValue)
+        && confidenceValue >= 0 && confidenceValue <= 1 ? confidenceValue : undefined;
       const evidence = sealAlignedTranscriptEvidence({
-        passages: interpretWhisperXTranscript(response as WhisperXTranscriptResponse, request.sampleFrames),
+        ...(detectedLanguage === undefined ? {} : { detectedLanguage }),
+        ...(languageConfidence === undefined ? {} : { languageConfidence }),
+        passages: interpretWhisperXTranscript(transcript, request.sampleFrames),
       });
       await context.reportProgress?.({ phase: "Word timing ready" });
       return { value: { kind: "inline", value: canonicalize(evidence) } };

@@ -1,0 +1,117 @@
+{
+  "source_project": "第十四集·紫气入体",
+  "episode_key": "ep-001",
+  "shot_number": 10,
+  "test_mode": "offline-contract-only",
+  "why_selected": "该镜曾反复生成成六席全空，同时包含七名可见人物、四坐两空的硬空间状态、画外心理旁白、多人异步反应和身份连续性。",
+  "input_mode": "Ref2VA",
+  "duration": 9,
+  "derived_plan_patch": {
+    "storyboard_strategy": {
+      "mode": "image"
+    },
+    "previz_strategy": null,
+    "video_strategy": {
+      "mode": "generate",
+      "visible_character_keys": [
+        "char-laozi",
+        "char-yuanshi",
+        "char-tongtian",
+        "char-nuwa",
+        "char-dijun",
+        "char-hongyun",
+        "char-zhenyuanzi"
+      ],
+      "visible_event_keys": [
+        "dijun-robe-shift",
+        "hongyun-weight-shift"
+      ]
+    },
+    "reason": "该镜没有精确接触、复杂移动路线或连续运镜，双分镜板已能证明六席座次、轴线和三层站位；测试按新策略重新规划，不冒用历史 selected 计划中的 blender 必选声明。"
+  },
+  "storyboard_contract": {
+    "characters": [
+      { "name": "老子", "appearance": "char-laozi@v001" },
+      { "name": "元始", "appearance": "char-yuanshi@v001" },
+      { "name": "通天", "appearance": "char-tongtian@v001" },
+      { "name": "女娲", "appearance": "char-nuwa@v001" },
+      { "name": "帝俊", "appearance": "char-dijun@v001" },
+      { "name": "红云", "appearance": "char-hongyun@v001" },
+      { "name": "镇元子", "appearance": "char-zhenyuanzi@v001" }
+    ],
+    "visible_event_keys": [
+      "dijun-robe-shift",
+      "hongyun-weight-shift"
+    ]
+  },
+  "audio_policy_contract": {
+    "ambience": [
+      {
+        "range": { "start_ms": 0, "end_ms": 9000 },
+        "sound": "石殿持续底噪与远处微弱空气流动",
+        "evidence": { "source": "scene_asset", "detail": "紫霄宫大殿的石材空间与既有空气流动" }
+      }
+    ],
+    "action_sounds": [
+      {
+        "range": { "start_ms": 1800, "end_ms": 2400 },
+        "sound": "帝俊转头时近左侧衣袖轻响并迅速衰减",
+        "evidence_event_key": "dijun-robe-shift"
+      },
+      {
+        "range": { "start_ms": 4200, "end_ms": 4700 },
+        "sound": "红云后撤时后排中央衣料与鞋底轻响",
+        "evidence_event_key": "hongyun-weight-shift"
+      }
+    ]
+  },
+  "reference_plan": {
+    "images": [
+      "char-laozi@v001",
+      "char-yuanshi@v001",
+      "char-tongtian@v001",
+      "char-nuwa@v001",
+      "char-dijun@v001",
+      "char-hongyun@v001",
+      "char-zhenyuanzi@v001",
+      "board-ep001-temporal-010@v003",
+      "board-ep001-shot-010@v003"
+    ],
+    "videos": [],
+    "audios": [
+      "audio-ep001-reference-010@v002"
+    ],
+    "omitted_optional_references": [
+      "scene-zixiao-hall@v002",
+      "other-previz-ep001-010@v001"
+    ],
+    "reason": "九个图片槽优先保留七名可见人物和双分镜板；白模已降级为可选，本镜用双板锁定站位和时间顺序，场景外观写入提示词。"
+  },
+  "hard_spatial_contract": {
+    "seat_count": 6,
+    "left_to_right": [
+      "老子坐第一席",
+      "元始坐第二席",
+      "通天坐第三席",
+      "女娲坐第四席",
+      "第五席空置",
+      "第六席空置"
+    ],
+    "other_blocking": [
+      "帝俊位于画面左侧中景柱旁，不占蒲团",
+      "红云位于后排偏中，不向空席移动",
+      "镇元子位于后排偏右，不向空席移动"
+    ]
+  },
+  "prompt": "subject_definitions:\n<Subject 1> is Laozi from <Picture 1>, seated on cushion one in an ivory, grey and muted-gold disciple robe.\n<Subject 2> is Yuanshi from <Picture 2>, seated on cushion two in a jade-white and deep-gold disciple robe.\n<Subject 3> is Tongtian from <Picture 3>, seated on cushion three in a dark-cyan and silver-grey disciple robe.\n<Subject 4> is Nuwa from <Picture 4>, seated on cushion four in a jade-white and celadon layered robe.\n<Subject 5> is Dijun from <Picture 5>, standing beside the left midground column in a black-and-gold imperial robe and black-gold crown. His performance constraints are: stable weight slightly back; unhurried movement; judge with a side glance before turning; sparse irregular blinks; under pressure preserve a relaxed mask before breath catches; never play the line as broad comedy and never hold a wide-eyed stare.\n<Subject 6> is Hongyun from <Picture 6>, standing in the rear center in muted dark-red and grey-brown robes. His performance constraints are: contained weight away from the empty cushions; avoid the front-row dispute; natural unscheduled blinks; never steal focus.\n<Subject 7> is Zhenyuanzi from <Picture 7>, standing in the rear right in ochre and ink-green robes. His performance constraints are: grounded rear-row stance; observe the front without joining the contest; natural unscheduled blinks; never steal focus.\n<Picture 8> is the approved temporal storyboard, used only for chronological state order.\n<Picture 9> is the approved shot board, used only for framing, the center axis, exact seat occupancy and actor blocking.\n<Audio 1> is the Mandarin timing and performance reference; follow its words, pauses and perspective without copying its waveform.\n\nsummary:\n[reference generation + native audio] A single nine-second live-action mythic Chinese cinema shot establishes six cushions with exactly four occupied and two empty, then reveals Dijun privately judging Hongyun and Zhenyuanzi in the rear row.\n\nretention_analysis:\n<Subject 1>: fully_preserved - retain Laozi's approved face, crown, hair, costume, body proportion and first-seat assignment.\n<Subject 2>: fully_preserved - retain Yuanshi's approved face, crown, hair, costume, body proportion and second-seat assignment.\n<Subject 3>: fully_preserved - retain Tongtian's approved face, crown, hair, costume, body proportion and third-seat assignment.\n<Subject 4>: fully_preserved - retain Nuwa's approved face, hair ornaments, costume, body proportion and fourth-seat assignment.\n<Subject 5>: fully_preserved - retain Dijun's approved face, crown, hair, costume, body proportion and left-midground standing position.\n<Subject 6>: fully_preserved - retain Hongyun's approved face, hair, costume, body proportion and rear-center standing position.\n<Subject 7>: fully_preserved - retain Zhenyuanzi's approved face, hair, costume, body proportion and rear-right standing position.\n<Picture 8>: weak_reference - retain only chronological action phases; never render a grid, border, number or storyboard medium.\n<Picture 9>: weak_reference - retain exact left-to-right occupancy, depth, axis and eyelines; never render annotations or panel layout.\n<Audio 1>: reference - retain the exact Mandarin words, timing, pauses and restrained internal delivery while generating the final native voice.\n\ndetailed_description:\nThe final video must be one single continuous cinematic frame filling the entire screen; no grid, split screen, panels, collage, dividing lines, panel numbers, or any multi-image composition.\nThe source video must contain no generated subtitles, captions, titles, labels, logos, watermarks, UI text, or any other readable text; all approved text must be added only in post-production.\nThe panels in the reference storyboard indicate only the chronological order of actions and narrative keyframes; never render panel borders, dividing lines, numbers, or side-by-side multiple panels in the final video.\nLive-action mythic Chinese epic cinema inside Zixiao Palace: cool celadon stone, charcoal shadows, restrained antique-gold light from the high dais, believable skin and silk, soft highlight roll-off, subtle film grain. Keep the audience-side camera on the hall center axis with one very slow motivated push that settles by 7.8 seconds; no orbit, drift or reframing after it settles.\nFrom 0.00 to 1.80 seconds, the composition makes the count unambiguous: exactly six separate cushions in one front row. From screen left to right, Laozi occupies cushion one, Yuanshi occupies cushion two, Tongtian occupies cushion three, Nuwa occupies cushion four, cushion five is empty, and cushion six is empty. No additional cushion, duplicate body or replacement sitter appears. Dijun stands beside the left midground column and occupies no cushion. Hongyun stands in the rear center and Zhenyuanzi in the rear right, both visibly separated from the two empty cushions.\nFrom 1.80 to 3.20 seconds, after the empty pair becomes readable, Dijun's eyes move first from cushions five and six toward Hongyun and Zhenyuanzi; his head follows by only a small amount while his shoulders and weight remain relaxed. His lips remain naturally closed because the line is internal narration. A faint tightening of the lower eyelid begins, peaks briefly, then releases into the social mask.\nFrom 3.20 to 6.80 seconds, <Subject 5> says in an off-screen internal voiceover, <d>[zh-CN] 看来上次他俩哭爹喊娘的也没能让鸿钧收为座下弟子，这次听道，连蒲团都不敢坐了。</d> Hongyun notices the glance after a short delay, lowers his eyes toward the floor beside the empty cushions, makes one small backward weight adjustment, then becomes still. Zhenyuanzi reacts later and independently: his eyes check Hongyun without turning his torso, then return toward the dais. They never turn, blink, nod or shift weight on the same beat. The four seated figures remain four distinct people in their assigned seats; their subdued breathing, gaze refocus and irregular blinks occur at different times and never become a synchronized group gesture.\nFrom 6.80 to 8.20 seconds, on the final clause, only one corner of Dijun's mouth lifts slightly while the jaw stays relaxed; the change reaches a brief low-amplitude peak and releases, leaving a controlled trace of private irony. Hair, sleeve hems and crown tassels move only from breathing or the existing faint hall air, with smaller delayed motion that damps naturally; no windless flutter.\nFrom 8.20 to 9.00 seconds, hold the verified result: seats one through four remain occupied by the same four people, seats five and six remain empty, Dijun remains left midground, Hongyun rear center and Zhenyuanzi rear right. No one approaches or sits on an empty cushion. No purple energy, portal, arrow, annotation, random text or invented figure appears.\nThe final video must be one single continuous cinematic frame filling the entire screen; no grid, split screen, panels, collage, dividing lines, panel numbers, or any multi-image composition.\n\noverall_soundscape:\n0.00-9.00: a continuous low stone-hall room tone with distant soft air and very faint cloth movement, preserving the same reflection and noise floor across the shot. 1.80-3.20: Dijun's small robe movement is close-left and decays immediately; no footsteps because nobody walks. 3.20-8.20: the internal Mandarin narration is dry, intimate and centered, moving from restrained observation through private irony to a controlled landing; quiet preparation breath, short punctuation pauses, no rushed ending. Duck the hall tone gently under the voice without removing it. Hongyun's weight shift creates one soft rear-center fabric-and-sole sound synchronized to the visible movement. No visible mouth speaks, no energy hum, no crane-wing effect and no undeclared music.\n\nnon_diegetic_music:\nN/A",
+  "offline_assertions": [
+    "恰好九张图片参考，未超过 H3 图片槽限制",
+    "白模视频为零且不阻塞 standard 镜头",
+    "四坐两空在首帧、动作段和镜尾重复锁定",
+    "七名人物身份和站位均有唯一归属",
+    "帝俊、红云、镇元子反应错峰，禁止集体同步",
+    "心理戏由刺激、眼神、面具、泄露、决定和残留组成",
+    "旁白不驱动画内嘴部，环境底与动作声有来源和停止点",
+    "无脚步、紫气声或其他无画面证据的声音"
+  ]
+}

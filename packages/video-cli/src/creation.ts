@@ -21,7 +21,7 @@ import { speechEvidenceTypes } from "@hypit/speech-evidence";
 import type { AlignedTranscriptEvidence } from "@hypit/speech-evidence";
 import { sealText } from "@hypit/text";
 import { whisperXCapabilities, whisperXRequestForEvidenceAudio } from "@hypit/whisperx";
-import { parseWhisperXLanguage } from "@hypit/whisperx";
+import { parseWhisperXLanguage, parseWhisperXLanguageSelection } from "@hypit/whisperx";
 
 import { videoCliDistribution } from "./distribution.js";
 import { runProcess } from "./process.js";
@@ -279,10 +279,20 @@ function passagesInSeconds(aligned: AlignedTranscriptEvidence): readonly Transcr
 }
 
 async function transcribe(argv: readonly string[], io: CliIo, environment: CreationEnvironment): Promise<void> {
-  const parsed = parseArguments(argv, ["--language", "--to", "--runtime", "--workspace"]);
+  const parsed = parseArguments(argv, ["--language", "--confirm-language", "--confidence-threshold", "--dialogue-language", "--subtitle-language", "--to", "--runtime", "--workspace"]);
   assert(parsed.positionals.length === 1, "transcribe takes exactly one audio or video file");
   const source = resolve(environment.cwd, parsed.positionals[0]!);
-  const language = parseWhisperXLanguage(parsed.options.get("--language"), "transcribe --language");
+  const selection = parseWhisperXLanguageSelection(parsed.options.get("--language"), "transcribe --language");
+  const confirmed = parsed.options.has("--confirm-language")
+    ? parseWhisperXLanguage(parsed.options.get("--confirm-language"), "transcribe --confirm-language") : undefined;
+  const threshold = Number(parsed.options.get("--confidence-threshold") ?? 0.8);
+  assert(Number.isFinite(threshold) && threshold >= 0 && threshold <= 1,
+    "transcribe --confidence-threshold must be between 0 and 1");
+  const subtitleLanguage = parsed.options.get("--subtitle-language");
+  assert(subtitleLanguage === undefined || /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/u.test(subtitleLanguage),
+    "transcribe --subtitle-language must be a language tag such as zh-CN");
+  const requestedDialogueLanguage = parsed.options.has("--dialogue-language")
+    ? parseWhisperXLanguage(parsed.options.get("--dialogue-language"), "transcribe --dialogue-language") : undefined;
   const to = await destination(parsed, environment.cwd);
   const { profile, host } = await environment.openHost(
     parsed.options.get("--runtime"),
@@ -292,34 +302,69 @@ async function transcribe(argv: readonly string[], io: CliIo, environment: Creat
   const resources = new MemoryResourceStore();
   const artifact = await resources.put(evidence.bytes, "audio/wav");
   const audio = sealSpeechEvidenceAudio({ artifact, sampleFrames: evidence.sampleFrames });
-  const need: Need = {
-    id: "need:hypit-transcribe",
-    capability: whisperXCapabilities.alignment,
-    returns: speechEvidenceTypes.alignedTranscript,
-    constraints: whisperXRequestForEvidenceAudio(audio, { language }),
-    result: "record:hypit-transcribe",
-  };
-  const provider = await selectedProvider(host, need, profile);
-  if (!parsed.json) io.write(`Transcribing through ${providerLine(provider)}\n`);
   const report = parsed.json ? io.writeProgress : io.writeProgress ?? io.write;
-  let previousPhase: string | undefined;
-  const fulfillment = await host.invoke(need, resources, {
-    reportProgress: async (progress) => {
-      if (progress.phase === previousPhase) return;
-      previousPhase = progress.phase;
-      report?.(`  · ${progress.phase}\n`);
-    },
-    reportDiagnostic: async (diagnostic) => { report?.(`  · ${diagnostic.message}\n`); },
-  });
-  assert(fulfillment.value.kind === "inline", "the transcript came back by reference");
-  const passages = passagesInSeconds(fulfillment.value.value as unknown as AlignedTranscriptEvidence);
+  const invoke = async (language: string, stage: string): Promise<{
+    readonly evidence: AlignedTranscriptEvidence;
+    readonly provider: RuntimeHostCapabilityProvider;
+  }> => {
+    const need: Need = {
+      id: `need:hypit-transcribe-${stage}`,
+      capability: whisperXCapabilities.alignment,
+      returns: speechEvidenceTypes.alignedTranscript,
+      constraints: whisperXRequestForEvidenceAudio(audio, { language }),
+      result: `record:hypit-transcribe-${stage}`,
+    };
+    const provider = await selectedProvider(host, need, profile);
+    if (!parsed.json) io.write(`Transcribing through ${providerLine(provider)}\n`);
+    let previousPhase: string | undefined;
+    const fulfillment = await host.invoke(need, resources, {
+      reportProgress: async (progress) => {
+        if (progress.phase === previousPhase) return;
+        previousPhase = progress.phase;
+        report?.(`  · ${progress.phase}\n`);
+      },
+      reportDiagnostic: async (diagnostic) => { report?.(`  · ${diagnostic.message}\n`); },
+    });
+    assert(fulfillment.value.kind === "inline", "the transcript came back by reference");
+    return { evidence: fulfillment.value.value as unknown as AlignedTranscriptEvidence, provider };
+  };
+  let language = selection;
+  let detection: { readonly language: string; readonly confidence: number; readonly threshold: number } | undefined;
+  let fulfilled: Awaited<ReturnType<typeof invoke>>;
+  if (selection === "auto") {
+    const detected = await invoke("auto", "detect");
+    const detectedLanguage = parseWhisperXLanguage(detected.evidence.detectedLanguage, "detected source language");
+    const confidence = detected.evidence.languageConfidence;
+    assert(typeof confidence === "number" && Number.isFinite(confidence),
+      `Language detection for ${detectedLanguage} returned no confidence; rerun with --confirm-language ${detectedLanguage}`);
+    detection = { language: detectedLanguage, confidence, threshold };
+    if (confidence < threshold && confirmed === undefined) {
+      throw new Error(`Detected source language ${detectedLanguage} with confidence ${confidence}, below ${threshold}; rerun with --confirm-language ${detectedLanguage} or another explicit code`);
+    }
+    language = confirmed ?? detectedLanguage;
+    fulfilled = await invoke(language, "confirmed");
+  } else {
+    assert(confirmed === undefined, "--confirm-language is only valid with --language auto");
+    fulfilled = await invoke(language, "explicit");
+  }
+  const passages = passagesInSeconds(fulfilled.evidence);
+  const dialogueLanguage = requestedDialogueLanguage ?? language;
   const words = passages.reduce((total, passage) => total + passage.words.length, 0);
   const file = {
     format: "hypit.transcript@1",
     source,
     language,
+    source_language: language,
+    dialogue_language: dialogueLanguage,
+    ...(subtitleLanguage === undefined ? {} : { subtitle_language: subtitleLanguage }),
+    ...(detection === undefined ? {} : { detection }),
     audio_seconds: round(evidence.sampleFrames / EVIDENCE_SAMPLE_RATE),
     passages,
+    tracks: {
+      original: { language, passages },
+      translation: { status: "pending", ...(dialogueLanguage === language ? {} : { language: dialogueLanguage }) },
+      subtitles: { status: "pending_postproduction", ...(subtitleLanguage === undefined ? {} : { language: subtitleLanguage }) },
+    },
   };
   await writeNew(to, `${JSON.stringify(file, null, 2)}\n`);
   const view = {
@@ -328,7 +373,7 @@ async function transcribe(argv: readonly string[], io: CliIo, environment: Creat
     language,
     audio_seconds: file.audio_seconds,
     extracted: evidence.extracted,
-    ...providerView(provider),
+    ...providerView(fulfilled.provider),
     passages: passages.length,
     words,
     path: to,
@@ -435,10 +480,14 @@ export function writeCreationHelp(io: CliIo, topic?: CreationCommand): void {
       "hypit transcribe",
       "Establish word times with the whisperx-alignment Endpoint of the selected Runtime Profile.",
       "",
-      "  hypit transcribe <audio|video> --to <transcript.json> --language <code> [--runtime <profile>] [--workspace <project>]",
+      "  hypit transcribe <audio|video> --to <transcript.json> --language <code|auto>",
+      "                   [--confirm-language <code>] [--confidence-threshold <0..1>]",
+      "                   [--dialogue-language <code>] [--subtitle-language <tag>]",
+      "                   [--runtime <profile>] [--workspace <project>]",
       "",
       "Extracts 16 kHz mono speech audio with ffmpeg and writes every word with its start and end in",
-      "seconds. One immediate request; no Build, Result or state.",
+      "seconds. Auto detects language, requires confirmation below the threshold, then retranscribes",
+      "with an explicit code. It creates no Build or Result.",
     ],
     measure: [
       "hypit measure",

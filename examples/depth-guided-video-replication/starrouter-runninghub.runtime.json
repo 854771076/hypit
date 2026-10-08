@@ -1,0 +1,38 @@
+{
+  "format": "hypit.runtime-local@1",
+  "dataRoot": ".hypit/runtimes/starrouter-runninghub",
+  "credentials": {
+    "platform": { "use": "@hypit/credential-store-platform" }
+  },
+  "endpoints": {
+    "runninghub.depth": {
+      "use": "@hypit/provider-runninghub",
+      "config": {
+        "apiKey": { "store": "platform", "key": "runninghub.api-key" },
+        "defaultConcurrency": 2
+      }
+    },
+    "starrouter.video": {
+      "use": "@hypit/provider-starrouter",
+      "config": {
+        "apiKey": { "store": "platform", "key": "starrouter.api-key" },
+        "publicAssets": {
+          "bucket": "hypit-media",
+          "prefix": "starrouter",
+          "region": "auto",
+          "endpoint": "https://ACCOUNT_ID.r2.cloudflarestorage.com",
+          "forcePathStyle": true,
+          "publicBaseUrl": "https://media.example.com",
+          "accessKeyId": { "store": "platform", "key": "media.access-key-id" },
+          "secretAccessKey": { "store": "platform", "key": "media.secret-access-key" }
+        },
+        "defaultConcurrency": 2
+      }
+    }
+  },
+  "bindings": {
+    "@hypit/depth-video@1#depth-video": "runninghub.depth",
+    "@hypit/minimax-h3@1#minimax-h3": "starrouter.video",
+    "@hypit/seedance@1#seedance-2": "starrouter.video"
+  }
+}

@@ -1,0 +1,9 @@
+<?svml using="@hypit/run-markup@1"?>
+
+<svrun version="1">
+  <author source="./depth-reference.svml"/>
+  <target output="generated-shot.video"/>
+  <build-record id="approved-depth"
+    build="bld_20260923T000000000Z_0000000001" output="depth-map.video"/>
+  <satisfy output="depth-map.video" candidate="approved-depth"/>
+</svrun>

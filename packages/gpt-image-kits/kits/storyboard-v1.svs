@@ -1,0 +1,20 @@
+<?svml using="@hypit/text/svs@1"?>
+
+<sheet version="1" id="storyboard-v1">
+  text-template.storyboard-v1 {
+    separator: paragraph;
+    default-board-type: single-frame;
+  }
+
+  text-template.storyboard-v1.block.purpose { kind: fixed; order: 10; text: "Create production evidence for one atomic shot. Preserve the selected character, appearance version, location geometry, prop state, visual bible, and screen direction from the connected references."; }
+  text-template.storyboard-v1.block.board-type { kind: axis; order: 20; parameter: board-type; }
+  text-template.storyboard-v1.choice.board-type.single-frame { text: "BOARD TYPE — SINGLE FRAME: produce one full-frame image for the decisive composition or approved first/last state. No grid, split screen, border, inset, or alternate angle."; }
+  text-template.storyboard-v1.choice.board-type.temporal { text: "BOARD TYPE — TEMPORAL STORYBOARD: produce a clean ordered multi-cell board showing successive states inside one continuous shot. Default to six clearly ordered cells; choose fewer or more only when the action can be represented more accurately and legibly. Keep one camera relationship and one time/place; each cell advances the same action from onset through contact/change to a briefly stable tail."; }
+  text-template.storyboard-v1.choice.board-type.shot-board { text: "BOARD TYPE — SHOT BOARD: produce a clean ordered multi-cell board that resolves coverage, speaker/listener staging, blocking, hand ownership, prop contact, or a narrative beat sequence. Default to six clearly ordered cells; choose fewer or more only when the beat structure requires it. Each cell is a distinct intended view or beat, not an alternate design."; }
+  text-template.storyboard-v1.block.shot { kind: slot; order: 30; slot: shot; optional: false; label: "ATOMIC SHOT CONTRACT:"; }
+  text-template.storyboard-v1.block.continuity { kind: slot; order: 40; slot: continuity; optional: false; label: "START/END CONTINUITY:"; }
+  text-template.storyboard-v1.block.references { kind: slot; order: 50; slot: references; optional: true; label: "REFERENCE RESPONSIBILITIES:"; }
+  text-template.storyboard-v1.block.style { kind: slot; order: 60; slot: style; optional: true; label: "VISUAL BIBLE:"; }
+  text-template.storyboard-v1.block.text { kind: slot; order: 70; slot: visible-text; optional: true; label: "APPROVED VISIBLE STORY TEXT ONLY:"; }
+  text-template.storyboard-v1.block.hygiene { kind: fixed; order: 80; text: "Make character count, left/right and depth order, gaze, limb ownership, contact points, held props, camera side, light direction, and action progression unambiguous. For every hard-to-reproduce detail such as a countdown, display change, hand contact, prop state, or exact pose, show each required exact state in its own cell. This approved board becomes a semantic reference for the video model; it must communicate state and order without becoming a literal grid in the generated video. Add no captions, panel labels, arrows, watermarks, UI, or readable text except the explicitly approved story text above. Do not add new people, props, weather, architecture, lighting effects, or action facts."; }
+</sheet>

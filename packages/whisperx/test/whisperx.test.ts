@@ -62,9 +62,14 @@ test("SVML language reaches the alignment request without a service-support tabl
   }
 });
 
-test("language spelling is explicit; auto-detection and locale aliases are not guessed", () => {
+test("authored language stays explicit while Provider requests may select auto detection", () => {
   for (const language of [undefined, "", "auto", "und", "KO", "zh-CN", "korean", " ko ", 42]) {
     assert.throws(() => parseWhisperXLanguage(language), /explicit lowercase/u);
+  }
+  assert.equal(verifyWhisperXAlignmentRequest({
+    ...whisperXRequestForEvidenceAudio(evidenceAudio(), { language: "auto" }), language: "auto",
+  }).language, "auto");
+  for (const language of [undefined, "", "und", "KO", "zh-CN", "korean", " ko ", 42]) {
     assert.throws(() => verifyWhisperXAlignmentRequest({
       ...whisperXRequestForEvidenceAudio(evidenceAudio(), { language: "en" }), language,
     }), /explicit lowercase/u);

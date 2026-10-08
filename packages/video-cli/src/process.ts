@@ -12,10 +12,20 @@ function run(
   onStderrLine?: (line: string) => void,
 ): Promise<ProcessOutput> {
   return new Promise((resolveRun, reject) => {
-    const child = spawn(executable, [...args], { stdio: [input === undefined ? "ignore" : "pipe", "pipe", "pipe"], windowsHide: true });
+    const grouped = process.platform !== "win32";
+    const child = spawn(executable, [...args], {
+      stdio: [input === undefined ? "ignore" : "pipe", "pipe", "pipe"], windowsHide: true, detached: grouped,
+    });
     const out: Buffer[] = [];
     let err = "";
     let settled = false;
+    let timedOut = false;
+    const stopTree = (): void => {
+      if (grouped && child.pid !== undefined) {
+        try { process.kill(-child.pid, "SIGKILL"); return; } catch {}
+      }
+      child.kill("SIGKILL");
+    };
     const finish = (error?: Error): void => {
       if (settled) return;
       settled = true;
@@ -23,7 +33,7 @@ function run(
       if (error === undefined) resolveRun({ stdout: Buffer.concat(out), stderr: err });
       else reject(error);
     };
-    const timer = setTimeout(() => { child.kill("SIGKILL"); finish(new Error(`${executable} timed out after ${timeoutMs} ms`)); }, timeoutMs);
+    const timer = setTimeout(() => { timedOut = true; stopTree(); }, timeoutMs);
     child.stdout?.on("data", (chunk: Buffer) => out.push(chunk));
     let pendingLine = "";
     child.stderr?.on("data", (chunk: Buffer) => {
@@ -37,7 +47,8 @@ function run(
     });
     child.on("error", (error) => finish(new Error(`${executable} could not start: ${error.message}`)));
     child.on("close", (code) => {
-      if (code === 0) finish();
+      if (timedOut) finish(new Error(`${executable} timed out after ${timeoutMs} ms`));
+      else if (code === 0) finish();
       else finish(new Error(`${executable} exited with ${code}: ${err.trim()}`));
     });
     if (input !== undefined && child.stdin !== null) {
@@ -52,7 +63,7 @@ function run(
         child.stdin!.end();
       })().catch((error: unknown) => {
         if (!(error instanceof Error && "code" in error && error.code === "EPIPE")) {
-          child.kill("SIGKILL");
+          stopTree();
           finish(error instanceof Error ? error : new Error(String(error)));
         }
       });

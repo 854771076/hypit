@@ -134,7 +134,7 @@ export type PlanOutput = {
   readonly omittedChoices?: number;
   readonly unreached?: readonly { readonly output: string; readonly operation: string }[];
   readonly omittedUnreached?: number;
-  /** Present only when a Runtime Profile was selected; the Endpoint and price page behind each capability. */
+  /** Present only when a Runtime Profile was selected; the Endpoint behind each capability. */
   readonly providers?: readonly PlanProvider[];
   /** Every external request the Build will make, in step order, with its parameters when known. */
   readonly needs?: readonly PlanNeed[];
@@ -143,10 +143,11 @@ export type PlanOutput = {
 
 /** Output scope is independent of encoding. Limits apply to expanded detail, not demanded work. */
 export function createPlanOutput(plan: PlanOutput, options: { readonly verbose: boolean; readonly limit: number }): PlanOutput {
-  const { steps, choices = [], unreached = [], preflight, ...summary } = plan;
+  const { steps, choices = [], unreached = [], preflight, providers, ...summary } = plan;
   const limit = options.limit;
   return {
     ...summary,
+    ...(providers === undefined ? {} : { providers: providers.map(({ pricing: _pricing, ...provider }) => provider) }),
     ...(options.verbose ? {
       steps,
       choices: choices.slice(0, limit),
@@ -471,7 +472,9 @@ function groupedNeedLines(needs: readonly PlanNeed[], colors: Palette, verbose: 
     groups.set(key, [...(groups.get(key) ?? []), need]);
   }
   return [...groups.values()].map((group) => {
-    const who = group.length === 1 || verbose ? colors.dim(group.map((need) => stepLabel(need.step)).join(", ")) : "";
+    const labels = group.map((need) => stepLabel(need.step));
+    const shown = verbose ? labels : labels.slice(0, 3);
+    const who = colors.dim(`${shown.join(", ")}${shown.length === labels.length ? "" : ` (+${labels.length - shown.length})`}`);
     const count = `×${group.length}`.padStart(4);
     return `    ${colors.dim(count)}  ${needSummaryText(group)}${who.length === 0 ? "" : `  ${who}`}`;
   });
@@ -483,7 +486,6 @@ function providerGroupKey(provider: PlanProvider): string {
     status: provider.status,
     endpoint: provider.endpoint,
     use: provider.use,
-    pricing: provider.pricing,
     endpoints: provider.endpoints,
     rejections: provider.rejections,
     binding: provider.binding,
@@ -527,8 +529,8 @@ function renderPlan(
     ] as const]),
     ...(!verbose || view.machine.steps === undefined ? [] : [["Steps", String(view.machine.steps)] as const]),
   ], colors));
+  if (view.machine.requestCount > 0) lines.push("", colors.strong("Production plan"));
   if (view.machine.providers !== undefined) {
-    if (view.machine.providers.length > 0) lines.push("", colors.strong("Providers and price pages"));
     const groups = new Map<string, PlanProvider[]>();
     for (const provider of view.machine.providers) {
       const key = providerGroupKey(provider);
@@ -549,13 +551,8 @@ function renderPlan(
           : item.binding === undefined
             ? colors.error("no selected Endpoint accepts this request")
             : colors.error(`bound to ${item.binding}, which does not offer it`);
-      const price = item.pricing === undefined
-        ? (item.status === "resolved" ? colors.warning("price source unknown") : undefined)
-        : item.pricing.kind === "local"
-          ? colors.dim("local, no Provider charge")
-          : item.pricing.url;
       lines.push(`  ${colors.accent(verbose ? item.capability : capabilityLabel(item.capability))}`);
-      lines.push(`    ${where}${price === undefined ? "" : `  ·  ${price}`}`);
+      lines.push(`    ${where}`);
       const requests = new Set(group.map((provider) => provider.request));
       lines.push(...groupedNeedLines((view.machine.needs ?? []).filter((need) => requests.has(need.request)), colors, verbose));
     }
@@ -564,12 +561,11 @@ function renderPlan(
     for (const need of view.machine.needs ?? []) {
       byCapability.set(need.capability, [...(byCapability.get(need.capability) ?? []), need]);
     }
-    if (byCapability.size > 0) lines.push("", colors.strong("Requests"));
     for (const [capability, needs] of byCapability) {
       lines.push(`  ${colors.accent(verbose ? capability : capabilityLabel(capability))}`);
       lines.push(...groupedNeedLines(needs, colors, verbose));
     }
-    lines.push("", colors.dim("Pass --runtime <profile> to see the Endpoint and price page behind each request."));
+    lines.push("", colors.dim("Pass --runtime <profile> to verify which Endpoint will handle each request."));
   }
   const unreached = view.machine.unreached ?? [];
   if (verbose && unreached.length > 0) {
@@ -817,7 +813,7 @@ function commandHelp(topic: string, colors: Palette): readonly string[] | undefi
       "  hypit plan <run-source> [--runtime <profile>] [--workspace <workspace>] [--asset-root <directory>]",
       "",
       "With --runtime, plan also preflights only the demanded deployment slice and names the Provider",
-      "and price page behind each external request.",
+      "behind each external request. The confirmation view shows production work and quantities, not prices.",
       "--verbose expands Run choices and unreached declarations. --limit bounds that detail,",
       "while all demanded requests and diagnostics remain visible in both text and JSON.",
       "Planning never starts external work.",

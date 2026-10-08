@@ -34,6 +34,23 @@ test("inspection chooses its scope before following any Output reference", async
   assert.equal(detailed.omittedOutputs, 51);
 });
 
+test("result inspection separates missing targets from reusable intermediate outputs", async () => {
+  const manifest = {
+    id: "bld_20260913T093030369Z_55907CDA9E", source: { path: "main.svml" },
+    targets: ["final.video"], outputs: {
+      "prompt-a.text": { type: { module: { name: "@hypit/text", version: "1" }, name: "Text" }, value: { kind: "inline", value: "A" } },
+      "prompt-b.text": { type: { module: { name: "@hypit/text", version: "1" }, name: "Text" }, value: { kind: "inline", value: "B" } },
+    }, outcome: "failed",
+  } as unknown as BuildResultManifest;
+  const repository = { describeOutput: async () => { throw new Error("default inspection must not open intermediate Outputs"); } } as unknown as BuildResultRepository;
+  const view = await buildResultView(repository, manifest, { projectRoot: "/project", limit: 20 });
+  assert.equal(view.availableTargetCount, 0);
+  assert.equal(view.targetCount, 1);
+  assert.equal(view.reusableOutputCount, 2);
+  assert.equal(view.outputCount, 2);
+  assert.deepEqual(view.outputTypes, [{ type: "@hypit/text@1/Text", count: 2, targetCount: 0 }]);
+});
+
 test("status groups identical active requests and retains late failures without verbose", () => {
   const pending = Array.from({ length: 30 }, (_, index) => ({
     id: `op-${index}`, endpoint: "chosen", status: "pending", receipt: { id: `remote-${index}` },

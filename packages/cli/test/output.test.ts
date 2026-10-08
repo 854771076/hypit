@@ -108,7 +108,7 @@ test("plan presents useful choices and readable requests without default graph i
   assert.match(verbose, /take\.video\s+← preview/u);
 });
 
-test("plan names the Provider and price page behind each request, and points at --runtime when it cannot", () => {
+test("plan presents the production work without price material", () => {
   const base = {
     format: "hypit.cli-plan@1",
     ok: true,
@@ -122,8 +122,8 @@ test("plan names the Provider and price page behind each request, and points at 
     choices: [],
   } as const;
   const without = capture(human, { kind: "plan", machine: base });
-  assert.match(without, /Pass --runtime <profile>/u);
-  assert.doesNotMatch(without, /Providers and price pages/u);
+  assert.match(without, /Production plan/u);
+  assert.doesNotMatch(without, /price|pricing|commercial\/pricing/iu);
 
   const output = capture(human, { kind: "plan", machine: { ...base, providerRequestCount: 2, localRequestCount: 1, unresolvedRequestCount: 0, unsupportedRequestCount: 1, providers: [
     {
@@ -155,15 +155,21 @@ test("plan names the Provider and price page behind each request, and points at 
     summary: { fields: { prompt: "42 chars", duration: 10, resolution: "720p" }, references: { image: 1 } },
     pending: [{ input: "referenceImages", record: "presenter:image", sourceStep: "presenter.generate", kind: "image" }],
   }] } });
-  assert.match(output, /Providers and price pages/u);
-  assert.match(output, /@hypit\/seedance#seedance-2-mini\n\s+hypihub\.default \(@hypit\/provider-hypihub\)\s+·\s+https:\/\/hypit\.ai\/commercial\/pricing\//u);
-  assert.match(output, /media\.local .*·\s+local, no Provider charge/u);
-  assert.match(output, /whisperx\.remote .*·\s+price source unknown/u);
+  assert.match(output, /Production plan/u);
+  assert.match(output, /@hypit\/seedance#seedance-2-mini\n\s+hypihub\.default \(@hypit\/provider-hypihub\)/u);
+  assert.match(output, /media\.local/u);
+  assert.match(output, /whisperx\.remote/u);
+  assert.doesNotMatch(output, /price|pricing|commercial\/pricing/iu);
   assert.match(output, /Unsupported\s+1/u);
   assert.match(output, /gpt-image#gpt-image-2\n\s+hypihub\.default: transparent background is available only at 1K; requested 2K\n/u);
   assert.match(output, /prompt 42 chars · duration 10 · resolution 720p · 1 image reference · input produced during Build/u);
   assert.doesNotMatch(output, /Pass --runtime/u);
   assert.doesNotMatch(output, /seedance@1#/u);
+  const machine = createPlanOutput({ ...base, providers: [{
+    request: "seedance:one", capability: "@hypit/seedance@1#seedance-2-mini", status: "resolved",
+    endpoint: "hypihub.default", pricing: { kind: "page", url: "https://hypit.ai/commercial/pricing/" },
+  }] }, { verbose: false, limit: 20 });
+  assert.equal("pricing" in machine.providers![0]!, false);
 
   const verbose = capture({ ...human, verbose: true }, { kind: "plan", machine: { ...base, providers: [
     { request: "seedance:one", capability: "@hypit/seedance@1#seedance-2-mini", status: "ambiguous", endpoints: ["hypihub.default", "images.personal"] },

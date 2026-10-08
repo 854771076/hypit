@@ -97,6 +97,9 @@ project/
 │   └── <target>/
 │       ├── BRIEF.md
 │       ├── TREATMENT.md
+│       ├── RECREATION.yaml      # reference-led language, audio, picture-text and shot policies
+│       ├── ASSETS.md            # continuity-bearing inventory, versions and selected setting boards
+│       ├── SHOTS.md             # atomic shots, boards, reference manifests and continuity states
 │       ├── PROGRESS.md
 │       ├── authors/
 │       ├── recipes/
@@ -144,6 +147,14 @@ referenced in place; its documentary role does not require a duplicate.
   [agreed paid scope](brief.md#brief-preserves-user-authority).
 - `TREATMENT.md` is the director's current answer to the Brief: the intended new piece in complete
   creative terms, before implementation details.
+- `RECREATION.yaml` exists for reference-led work and keeps source/dialogue/subtitle languages,
+  audio sources, permitted picture text, subtitle finishing and shot segmentation as separate fields.
+  Follow [Recreation policy and P0 gates](../playbooks/craft/recreation-policy.md); never collapse these
+  policies into a generation prompt.
+- `ASSETS.md` inventories characters, scenes, props and recurring voices whose identity or state must
+  survive cuts, including unresolved facts, persistent versions and selected setting-board paths.
+- `SHOTS.md` records atomic shot intent, storyboard or previz choice, start/end continuity states and
+  the ordered reference manifest used to compile each final model request.
 - `authors/`, `recipes/`, and `runs/` are the exact production implementation.
 - `PROGRESS.md` is a short photograph of the work now: the live question, what remains to examine or
   make, next useful action, real blockers, active Build ids and reusable Results. Keep cost information
@@ -152,6 +163,9 @@ referenced in place; its documentary role does not require a duplicate.
   to continue. Run Candidates own
   the actual reuse choices; the note points to them. Established conclusions belong in their owning
   document instead.
+
+For copyable `ASSETS.md` and `SHOTS.md` fields, the ordered reference table and the ready/blocked gate,
+read [Shot production contracts](../playbooks/craft/shot-production-contracts.md).
 
 Rewrite these files when the current truth changes. They are not logs. `PROGRESS.md` may exist beside
 a reference or a production because either kind of work can span conversations; it does not mark a

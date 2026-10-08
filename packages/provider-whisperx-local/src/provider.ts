@@ -171,7 +171,7 @@ export function createLocalWhisperXProvider(config: CreateLocalWhisperXProviderO
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
               audio_path: audioPath,
-              language: request.language,
+              ...(request.language === "auto" ? {} : { language: request.language }),
             }),
             signal,
           });
@@ -180,7 +180,13 @@ export function createLocalWhisperXProvider(config: CreateLocalWhisperXProviderO
             "WhisperX transcription response is invalid");
           const response = raw.value as WhisperXServiceResponse;
           const passages = interpretWhisperXResponse(response, request.sampleFrames);
+          const detectedLanguage = request.language === "auto" && typeof response.language === "string" ? response.language : undefined;
+          const confidenceValue = response.language_probability ?? response.language_confidence;
+          const languageConfidence = request.language === "auto" && typeof confidenceValue === "number" && Number.isFinite(confidenceValue)
+            && confidenceValue >= 0 && confidenceValue <= 1 ? confidenceValue : undefined;
           const evidence: AlignedTranscriptEvidence = sealAlignedTranscriptEvidence({
+            ...(detectedLanguage === undefined ? {} : { detectedLanguage }),
+            ...(languageConfidence === undefined ? {} : { languageConfidence }),
             passages,
           });
           await context.reportProgress?.({ phase: "Word timing ready" });

@@ -1,5 +1,8 @@
 # Short drama
 
+For a complete multi-stage production, read [Short-drama production workflow](short-drama-workflow.md)
+before creating project evidence or submitting paid generation.
+
 Short drama is performance-led storytelling. Characters do more than deliver information: their
 wants, reactions, actions, relationships and surroundings make one event lead to the next. This is
 rich A-roll. A domestic scene, a staged encounter, a podcast exchange or a street interview can all

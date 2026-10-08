@@ -26,6 +26,8 @@ not need a matching playbook before it can be understood or made.
 | [Directing a voice](craft/voice-direction.md) | casting an appealing voice, choosing its vocal character, writing Voice Design direction or selecting a sample line |
 | [Voice and performance](craft/voice-and-performance.md) | what performance carries a passage, recurring voice identity, changing visual use of the same material, or genuinely independent narration |
 | [Directing generated video](craft/video-direction.md) | choosing a generation relationship, deciding when source footage should carry performed action or camera behavior, directing visible speech or silent action, cuts, subject-isolation footage or request duration |
+| [Asset and shot preproduction](craft/asset-and-shot-preproduction.md) | completing character, scene, prop and voice assets; choosing single, temporal, shot-board or spatial previz; binding depth, boards and continuity into each generated shot |
+| [Shot production contracts](craft/shot-production-contracts.md) | writing copyable asset, shot, ordered-reference and generation-gate records for reference-led or multi-shot work |
 | [Reference relationships](craft/generated-dependencies.md) | what existing images or footage contribute to a new request: people, places, conversational views, continuing props and new-scene branches |
 | [Material-led pictures and B-roll](craft/b-roll.md) | what an image or video contributes to a passage; full-frame or framed views, exact evidence versus a visual thought, and picture/performance handoffs |
 | [Screen demonstrations](craft/screen-demonstrations.md) | what a website, app, terminal or editor must show; captured states and interactions versus authored explanations, and how viewers follow them |

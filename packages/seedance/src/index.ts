@@ -18,6 +18,13 @@ export type SeedanceModel = typeof seedanceModels[number];
 const ASPECT_RATIOS = ["1:1", "4:3", "3:4", "16:9", "9:16", "21:9", "adaptive"] as const;
 
 const PERSON_REFERENCE_FIELDS = [{ name: "personReference", value: { kind: "boolean" } }] as const;
+const VIDEO_REFERENCE_FIELDS = [
+  ...PERSON_REFERENCE_FIELDS,
+  { name: "durationSeconds", value: { kind: "number", minimum: 0.001 }, optional: true },
+] as const;
+const AUDIO_REFERENCE_FIELDS = [
+  { name: "durationSeconds", value: { kind: "number", minimum: 0.001 }, optional: true },
+] as const;
 
 const SEEDANCE_25_DURATIONS = [-1, ...Array.from({ length: 27 }, (_item, index) => index + 4)] as const;
 
@@ -38,8 +45,8 @@ function seedancePortTable(model: SeedanceModel): GenerationPortTable {
     ports: [
       { name: "prompt", value: { kind: "text", maxChars: is25 ? 30_000 : 20_000 }, minItems: 1, maxItems: 1 },
       { name: "referenceImage", value: { kind: "media", accepts: ["image"], itemFields: PERSON_REFERENCE_FIELDS }, minItems: 0, maxItems: is25 ? 30 : 9 },
-      { name: "referenceVideo", value: { kind: "media", accepts: ["video"], itemFields: PERSON_REFERENCE_FIELDS }, minItems: 0, maxItems: is25 ? 10 : 3 },
-      { name: "referenceAudio", value: { kind: "media", accepts: ["audio"] }, minItems: 0, maxItems: is25 ? 10 : 3 },
+      { name: "referenceVideo", value: { kind: "media", accepts: ["video"], itemFields: VIDEO_REFERENCE_FIELDS }, minItems: 0, maxItems: is25 ? 10 : 3 },
+      { name: "referenceAudio", value: { kind: "media", accepts: ["audio"], itemFields: AUDIO_REFERENCE_FIELDS }, minItems: 0, maxItems: is25 ? 10 : 3 },
       { name: "firstFrame", value: { kind: "media", accepts: ["image"], itemFields: PERSON_REFERENCE_FIELDS }, minItems: 0, maxItems: 1 },
       { name: "lastFrame", value: { kind: "media", accepts: ["image"], itemFields: PERSON_REFERENCE_FIELDS }, minItems: 0, maxItems: 1 },
       {
@@ -66,16 +73,11 @@ function seedancePortTable(model: SeedanceModel): GenerationPortTable {
       { name: "webSearch", value: { kind: "boolean" }, minItems: 1, maxItems: 1 },
     ],
     requires: [
-      // First-frame, first-and-last-frame and multimodal reference are three
-      // scenarios the model cannot combine.
-      { kind: "atMostOneOf", ports: ["referenceImage", "firstFrame"] },
-      { kind: "atMostOneOf", ports: ["referenceVideo", "firstFrame"] },
-      { kind: "atMostOneOf", ports: ["referenceAudio", "firstFrame"] },
       { kind: "requiresPresent", port: "lastFrame", needs: ["firstFrame"] },
       ...(is25 ? [] : [
         // Seedance 2 reference audio cannot travel alone; it needs a visual reference.
         { kind: "requiresAnyOf" as const, port: "referenceAudio", anyOf: ["referenceImage", "referenceVideo"] },
-        { kind: "weightedTotal" as const, weights: { referenceImage: 1, referenceVideo: 1, referenceAudio: 1 }, maximum: 12 },
+        { kind: "weightedTotal" as const, weights: { firstFrame: 1, referenceImage: 1, referenceVideo: 1, referenceAudio: 1 }, maximum: 12 },
       ]),
     ],
   });
@@ -187,7 +189,7 @@ const seedanceVideoPort: readonly SurfacePortVocabulary[] = [{
 }];
 
 const seedanceSettingNotes: readonly string[] = [
-  "`resolution` defaults to `720p`, `aspect-ratio` to `9:16` and `generate-audio` to `false`.",
+  "`resolution` defaults to `720p`, `aspect-ratio` to `9:16` and `generate-audio` to `true`.",
   "`standard` offers `1080p` and `4k`; `2.5` offers `1080p`; `fast` and `mini` render at `480p` or `720p`.",
   "`duration` is 4 to 15 seconds for `standard`, `fast` and `mini`, and `-1` for automatic or 4 to 30 seconds for `2.5`.",
 ];
@@ -270,7 +272,11 @@ export const seedanceMarkupSurfaces = [
     ])],
     vocabulary: {
       summary: "Generates one video with an exact Seedance model from a Text prompt and one or more image, video or audio references.",
-      attributes: seedanceCommonAttributes,
+      attributes: [
+        ...seedanceCommonAttributes,
+        { name: "first-frame", kind: "reference", required: false, summary: "The image Artifact the generated reference video opens on.", accepts: [artifactTypes.blob] },
+        personReferenceAttribute("first-frame-person-reference"),
+      ],
       children: [{
         tag: "Reference",
         cardinality: "many",
@@ -292,6 +298,12 @@ export const seedanceMarkupSurfaces = [
             accepts: [artifactTypes.blob],
           },
           {
+            name: "duration-seconds",
+            kind: "literal",
+            required: false,
+            summary: "Declares the reference video or audio's measured duration when the selected Provider requires it.",
+          },
+          {
             name: "audio",
             kind: "reference",
             required: false,
@@ -309,14 +321,18 @@ export const seedanceMarkupSurfaces = [
   resolution="720p"
   aspect-ratio="9:16"
   generate-audio="true"
+  first-frame={prior-tail.image}
+  first-frame-person-reference="true"
 >
   <seedance:Reference image={presenter-clean} person-reference="true"/>
   <seedance:Reference audio={presenter-voice}/>
 </seedance:ReferenceVideo>`,
       notes: [
         ...seedanceSettingNotes,
+        "`first-frame` may accompany the full multimodal reference set and remains a distinct firstFrame model port.",
         "The element requires at least one `Reference` child, and the model's port limits cap how many of each role it accepts.",
         "Every image/video Reference requires `person-reference=\"true|false\"`. Classify the supplied material; audio must omit the field. The Provider transports it according to its API.",
+        "A video or audio Reference may declare its measured `duration-seconds` for Providers that validate reference duration.",
         "A `Reference` carries exactly one of `image`, `video` or `audio`, and is empty.",
       ],
     },

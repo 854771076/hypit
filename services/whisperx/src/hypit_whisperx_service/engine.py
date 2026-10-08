@@ -98,12 +98,15 @@ class WhisperXEngine:
         try:
             import numpy as numpy_module
             import whisperx as whisperx_module
+            from whisperx.audio import N_SAMPLES, log_mel_spectrogram
         except ImportError as error:
             raise RuntimeError(
                 "WhisperX runtime is unavailable; run `uv sync --project services/whisperx --frozen`"
             ) from error
         self._numpy = numpy_module
         self._whisperx = whisperx_module
+        self._language_samples = N_SAMPLES
+        self._log_mel_spectrogram = log_mel_spectrogram
         import nltk
         if str(config.nltk_data_root) not in nltk.data.path:
             nltk.data.path.insert(0, str(config.nltk_data_root))
@@ -171,22 +174,59 @@ class WhisperXEngine:
             raise InferenceBusyError("the warm WhisperX model is already executing one request")
         try:
             started = time.monotonic()
-            logger.info("transcribing %.2fs of audio, language=%s", audio.duration_sec, language or "auto")
+            selected_language = language
+            confidence: float | None = None
+            if selected_language is None:
+                if self._config.model.endswith(".en"):
+                    selected_language, confidence = "en", 1.0
+                else:
+                    padded = 0 if samples.shape[0] >= self._language_samples else self._language_samples - samples.shape[0]
+                    feature_size = self._asr.model.feat_kwargs.get("feature_size")
+                    segment = self._log_mel_spectrogram(
+                        samples[: self._language_samples],
+                        n_mels=feature_size if feature_size is not None else 80,
+                        padding=padded,
+                    )
+                    encoded = self._asr.model.encode(segment)
+                    detected = self._asr.model.model.detect_language(encoded)
+                    if not detected or not detected[0]:
+                        raise RuntimeError("WhisperX did not return language probabilities")
+                    token, probability = detected[0][0]
+                    if not isinstance(token, str) or not token.startswith("<|") or not token.endswith("|>"):
+                        raise RuntimeError("WhisperX returned an invalid language token")
+                    selected_language = token[2:-2]
+                    confidence = _finite(probability)
+                    if confidence is None or not 0 <= confidence <= 1:
+                        raise RuntimeError("WhisperX returned an invalid language probability")
+                try:
+                    alignment_selection(selected_language)
+                except ValueError as error:
+                    raise InferenceInputError(str(error)) from error
+                logger.info("detected language=%s confidence=%.3f", selected_language, confidence)
+            logger.info("transcribing %.2fs of audio, language=%s", audio.duration_sec, selected_language)
             transcription = self._asr.transcribe(
                 samples,
                 batch_size=self._config.batch_size,
-                language=language,
+                language=selected_language,
             )
             logger.info("transcription completed in %.1fs", time.monotonic() - started)
-            detected = transcription.get("language") or language
+            detected = transcription.get("language") or selected_language
             if not isinstance(detected, str) or not detected.strip():
                 raise RuntimeError("WhisperX did not return a valid language")
             segments = transcription.get("segments", [])
+            reported_confidence = _finite(
+                transcription.get("language_probability", transcription.get("language_confidence"))
+            )
+            confidence = reported_confidence if reported_confidence is not None else confidence
             if not isinstance(segments, list):
                 raise RuntimeError("WhisperX transcription returned invalid segments")
             if not segments:
                 logger.info("no speech segments; alignment is unnecessary")
-                return {"language": detected, "segments": []}
+                return {
+                    "language": detected,
+                    **({"language_probability": confidence} if confidence is not None and 0 <= confidence <= 1 else {}),
+                    "segments": [],
+                }
             alignment_model, metadata_value = self._alignment_model(detected)
             started = time.monotonic()
             logger.info("aligning %d speech segments, language=%s", len(segments), detected)
@@ -201,6 +241,8 @@ class WhisperXEngine:
             if not isinstance(aligned, Mapping):
                 raise RuntimeError("WhisperX returned an invalid alignment result")
             result = normalize_alignment(detected, aligned)
+            if confidence is not None and 0 <= confidence <= 1:
+                result["language_probability"] = confidence
             logger.info("word timing ready in %.1fs", time.monotonic() - started)
             return result
         finally:

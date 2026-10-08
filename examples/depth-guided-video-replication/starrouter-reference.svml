@@ -1,0 +1,25 @@
+<?svml using="@hypit/markup@1"?>
+
+<svml>
+  <import as="media" from="@hypit/media@1"/>
+  <import as="depth" from="@hypit/depth-video@1"/>
+  <import as="text" from="@hypit/text@1"/>
+  <import as="seedance" from="@hypit/seedance@1"/>
+
+  <media:Video id="original-shot" src="./assets/original-shot.mp4"/>
+  <media:Image id="character-board" src="./assets/character.png"/>
+  <media:Image id="temporal-storyboard" src="./assets/character.png"/>
+  <media:Image id="shot-board" src="./assets/character.png"/>
+  <media:Audio id="audio-reference" src="../interview/assets/chad.wav"/>
+  <depth:Video id="depth-map" source={original-shot}/>
+
+  <text:Value id="shot-prompt">@图片1 defines the character identity and costume. @图片2 is the temporal storyboard and controls the ordered action states without ever appearing as a grid. @图片3 is the shot board and controls staging and coverage without ever appearing as a grid. @视频1 is the grayscale depth reference and controls spatial layout, body motion and camera movement only; do not copy its grayscale appearance. @音频1 defines the source-language voice, delivery, emotion and acoustic perspective. Generate one full-frame live-action shot with synchronized dialogue, breath, ambience and action sound. Add no subtitles, captions, translations, logos, watermarks, interface elements or unapproved readable text.</text:Value>
+  <seedance:ReferenceVideo id="generated-shot" model="standard" prompt={shot-prompt}
+    duration="5" resolution="720p" aspect-ratio="9:16" generate-audio="true">
+    <seedance:Reference image={character-board} person-reference="true"/>
+    <seedance:Reference image={temporal-storyboard} person-reference="false"/>
+    <seedance:Reference image={shot-board} person-reference="false"/>
+    <seedance:Reference video={depth-map.video} person-reference="false" duration-seconds="2"/>
+    <seedance:Reference audio={audio-reference} duration-seconds="5.76"/>
+  </seedance:ReferenceVideo>
+</svml>

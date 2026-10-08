@@ -1,0 +1,654 @@
+{
+  "version": 1,
+  "modules": {
+    "analyze-drama-market": {
+      "path": "skills/short-drama/references/market/analyze-drama-market.md",
+      "category": "market",
+      "stage": null,
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "analyze-drama-source": {
+      "path": "skills/short-drama/references/creation/analyze-drama-source.md",
+      "category": "creation",
+      "stage": "analysis",
+      "condition": "always",
+      "dependencies": []
+    },
+    "analyze-reference-video": {
+      "path": "skills/short-drama/references/recreation/analyze-reference-video.md",
+      "category": "recreation",
+      "stage": null,
+      "condition": "viral-recreation",
+      "dependencies": []
+    },
+    "build-drama-storyboard": {
+      "path": "skills/short-drama/references/storyboard/build-drama-storyboard.md",
+      "category": "storyboard",
+      "stage": "production-plan",
+      "condition": "always",
+      "dependencies": []
+    },
+    "configure-generation-providers": {
+      "path": "skills/short-drama/references/generation/configure-generation-providers.md",
+      "category": "generation",
+      "stage": null,
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "define-drama-brief": {
+      "path": "skills/short-drama/references/creation/define-drama-brief.md",
+      "category": "creation",
+      "stage": "analysis",
+      "condition": "always",
+      "dependencies": []
+    },
+    "design-drama-audio": {
+      "path": "skills/short-drama/references/generation/design-drama-audio.md",
+      "category": "generation",
+      "stage": null,
+      "condition": "independent-audio-required",
+      "dependencies": []
+    },
+    "design-drama-bible": {
+      "path": "skills/short-drama/references/creation/design-drama-bible.md",
+      "category": "creation",
+      "stage": "analysis",
+      "condition": "always",
+      "dependencies": []
+    },
+    "design-fight-video": {
+      "path": "skills/short-drama/references/storyboard/design-fight-video.md",
+      "category": "storyboard",
+      "stage": "production-plan",
+      "condition": "structured-action-required",
+      "dependencies": []
+    },
+    "design-video-recreation": {
+      "path": "skills/short-drama/references/recreation/design-video-recreation.md",
+      "category": "recreation",
+      "stage": null,
+      "condition": "viral-recreation",
+      "dependencies": []
+    },
+    "direct-blender-previz": {
+      "path": "skills/short-drama/references/storyboard/direct-blender-previz.md",
+      "category": "storyboard",
+      "stage": null,
+      "condition": "blender-previz-required",
+      "dependencies": []
+    },
+    "drama-generation-service": {
+      "path": "skills/short-drama/references/generation/drama-generation-service.md",
+      "category": "generation",
+      "stage": "media-production",
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "edit-deliver-drama": {
+      "path": "skills/short-drama/references/editing/edit-deliver-drama.md",
+      "category": "editing",
+      "stage": "delivery",
+      "condition": "always",
+      "dependencies": []
+    },
+    "edit-drama-timeline": {
+      "path": "skills/short-drama/references/editing/edit-drama-timeline.md",
+      "category": "editing",
+      "stage": "editing",
+      "condition": "always",
+      "dependencies": []
+    },
+    "generate-blender-previz": {
+      "path": "skills/short-drama/references/storyboard/generate-blender-previz.md",
+      "category": "storyboard",
+      "stage": null,
+      "condition": "blender-previz-required",
+      "dependencies": []
+    },
+    "generate-character-images": {
+      "path": "skills/short-drama/references/assets/generate-character-images.md",
+      "category": "assets",
+      "stage": null,
+      "condition": "always",
+      "dependencies": []
+    },
+    "generate-character-profiles": {
+      "path": "skills/short-drama/references/assets/generate-character-profiles.md",
+      "category": "assets",
+      "stage": null,
+      "condition": "always",
+      "dependencies": []
+    },
+    "generate-drama-art-style": {
+      "path": "skills/short-drama/references/assets/generate-drama-art-style.md",
+      "category": "assets",
+      "stage": "asset-analysis",
+      "condition": "always",
+      "dependencies": []
+    },
+    "generate-drama-videos": {
+      "path": "skills/short-drama/references/generation/generate-drama-videos.md",
+      "category": "generation",
+      "stage": "media-production",
+      "condition": "always",
+      "dependencies": []
+    },
+    "generate-depth-videos": {
+      "path": "skills/short-drama/references/generation/generate-depth-videos.md",
+      "category": "generation",
+      "stage": "media-production",
+      "condition": "always",
+      "dependencies": []
+    },
+    "generate-prop-assets": {
+      "path": "skills/short-drama/references/assets/generate-prop-assets.md",
+      "category": "assets",
+      "stage": null,
+      "condition": "always",
+      "dependencies": []
+    },
+    "generate-scene-assets": {
+      "path": "skills/short-drama/references/assets/generate-scene-assets.md",
+      "category": "assets",
+      "stage": null,
+      "condition": "always",
+      "dependencies": []
+    },
+    "generate-storyboard-images": {
+      "path": "skills/short-drama/references/generation/generate-storyboard-images.md",
+      "category": "generation",
+      "stage": "media-production",
+      "condition": "always",
+      "dependencies": []
+    },
+    "humanizer": {
+      "path": "skills/short-drama/references/creation/humanizer.md",
+      "category": "creation",
+      "stage": "script",
+      "condition": "always",
+      "dependencies": []
+    },
+    "ideate-drama-from-market": {
+      "path": "skills/short-drama/references/market/ideate-drama-from-market.md",
+      "category": "market",
+      "stage": null,
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "manage-drama-art-styles": {
+      "path": "skills/short-drama/references/assets/manage-drama-art-styles.md",
+      "category": "assets",
+      "stage": null,
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "manage-drama-assets": {
+      "path": "skills/short-drama/references/assets/manage-drama-assets.md",
+      "category": "assets",
+      "stage": "asset-generation",
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "manage-drama-projects": {
+      "path": "skills/short-drama/references/operations/manage-drama-projects.md",
+      "category": "operations",
+      "stage": "analysis",
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "monitor-drama-tasks": {
+      "path": "skills/short-drama/references/generation/monitor-drama-tasks.md",
+      "category": "generation",
+      "stage": "media-production",
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "orchestrate-short-drama": {
+      "path": "skills/short-drama/references/operations/orchestrate-short-drama.md",
+      "category": "operations",
+      "stage": null,
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "outline-drama-series": {
+      "path": "skills/short-drama/references/creation/outline-drama-series.md",
+      "category": "creation",
+      "stage": "analysis",
+      "condition": "always",
+      "dependencies": []
+    },
+    "plan-drama-assets": {
+      "path": "skills/short-drama/references/assets/plan-drama-assets.md",
+      "category": "assets",
+      "stage": "asset-analysis",
+      "condition": "always",
+      "dependencies": []
+    },
+    "plan-drama-production": {
+      "path": "skills/short-drama/references/storyboard/plan-drama-production.md",
+      "category": "storyboard",
+      "stage": "production-plan",
+      "condition": "always",
+      "dependencies": []
+    },
+    "plan-shot-continuity": {
+      "path": "skills/short-drama/references/storyboard/plan-shot-continuity.md",
+      "category": "storyboard",
+      "stage": "production-plan",
+      "condition": "always",
+      "dependencies": []
+    },
+    "publish-drama-references": {
+      "path": "skills/short-drama/references/recreation/publish-drama-references.md",
+      "category": "recreation",
+      "stage": null,
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "recover-drama-pipeline": {
+      "path": "skills/short-drama/references/operations/recover-drama-pipeline.md",
+      "category": "operations",
+      "stage": null,
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "remotion-best-practices": {
+      "path": "skills/short-drama/references/editing/remotion-best-practices.md",
+      "category": "editing",
+      "stage": "editing",
+      "condition": "always",
+      "dependencies": []
+    },
+    "review-drama-script": {
+      "path": "skills/short-drama/references/review/review-drama-script.md",
+      "category": "review",
+      "stage": "script",
+      "condition": "always",
+      "dependencies": []
+    },
+    "review-drama-shots": {
+      "path": "skills/short-drama/references/review/review-drama-shots.md",
+      "category": "review",
+      "stage": "media-production",
+      "condition": "always",
+      "dependencies": []
+    },
+    "revise-drama-storyboards": {
+      "path": "skills/short-drama/references/storyboard/revise-drama-storyboards.md",
+      "category": "storyboard",
+      "stage": null,
+      "condition": "always",
+      "dependencies": []
+    },
+    "short-drama": {
+      "path": "skills/short-drama/references/creation/short-drama.md",
+      "category": "creation",
+      "stage": "script",
+      "condition": "always",
+      "dependencies": []
+    },
+    "short-drama-skill-index": {
+      "path": "skills/short-drama/references/operations/short-drama-skill-index.md",
+      "category": "operations",
+      "stage": null,
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "transform-drama-media": {
+      "path": "skills/short-drama/references/generation/transform-drama-media.md",
+      "category": "generation",
+      "stage": null,
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "use-hypit-video": {
+      "path": "skills/short-drama/references/recreation/use-hypit-video.md",
+      "category": "recreation",
+      "stage": null,
+      "condition": "viral-recreation",
+      "dependencies": []
+    },
+    "use-short-drama-studio": {
+      "path": "skills/short-drama/references/operations/use-short-drama-studio.md",
+      "category": "operations",
+      "stage": null,
+      "condition": "on-demand",
+      "dependencies": []
+    },
+    "write-drama-director-book": {
+      "path": "skills/short-drama/references/creation/write-drama-director-book.md",
+      "category": "creation",
+      "stage": "director-book",
+      "condition": "always",
+      "dependencies": []
+    },
+    "write-drama-episode": {
+      "path": "skills/short-drama/references/creation/write-drama-episode.md",
+      "category": "creation",
+      "stage": "script",
+      "condition": "always",
+      "dependencies": [
+        "short-drama"
+      ]
+    },
+    "write-drama-video-prompts": {
+      "path": "skills/short-drama/references/generation/write-drama-video-prompts.md",
+      "category": "generation",
+      "stage": "media-production",
+      "condition": "always",
+      "dependencies": [
+        "generate-storyboard-images"
+      ]
+    }
+  },
+  "workflow": [
+    "analyze-drama-source",
+    "analyze-reference-video",
+    "design-video-recreation",
+    "define-drama-brief",
+    "design-drama-bible",
+    "outline-drama-series",
+    "short-drama",
+    "write-drama-episode",
+    "humanizer",
+    "review-drama-script",
+    "write-drama-director-book",
+    "plan-drama-assets",
+    "generate-drama-art-style",
+    "generate-character-profiles",
+    "generate-character-images",
+    "generate-scene-assets",
+    "generate-prop-assets",
+    "design-fight-video",
+    "build-drama-storyboard",
+    "revise-drama-storyboards",
+    "plan-drama-production",
+    "plan-shot-continuity",
+    "generate-depth-videos",
+    "generate-storyboard-images",
+    "review-drama-shots",
+    "direct-blender-previz",
+    "generate-blender-previz",
+    "write-drama-video-prompts",
+    "generate-drama-videos",
+    "design-drama-audio",
+    "remotion-best-practices",
+    "edit-drama-timeline",
+    "edit-deliver-drama"
+  ],
+  "support": [
+    "manage-drama-projects",
+    "manage-drama-assets",
+    "manage-drama-art-styles",
+    "use-hypit-video",
+    "transform-drama-media",
+    "monitor-drama-tasks",
+    "recover-drama-pipeline",
+    "configure-generation-providers",
+    "drama-generation-service",
+    "publish-drama-references",
+    "orchestrate-short-drama",
+    "short-drama-skill-index",
+    "use-short-drama-studio",
+    "analyze-drama-market",
+    "ideate-drama-from-market"
+  ],
+  "stages": {
+    "analysis": [
+      "manage-drama-projects",
+      "analyze-drama-source",
+      "define-drama-brief",
+      "design-drama-bible",
+      "outline-drama-series"
+    ],
+    "script": [
+      "short-drama",
+      "write-drama-episode",
+      "humanizer",
+      "review-drama-script"
+    ],
+    "director-book": [
+      "write-drama-director-book"
+    ],
+    "asset-analysis": [
+      "plan-drama-assets",
+      "generate-drama-art-style"
+    ],
+    "asset-generation": [
+      "manage-drama-assets"
+    ],
+    "production-plan": [
+      "design-fight-video",
+      "build-drama-storyboard",
+      "plan-drama-production",
+      "plan-shot-continuity"
+    ],
+    "media-production": [
+      "generate-depth-videos",
+      "generate-storyboard-images",
+      "write-drama-video-prompts",
+      "drama-generation-service",
+      "review-drama-shots",
+      "generate-drama-videos",
+      "monitor-drama-tasks"
+    ],
+    "editing": [
+      "remotion-best-practices",
+      "edit-drama-timeline"
+    ],
+    "delivery": [
+      "edit-deliver-drama"
+    ]
+  },
+  "provider_prompts": [
+    "character_asset_sheet",
+    "scene_asset_sheet",
+    "prop_generate",
+    "panel_grid_image",
+    "panel_storyboard_image",
+    "panel_grid_enhance",
+    "2d_to_live_action"
+  ],
+  "completion_prompts": {
+    "analyze-reference-video": [
+      "reference_video_analysis"
+    ],
+    "design-video-recreation": [
+      "video_recreation_workflow"
+    ],
+    "write-drama-episode": [
+      "screenplay_conversion"
+    ],
+    "generate-drama-art-style": [
+      "art_style_decision"
+    ],
+    "build-drama-storyboard": [
+      "professional_storyboard"
+    ],
+    "design-drama-audio": [
+      "voice_analysis",
+      "music_track_design"
+    ]
+  },
+  "quality_gates": {
+    "character_visual": [
+      "audience_appeal",
+      "assertCharacterReadyForVisuals",
+      "validateCharacterAppealReview",
+      "identity_binding",
+      "identity_constraints",
+      "visual_identity"
+    ],
+    "media_pipeline": [
+      "character-appeal",
+      "continuity-plan",
+      "previous-tail",
+      "native-audio",
+      "native-audio-review",
+      "audio-fallback",
+      "lip-sync",
+      "licensed-music",
+      "media-editing",
+      "video-upscale",
+      "delivery"
+    ]
+  },
+  "prompts": {
+    "reference_video_analysis": "analyze-reference-video",
+    "video_recreation_workflow": "design-video-recreation",
+    "art_style_decision": "generate-drama-art-style",
+    "asset_analysis": "plan-drama-assets",
+    "review_drama_script": "review-drama-script",
+    "source_analysis": "analyze-drama-source",
+    "drama_brief": "define-drama-brief",
+    "market_inspiration": "ideate-drama-from-market",
+    "director_book": "write-drama-director-book",
+    "production_plan": "plan-drama-production",
+    "continuity_plan": "plan-shot-continuity",
+    "config_generation": "generate-drama-art-style",
+    "character_image_to_description": "generate-character-images",
+    "character_asset_sheet": "generate-character-images",
+    "scene_asset_sheet": "generate-scene-assets",
+    "2d_to_live_action": "transform-drama-media",
+    "agent_acting_direction": "build-drama-storyboard",
+    "agent_character_profile": "generate-character-profiles",
+    "agent_character_visual": "generate-character-images",
+    "agent_cinematographer": "build-drama-storyboard",
+    "agent_clip": "write-drama-episode",
+    "agent_shot_variant_analysis": "revise-drama-storyboards",
+    "agent_shot_variant_generate": "revise-drama-storyboards",
+    "agent_storyboard_detail": "build-drama-storyboard",
+    "agent_storyboard_insert": "revise-drama-storyboards",
+    "agent_storyboard_plan": "build-drama-storyboard",
+    "ai_story_expand": "design-drama-bible",
+    "character_create": "generate-character-images",
+    "character_description_update": "generate-character-images",
+    "character_modify": "generate-character-images",
+    "character_regenerate": "generate-character-images",
+    "character_voice_recommend": "design-drama-audio",
+    "character_voice_description": "design-drama-audio",
+    "music_track_design": "design-drama-audio",
+    "episode_split": "outline-drama-series",
+    "image_prompt_modify": "transform-drama-media",
+    "location_create": "generate-scene-assets",
+    "location_description_update": "generate-scene-assets",
+    "location_modify": "generate-scene-assets",
+    "location_regenerate": "generate-scene-assets",
+    "panel_grid_enhance": "generate-storyboard-images",
+    "panel_grid_image": "generate-storyboard-images",
+    "panel_grid_video": "write-drama-video-prompts",
+    "seedance2_video": "write-drama-video-prompts",
+    "h3_video": "write-drama-video-prompts",
+    "panel_storyboard_image": "generate-storyboard-images",
+    "panel_storyboard_video": "write-drama-video-prompts",
+    "professional_storyboard": "build-drama-storyboard",
+    "prop_description_update": "generate-prop-assets",
+    "prop_generate": "generate-prop-assets",
+    "screenplay_conversion": "write-drama-episode",
+    "select_location": "generate-scene-assets",
+    "select_prop": "generate-prop-assets",
+    "storyboard_edit": "revise-drama-storyboards",
+    "voice_analysis": "design-drama-audio"
+  },
+  "legacy_skill_sha256": {
+    "analyze-drama-market": "f0820811ec322b428a050ab7f247b55c6fb786cdaa6335212ba52f8775dbe972",
+    "analyze-drama-source": "c420c4804fb63f51b3515d8d4065bffe93b37be77f3d64b060e1be4c3268b9dd",
+    "analyze-reference-video": "dce1c2ecab9c8d9247cc893994608c82ea9009f0d6a068ad7624c93adc8b7e72",
+    "build-drama-storyboard": "349690f6cab9ce6dc1f10ffccb0ab0bce3668e3ea510abd533677a8d3502511a",
+    "configure-generation-providers": "380cd84b012431256d89c216144748139850cf276d2be5b4b6f1ff5a7e174728",
+    "define-drama-brief": "372919c4c8a0b21314fa4a51c18a107f612fadee8a37e6b18ec5cf45fa2a89b6",
+    "design-drama-audio": "bf1c6867918cd3458d0350fda0eba44a1d3ea7a0db95a8b73f116ddc9f3e3309",
+    "design-drama-bible": "7869772314073c8d95be38573d2cb3f5bc30cec43adf466ab671edfdb29aef1c",
+    "design-fight-video": "f67c164c96fbf60c6bd1e4c16ac1b5d766f7a8b246e25d9e54052f403833b2d6",
+    "design-video-recreation": "4d40b587c148769b7d20c0c31faa485e2cbf0cde71638d58de04f5625fbb3051",
+    "direct-blender-previz": "eb78667ec9ab56d59ac6118b1f2906f652323cc946c031b555c7fbe30b6a2eea",
+    "drama-generation-service": "e55478475b1507bc0c8865d3df07f98ba08bbd6a83bf1b4b24a9e766d8971d22",
+    "edit-deliver-drama": "7089ec54f0cbadb795da1b433350599c43e8ebe74a06af1682d2daa87191b324",
+    "edit-drama-timeline": "51d711b2377bbdcbb43262e7a8982d1d6e983ae26c0da2a7b51b417e1e1feef8",
+    "generate-blender-previz": "2379668233a1031c4eb8f90b5b72ec18661b8d468e703b019b79f0be4d717a67",
+    "generate-character-images": "5528f81967155a296fcbf4ac18bac75c75f07c9c5f09f7dcd1bf2114e8dc17fd",
+    "generate-character-profiles": "89e68191dfb5775e01b9b087ce2f9eb7fec7314478f7f17cf95aeb3ff98426da",
+    "generate-depth-videos": "8e16f5b7650fdc3f0ac4dcc0ff8010c5674de71f35dd742139148e9010c691ff",
+    "generate-drama-art-style": "c65bfdec293a3bc5f721ee4284061d04ea4b40a2ebc7b7f78196b6187e416fee",
+    "generate-drama-videos": "b2d8bbdcb9a85698449016b857d0bf9a04609421f0992d3eeae8e2c56e61cd05",
+    "generate-prop-assets": "ed1354508e099d6fc7d30e6a3832c06604d472752e64bb22d8de9a541b3f67a5",
+    "generate-scene-assets": "84cfc481dc0fa4cb181f6bc62b9426b1d948bc59ec7ba7910d86b5fecc4f56ca",
+    "generate-storyboard-images": "e241f1f8bedd3fb29e5ecbbbe71ee4a7113777ca8bfeba512e605bf6d23b7e6b",
+    "humanizer": "db578f1dd1253396c12e938453c440571afbe08f3c49159a17b78b8ff83c3162",
+    "ideate-drama-from-market": "3adc4e4b7f8c1c60963c4b6b08ee09c6bdb65e202826a8c3005eeb617a0c229f",
+    "manage-drama-art-styles": "7da33295b17b397ecdd99feb1709b1b0fdde54b1c799a416af38b7dd13ed0ebf",
+    "manage-drama-assets": "d6c8597f5f39f59dbd6de95a39703f672bb02c1945f3c79c485226480d398791",
+    "manage-drama-projects": "881a9a3129e6eb522caaeb2b9516f0bbe8d772a4aef1a449cadc8a52d4194cb4",
+    "monitor-drama-tasks": "8ed7e2955231b773ff67a742f60d9efa7c50e1dc9ff32bad30ae4422a9e8a2a6",
+    "orchestrate-short-drama": "c96d097567ac3c34c9aa4d46989e0e33009e3a3d320608edb3809809876e9700",
+    "outline-drama-series": "51aac9d284692f70211819d2a1f7e3f0ff42f07a09b03925d72d4729ebcda509",
+    "plan-drama-assets": "50d8f517aeb4a3aad7833c88568e27151659348d86c876912acc3c08d8a03c10",
+    "plan-drama-production": "7da62b7bfc7ad182433843ed4528bd9548a2cc2fcb27e7b0a329d1246406a89d",
+    "plan-shot-continuity": "5f28a2154d70f4e1d8fab7860d72551705184e4beb4a005e317df3ecebba405f",
+    "publish-drama-references": "4ea6198396102f013cd3582912e0d72e67b2e241ceafbc17da321051da9d4af5",
+    "recover-drama-pipeline": "85955a1b1c95145380e311e4af95d328a4ad7a275703f72452f26bc54d98569e",
+    "remotion-best-practices": "c1605955f2765c2c68e117693beb2eaac80db23884496fec4609415775d685da",
+    "review-drama-script": "43cc723d80b1d319ab1d4f2aa1a91565738098d2449824e840c4146275b63fe2",
+    "review-drama-shots": "750b5457c4c327048547e93f0a7af4993aaf6d458af8512de3a67b8baf6e92e2",
+    "revise-drama-storyboards": "2b349fe9ee26b4d86921f0b72b89840b353475b9bfb7f8aa29ec056cde6ff980",
+    "short-drama": "12f3a04a7713e1e6ba704a24f68d25537dbfeb3e2e180fc6bea4248c1812fc70",
+    "short-drama-skill-index": "018b0aeaff52ac2e6244cfafeac542bbdafa7055a3b4ec243ad8dfb364ef6cc3",
+    "transform-drama-media": "4b31498cfa0095711a41c88a350f47723e3065fe0956a7bcacf28375f2698554",
+    "use-hypit-video": "1621a670ceae368478258bac748c3b16b0928483c421be8bfbda430f2ff81bce",
+    "use-short-drama-studio": "06dc69a8ef46ee08769b0326c21436cb1a95c6722982f04482cc133c977f7c13",
+    "write-drama-director-book": "89018528856004489f0c5ea944cded2af7cd3c6cbd62e97d58bbf84ea0280df8",
+    "write-drama-episode": "c72ca9b5905ebdd61cc27e8db1493442ff142f6255ee2cd74b8947e5ad0ac25e",
+    "write-drama-video-prompts": "49a47a6392cc30b2593736474bdcceaf8985e135858ed48c30a1db52795c9140"
+  },
+  "legacy_skill_map": {
+    "analyze-drama-market": "analyze-drama-market",
+    "analyze-drama-source": "analyze-drama-source",
+    "analyze-reference-video": "analyze-reference-video",
+    "build-drama-storyboard": "build-drama-storyboard",
+    "configure-generation-providers": "configure-generation-providers",
+    "define-drama-brief": "define-drama-brief",
+    "design-drama-audio": "design-drama-audio",
+    "design-drama-bible": "design-drama-bible",
+    "design-fight-video": "design-fight-video",
+    "design-video-recreation": "design-video-recreation",
+    "direct-blender-previz": "direct-blender-previz",
+    "drama-generation-service": "drama-generation-service",
+    "edit-deliver-drama": "edit-deliver-drama",
+    "edit-drama-timeline": "edit-drama-timeline",
+    "generate-blender-previz": "generate-blender-previz",
+    "generate-character-images": "generate-character-images",
+    "generate-character-profiles": "generate-character-profiles",
+    "generate-depth-videos": "generate-depth-videos",
+    "generate-drama-art-style": "generate-drama-art-style",
+    "generate-drama-videos": "generate-drama-videos",
+    "generate-prop-assets": "generate-prop-assets",
+    "generate-scene-assets": "generate-scene-assets",
+    "generate-storyboard-images": "generate-storyboard-images",
+    "humanizer": "humanizer",
+    "ideate-drama-from-market": "ideate-drama-from-market",
+    "manage-drama-art-styles": "manage-drama-art-styles",
+    "manage-drama-assets": "manage-drama-assets",
+    "manage-drama-projects": "manage-drama-projects",
+    "monitor-drama-tasks": "monitor-drama-tasks",
+    "orchestrate-short-drama": "orchestrate-short-drama",
+    "outline-drama-series": "outline-drama-series",
+    "plan-drama-assets": "plan-drama-assets",
+    "plan-drama-production": "plan-drama-production",
+    "plan-shot-continuity": "plan-shot-continuity",
+    "publish-drama-references": "publish-drama-references",
+    "recover-drama-pipeline": "recover-drama-pipeline",
+    "remotion-best-practices": "remotion-best-practices",
+    "review-drama-script": "review-drama-script",
+    "review-drama-shots": "review-drama-shots",
+    "revise-drama-storyboards": "revise-drama-storyboards",
+    "short-drama": "short-drama",
+    "short-drama-skill-index": "short-drama-skill-index",
+    "transform-drama-media": "transform-drama-media",
+    "use-hypit-video": "use-hypit-video",
+    "use-short-drama-studio": "use-short-drama-studio",
+    "write-drama-director-book": "write-drama-director-book",
+    "write-drama-episode": "write-drama-episode",
+    "write-drama-video-prompts": "write-drama-video-prompts"
+  }
+}

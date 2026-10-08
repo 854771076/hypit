@@ -7,6 +7,20 @@ its exact audiovisual choices make that communication work.
 For a reference supplied as a link, [video download](../production/video-downloads.md) explains
 `hypit media fetch`, its local preparation and the saved source file used by the tools below.
 
+## Establish the evidence boundary first
+
+Before interpreting the work, record the selected local file, checksum, duration, dimensions, frame
+rate and audio presence. Record what the user has authorized separately: analysis, close recreation,
+identity, voice, music, trademark, dialogue and visual style are distinct permissions. Unknown rights
+remain unknown and do not become permission through analysis.
+
+Give important observations stable evidence ids tied to timecodes, frames or transcript spans. Let the
+hook, beats, turns, payoff and transferable mechanisms cite those observations instead of becoming
+unsupported summaries. Distinguish what may be carried into the target, what must change and what must
+not be copied. A complete analysis accounts for the entire source duration and records any unsampled or
+uncertain interval as a limitation rather than silently treating a few representative frames as full
+coverage.
+
 ## Read the whole through its details
 
 Watch the whole reference from opening to close. Follow its hook, argument or story, shifts of
@@ -73,8 +87,12 @@ reveals and emphasis. Keep that transcript beside the reference and interpret it
 surrounding argument, visible names and supplied context. Small transcription errors can coexist
 with a clear understanding of what the passage means.
 
-Pass the reference's spoken language explicitly: `--language zh` for Chinese, `en` for English,
-`es` for Spanish, or `ko` for Korean. Actual alignment support belongs to the selected service;
+Pass a monolingual reference's spoken language explicitly: `--language zh` for Chinese, `en` for English,
+`es` for Spanish, or `ko` for Korean. For multilingual or code-switching material, first identify
+utterance boundaries, cut or extract each utterance, then run `--language auto` on each interval and
+confirm low-confidence results. Store the original words and confirmed language code per turn; the
+video prompt must repeat that code and exact source-language line instead of translating every turn into
+the dominant language or subtitle language. Actual alignment support belongs to the selected service;
 for local execution, prepare that language's resources as described in
 [local tools](../environment/local-tools.md). A Chinese passage can contain English brands and names while still using `zh`.
 Its timed Chinese characters help locate a phrase precisely; group those characters into meaningful

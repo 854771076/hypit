@@ -29,7 +29,7 @@ type MediaInput = {
   readonly port: "referenceImage" | "referenceVideo" | "referenceAudio" | "firstFrame" | "lastFrame";
   readonly role: GenerationMediaRole;
   readonly source: SurfaceResolvedReference;
-  readonly fields?: { readonly personReference: boolean };
+  readonly fields?: { readonly personReference?: boolean; readonly durationSeconds?: number };
 };
 
 function localName(value: string): string {
@@ -152,6 +152,14 @@ function personReferenceFields(element: StructuredElement, name: string) {
   return { personReference: booleanAttribute(element, name, false) };
 }
 
+function optionalPositiveNumber(element: StructuredElement, name: string): number | undefined {
+  const raw = optionalStringAttribute(element, name);
+  if (raw === undefined) return undefined;
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value <= 0) throw new Error(`${element.name}.${name} must be greater than 0`);
+  return value;
+}
+
 function enumeratedPort(table: GenerationPortTable, name: string): readonly (string | number)[] {
   const port = generationPort(table, name);
   if (port.value.kind !== "enum") throw new Error(`${table.model} port ${name} is not enumerated`);
@@ -190,7 +198,7 @@ function generationSettings(
     duration: [durationSec],
     resolution: [resolution],
     aspectRatio: [aspectRatio],
-    generateAudio: [booleanAttribute(element, "generate-audio", false)],
+    generateAudio: [booleanAttribute(element, "generate-audio", true)],
     webSearch: [booleanAttribute(element, "web-search", false)],
   };
 }
@@ -214,13 +222,17 @@ function referenceInputs(
       continue;
     }
     if (localName(child.name) !== "Reference") throw new Error(`${element.name} accepts only Reference children`);
-    attributes(child, [], [...accepted, "person-reference"]);
+    attributes(child, [], [...accepted, "person-reference", "duration-seconds"]);
     empty(child);
     const kinds = accepted.filter((kind) => child.attributes[kind] !== undefined);
     if (kinds.length !== 1) throw new Error(`${child.name} requires exactly one of ${accepted.join(", ")}`);
     const role = kinds[0]!;
     if (role === "audio" && child.attributes["person-reference"] !== undefined) throw new Error(`${child.name}.person-reference applies to image or video, not audio`);
-    const fields = role === "audio" ? undefined : personReferenceFields(child, "person-reference");
+    if (role === "image" && child.attributes["duration-seconds"] !== undefined) throw new Error(`${child.name}.duration-seconds applies only to video or audio`);
+    const durationSeconds = role === "image" ? undefined : optionalPositiveNumber(child, "duration-seconds");
+    const fields = role === "audio"
+      ? durationSeconds === undefined ? undefined : { durationSeconds }
+      : { ...personReferenceFields(child, "person-reference"), ...(durationSeconds === undefined ? {} : { durationSeconds }) };
     result.push({
       ...(fields === undefined ? {} : { fields }),
       role,
@@ -357,15 +369,20 @@ export const decodeSeedanceFrameVideoSurface: StructuredSurfaceHandler = ({ elem
 };
 
 export const decodeSeedanceReferenceVideoSurface: StructuredSurfaceHandler = ({ element, resolveReference }) => {
-  attributes(element, ["id", "model", "prompt", "duration"], COMMON_OPTIONAL);
+  attributes(element, ["id", "model", "prompt", "duration"], [...COMMON_OPTIONAL, "first-frame", "first-frame-person-reference"]);
   const selected = modelSelection(element);
   const promptSource = resolved(element, "prompt", resolveReference);
   prompt(promptSource, `${element.name}.prompt`);
+  if (element.attributes["first-frame-person-reference"] !== undefined && element.attributes["first-frame"] === undefined) throw new Error(`${element.name}.first-frame-person-reference requires first-frame`);
+  if (element.attributes["first-frame"] !== undefined && element.attributes["first-frame-person-reference"] === undefined) throw new Error(`${element.name}.first-frame-person-reference is required`);
   return generationOutput({
     element,
     ...selected,
     promptSource,
-    media: referenceInputs(element, selected.model, resolveReference),
+    media: [
+      ...(element.attributes["first-frame"] === undefined ? [] : frameInputs(element, resolveReference).filter((item) => item.port === "firstFrame")),
+      ...referenceInputs(element, selected.model, resolveReference),
+    ],
     resolveReference,
   });
 };

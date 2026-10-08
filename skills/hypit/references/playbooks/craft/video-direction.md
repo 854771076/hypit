@@ -40,6 +40,111 @@ the supplied material contains a person, false otherwise.
 Inspect the selected excerpt, not just its first frame. Audio must omit the field; the installed
 Seedance README owns the corresponding required first/last-frame attributes.
 
+For a reference-led recreation, a depth prepass is mandatory before final shot generation. Generate and
+inspect the depth video first, then pass it as the motion/structure/camera reference; an optional selected
+character board may additionally carry identity and appearance. Never omit this edge from the request
+graph; choose another model or Endpoint when the current route cannot consume it.
+
+Before compiling a recreation request, approve both its temporal storyboard and shot board, then bind
+them with the required depth video, audio reference and video prompt in one ordered per-shot manifest.
+Selected character, scene and prop boards and spatial previz are optional additions.
+[Asset and shot preproduction](asset-and-shot-preproduction.md)
+owns this gate and the different responsibility of each reference. A complete asset library does not
+mean every asset belongs in every request; use the views that know this shot without silently dropping a
+required identity, world, prop-state, storyboard or depth role.
+
+Lock a recreation's visual baseline before generating shots: source exposure and white balance, skin
+texture and diffusion, contrast and saturation, lens/field of view, depth of field, camera height and
+movement character. Carry the same concrete baseline into every related request. When literal source
+boundary images are compatible with the intended transformation, prefer first/last-frame generation
+for adjoining shots and use the accepted previous tail as the next head; a prose reminder is not a
+pixel-continuity edge. Preserve identity, costume, body proportions, screen direction, held-prop state,
+key-light direction and the source shot's end pose across that handoff.
+
+Direct physical actions through contact states rather than action names alone: anticipation, limb and
+joint path, contact point, transferred weight, prop response, recovery and a briefly stable tail. Split
+an interaction when one request would need several independent contacts or exact hand choreography.
+
+## Build natural motion from causes, not adjectives
+
+Do not use `natural movement`, `realistic motion` or `cinematic motion` as a substitute for direction.
+Give every visible person one current primary action, an attention target, a trigger for reacting and a
+clear state while uninvolved. In a group, name people by stable position or identity and stagger onset,
+amplitude, gaze and reaction latency unless the Script truly calls for marching, ritual unison or a
+shared startle. A group that turns, nods, blinks or starts walking on the same frame reads as generated.
+
+Stillness is not a frozen frame. At a shot size where the behavior is visible, let breathing move the
+chest and shoulders slightly, let gaze refocus through small eye movements, allow irregular independent
+blinks and carry expression through a continuous transition. Use only a few of these cues and keep
+background behavior below the narrative subject; a list of periodic micro-actions creates another kind
+of mechanical performance. Voice-over keeps visible lips closed, but the face, eyes, breath and posture
+remain alive.
+
+Give larger movement a physical chain: planted support, center-of-mass transfer, hip or shoulder lead,
+joint path, acceleration, deceleration, follow-through and recovery. After contact, keep the correct
+grip, load and connected-object response. Hair, hems, loose sleeves, accessories and carried objects are
+secondary motion: they lag the driving body or wind, travel at smaller amplitude and settle with damping.
+Do not add windless flutter, whole-body phase locking or an instant stop. The setting may respond only to
+an evidenced force—a cushion compresses after sitting, a door creates a brief draft, a footfall disturbs
+nearby dust—not because the shot needs generic movement.
+
+Keep the prompt's motion budget small: one narrative primary action and only the secondary motions that
+make its cause, weight or reaction legible. Split a shot when several exact interactions compete. Give
+the camera one motivated curve with a start, speed development and end; a locked-off camera never drifts.
+This follows the practical separation of subject, camera and scene motion in Runway's official Gen-4
+guidance, the structured subject/action/context approach in Google's Veo guidance, and the prompt-
+extension practice published with Wan. These sources support richer, explicit motion description; they
+do not make text alone a substitute for depth, motion tracks or other temporal references when exact
+timing matters.
+
+Primary references:
+
+- Runway, `Gen-4 Video Prompting Guide`: https://help.runwayml.com/hc/en-us/articles/39789879462419-Gen-4-Video-Prompting-Guide
+- Google DeepMind, `How to create effective prompts with Veo 3`: https://deepmind.google/models/veo/prompt-guide/
+- Wan-Video, `Wan2.1`: https://github.com/Wan-Video/Wan2.1
+- Lightricks, `ComfyUI-LTXVideo` motion-track workflows: https://github.com/Lightricks/ComfyUI-LTXVideo
+
+## Turn subtext into gaze and facial behavior
+
+An internal state is not a visible instruction. Convert it into a causal performance chain: the person
+receives a word, sound, sight or touch; attention moves; they try to preserve a social mask; one small
+feature leaks the change; they decide or act; a residual expression survives into the cut. Stop when the
+Script, storyboard or approved character profile supplies no evidence for the next link. Do not invent a
+secret motive merely to make the shot feel dramatic.
+
+Give gaze an object and screen geography. Name the person, prop or off-screen position being watched;
+state whether the character holds, glances, averts or returns; and choose whether the eyes lead the head
+or the head turns with them. Preserve the off-screen target across the axis. Looking into the lens is a
+specific direct-address or POV choice, not a default sign of intensity. Direct the listener too: receiving,
+judging, resisting or anticipating can be legible through attention and timing without copying the
+speaker's movement.
+
+Facial direction should describe visible change instead of a broad emotion label. In a close shot, use
+one or two readable regions—brow tension, eyelid narrowing, a held lower lip, one lip corner losing its
+smile, nostril tension or a jaw set—and give the change a low-amplitude onset, apex and release. Do not put
+FACS Action Unit numbers into a model prompt; FACS is useful here because it separates observable muscle
+components, not because its codes are model vocabulary. Do not stack the whole face or hold a
+micro-expression as a pose. At medium distance, carry the same beat through gaze, head, breath and jaw;
+at wide distance, use posture, pause, interpersonal distance and blocking.
+
+Bind these choices to the character profile. `eyeline_behavior`, `blink_rhythm`, `stress_response`,
+triggered `habitual_actions` and `forbidden_performance` travel with the selected character reference as
+`performance_constraints`. A habitual action appears only when its recorded trigger occurs, while a
+forbidden performance remains forbidden in every shot. Profile behavior supplies continuity; the current
+dramatic stimulus determines whether and how it becomes visible.
+
+OpenFace's public implementation treats gaze, head pose and facial Action Units as distinct measurable
+channels, while FACS decomposes facial movement into anatomical components. GoHD likewise separates pose,
+gaze and expression driving. These are useful design boundaries: coordinate the channels around one
+dramatic beat, but do not collapse them into one synchronized facial gesture.
+
+Primary references:
+
+- Paul Ekman Group, `Facial Action Coding System`: https://www.paulekman.com/facial-action-coding-system/
+- OpenFace, `Action Units` and gaze APIs: https://github.com/TadasBaltrusaitis/OpenFace/wiki/Action-Units
+- GoHD official implementation: https://github.com/Jia1018/GoHD
+- EMOCA official implementation: https://github.com/radekd91/emoca
+
 For a longer action, distinguish the duration of source footage the model can accept from the
 duration it can produce in one request. Use one request when the model's capability and the work's
 continuity allow it. A forty-second fight might contain several exchanges and reversals, or its
@@ -201,16 +306,41 @@ edge against its intended background, including shoulders, hair, hands, spill an
 Keep those responsibilities explicit in Source. Prompt prose does not create a media edge, and a
 reference does not explain which fact it should preserve. A selected model may accept only some of
 these inputs; use its installed vocabulary and package-local documentation for the exact request.
+Generated source footage must not contain incidental subtitles, captions, titles, labels, logos,
+watermarks, UI text or other unrequested readable text. Approved story text that physically belongs in
+the shot, including a countdown, may be generated when the Brief calls for it.
+
+For each exact countdown, clock, message or difficult changing state, make a temporal storyboard before
+video generation. Default to six cells, while selecting another count when needed for accurate state
+coverage. Give each reading or required state its own cell, approve the original-resolution pixels,
+then attach the board as a semantic reference and direct the exact sequence and timing. The output remains
+one normal full-frame video and must not reveal the grid. Reject malformed output and regenerate after
+improving the prompt or board; never repair generated video with painting, inpainting, compositing,
+source-footage patches or local region replacement.
 
 For a visible A-roll performance, the generated video normally carries the person's picture, exact
-Script delivery and sound together. Give the request the useful camera image, the recurring Voice
-Reference when supported, and the Segment's dialogue.
+Script delivery and sound together. In recreation mode, give the request its mandatory audio reference
+and the Segment's dialogue; general non-recreation modes may use a recurring Voice Reference when supported.
 [Voice direction](voice-direction.md) owns the casting and sample that establish who the person sounds
 like. The passage's direction gives that voice its current attitude and delivery.
 [Script pronunciation](../../creation/script-and-time.md#write-the-intended-pronunciation) explains
 how names and abbreviations receive the intended reading while keeping their display spelling.
 Independent speech is a different A-roll construction, described in
 [Voice and performance](voice-and-performance.md).
+
+Final generated shots default to joint picture-and-audio generation. Wordless action still carries the
+directed ambience and physical sound unless the Brief explicitly requires silence or the Endpoint lacks
+native audio; record that waiver before generation. For visible speech, measure the dialogue first, size the
+request around that performed duration, include the exact Script line and direct voice, mouth movement,
+breath and scene sound in the same request. Seedance defaults `generate-audio` to `true`; for H3, populate
+its audiovisual prompt sections and attach the mandatory audio reference in recreation mode. When speech must be produced
+separately, plan explicit lip synchronization and review the actual phoneme-to-mouth result before the
+Take is accepted.
+
+When the source alternates languages, split analysis by utterance or speaking interval and confirm each
+turn's language independently. Write the exact original line and language code into the joint audiovisual
+request. Do not use the file's dominant language for every turn, infer speech from translated subtitles,
+or let the model translate or switch the declared language.
 
 For silent B-roll, direct the visual event and omit speaking identity that the shot does not use. A
 listener or reaction shot can remain silent while still breathing, noticing, adjusting posture or

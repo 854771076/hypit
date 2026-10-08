@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-// Execute the installed package as a user would, without workspace module links or host state.
+// 按用户真实安装方式执行发行包，不依赖工作区软链接或宿主状态。
 const npmCli = process.env.npm_execpath;
 if (!npmCli?.endsWith("npm-cli.js") || process.argv.length !== 3) {
   throw new Error("Use npm run check:distribution -- /path/to/hypit-hypit-<version>.tgz");
@@ -14,15 +14,14 @@ const root = await mkdtemp(join(tmpdir(), "hypit-distribution-"));
 const project = join(root, "project");
 await mkdir(project);
 const env = { ...process.env, HYPIT_STATE_HOME: join(root, "state") };
-// Old shell hints must not redirect the installed launcher, Worker or capture child.
+// 旧 Shell 提示不能把已安装的启动器、Worker 或采集子进程重定向回源码目录。
 env.HYPIT_DISTRIBUTION_ROOT = join(root, "stale-distribution");
 env.HYPIT_CLI_LAUNCHER = join(root, "stale-distribution", "bin", "hypit.mjs");
 delete env.NODE_PATH;
 delete env.NODE_OPTIONS;
 delete env.HYPERFRAMES_BROWSER_PATH;
 delete env.PRODUCER_HEADLESS_SHELL_PATH;
-// The selected Provider's installation declaration, not this test's environment,
-// must suppress Puppeteer's transitive browser download.
+// 必须由已选 Provider 的安装声明阻止 Puppeteer 传递下载浏览器，不能依赖本测试环境。
 delete env.PUPPETEER_SKIP_DOWNLOAD;
 env.PUPPETEER_CACHE_DIR = join(root, "unselected-puppeteer-cache");
 
@@ -50,7 +49,17 @@ try {
   await writeFile(join(project, "package.json"), JSON.stringify({ name: "distribution-example", private: true, type: "module" }));
   await npm("install", tarball, "--no-audit", "--no-fund");
   await hypit(["--version"]);
+  assert.match(await hypit(["--help"], true), /Short drama/u);
   await hypit(["studio", "--help"]);
+  await hypit(["short-drama", "--help"]);
+  const dramaRoot = (await hypit(["short-drama", "root"], true)).trim();
+  await access(join(dramaRoot, "skills", "short-drama", "SKILL.md"));
+  const dramaProject = join(project, "short-drama-smoke");
+  await hypit(["short-drama", "init", "distribution-drama", "--profile", "viral-recreation", "--workspace", dramaProject]);
+  const dramaState = JSON.parse(await hypit(["short-drama", "status", "--workspace", dramaProject], true));
+  assert.equal(dramaState.stage, "analysis");
+  const dramaModules = JSON.parse(await hypit(["short-drama", "modules", "required", "analysis", "--workspace", dramaProject], true));
+  assert.ok(dramaModules.includes("use-hypit-video"));
 
   const example = join(distribution, "examples", "semantic-composition");
   for (const name of ["chat.svml", "chat.svrun", "chat.svs", "hypit.runtime.json"]) {

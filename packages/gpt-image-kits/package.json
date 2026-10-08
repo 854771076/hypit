@@ -5,7 +5,10 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./phone-ugc-v1": "./kits/phone-ugc-v1.svs"
+    "./phone-ugc-v1": "./kits/phone-ugc-v1.svs",
+    "./asset-sheet": "./kits/asset-sheet-v1.svs",
+    "./storyboard": "./kits/storyboard-v1.svs",
+    "./story-text-frame": "./kits/story-text-frame-v1.svs"
   },
   "files": ["kits", "README.md"],
   "devDependencies": {

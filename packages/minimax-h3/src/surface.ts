@@ -70,16 +70,17 @@ export const decodeMinimaxFrameVideoSurface: StructuredSurfaceHandler = ({ eleme
   return output(element, prompt, ports, media);
 };
 export const decodeMinimaxReferenceVideoSurface: StructuredSurfaceHandler = ({ element, resolveReference }) => {
-  exact(element, ["id", "prompt", "duration", "resolution", "aspect-ratio"], ["id", "prompt", "duration"]);
-  const { prompt, ports } = common(element, resolveReference); const media: Media[] = [];
+  exact(element, ["id", "prompt", "duration", "resolution", "aspect-ratio", "first-frame"], ["id", "prompt", "duration"]);
+  const { prompt, ports } = common(element, resolveReference); const media: Media[] = []; let referenceCount = 0;
+  if (element.attributes["first-frame"] !== undefined) media.push({ port: "firstFrame", role: "image", source: mediaRef(element, "first-frame", "image", resolveReference) });
   const mapping = { image: ["referenceImage", "image"], video: ["referenceVideo", "video"], audio: ["referenceAudio", "audio"] } as const;
   for (const child of element.children) {
     if (child.kind === "text") { assert(child.value.trim().length === 0, `${element.name} accepts only Reference children`); continue; }
     assert(localName(child.name) === "Reference", `${element.name} accepts only Reference children`); const used = Object.keys(mapping).filter((name) => child.attributes[name] !== undefined) as (keyof typeof mapping)[];
     assert(used.length === 1, `${child.name} requires exactly one of image, video or audio`); exact(child, [used[0]!], [used[0]!]); empty(child);
-    const role = used[0]!; const [port] = mapping[role]; media.push({ port, role, source: mediaRef(child, role, role, resolveReference) });
+    const role = used[0]!; const [port] = mapping[role]; media.push({ port, role, source: mediaRef(child, role, role, resolveReference) }); referenceCount += 1;
   }
-  assert(media.length > 0, `${element.name} requires at least one Reference`);
+  assert(referenceCount > 0, `${element.name} requires at least one Reference`);
   assert(!media.some((item) => item.role === "audio") || media.some((item) => item.role === "image" || item.role === "video"), `${element.name} reference audio requires an image or video companion`);
   for (const port of ["referenceImage", "referenceVideo", "referenceAudio"] as const) assert(media.filter((item) => item.port === port).length <= generationPort(minimaxH3Endpoints.video!.ports, port).maxItems, `${element.name} has too many ${port} references`);
   assert(media.length <= 12, `${element.name} accepts at most 12 total references`);
