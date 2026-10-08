@@ -124,6 +124,9 @@ export type PlanOutput = {
   readonly steps?: number;
   readonly requestCount: number;
   readonly requestIssueCount: number;
+  /** Producer failures outside planned requests; any such failure invalidates the plan. */
+  readonly producerFailureCount: number;
+  readonly producerFailures?: readonly { readonly step: string; readonly message: string }[];
   /** Present when a Runtime Profile was selected. */
   readonly providerRequestCount?: number;
   readonly localRequestCount?: number;
@@ -520,6 +523,7 @@ function renderPlan(
     ["Requests", String(view.machine.requestCount)],
     ...(view.machine.choiceCount === 0 ? [] : [["Run choices", String(view.machine.choiceCount)] as const]),
     ...(view.machine.requestIssueCount === 0 ? [] : [["Request issues", String(view.machine.requestIssueCount)] as const]),
+    ...(view.machine.producerFailureCount === 0 ? [] : [["Producer failures", String(view.machine.producerFailureCount)] as const]),
     ...((view.machine.providerRequestCount ?? 0) === 0 ? [] : [["Provider requests", String(view.machine.providerRequestCount)] as const]),
     ...((view.machine.localRequestCount ?? 0) === 0 ? [] : [["Local requests", String(view.machine.localRequestCount)] as const]),
     ...((view.machine.unsupportedRequestCount ?? 0) === 0 ? [] : [["Unsupported", String(view.machine.unsupportedRequestCount)] as const]),
@@ -529,6 +533,11 @@ function renderPlan(
     ] as const]),
     ...(!verbose || view.machine.steps === undefined ? [] : [["Steps", String(view.machine.steps)] as const]),
   ], colors));
+  const failures = view.machine.producerFailures ?? [];
+  if (failures.length > 0) {
+    lines.push("", colors.strong("Producer failures"));
+    for (const item of failures) lines.push(`  ${colors.error(glyph(io, "×", "x"))} ${stepLabel(item.step)}: ${item.message}`);
+  }
   if (view.machine.requestCount > 0) lines.push("", colors.strong("Production plan"));
   if (view.machine.providers !== undefined) {
     const groups = new Map<string, PlanProvider[]>();
