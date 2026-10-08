@@ -25,7 +25,7 @@ import type { Recipe } from "@hypit/hypit/recipe";
 import { textTypes } from "@hypit/hypit/text";
 import type { StructuredElement, StructuredSurfaceHandler, SurfaceResolvedReference, MarkupAttributeValue } from "@hypit/hypit/markup";
 import { temporalTypes } from "@hypit/hypit/temporal";
-import { createTemporalWindowConstruction } from "@hypit/hypit/temporal/markup";
+import { resolveTemporalWindowReference } from "@hypit/hypit/temporal/markup";
 
 import { fineTextWindowAttributeVocabulary, textFineProducers, textFineTypes } from "./manifest.js";
 import {
@@ -725,10 +725,7 @@ function decodeFineTextOccurrenceSurface(form: FineTextForm): StructuredSurfaceH
     ], ["id", "timeline", geometryAttribute, "style", "z"]);
     const id = text(element, "id");
     const context = resolveTemporalContext({ element, resolveReference });
-    const temporal = createTemporalWindowConstruction({
-      id: `${id}.__window`, subjectId: id, element,
-      timeline: context.timeline, resolveReference,
-    });
+    const window = resolveTemporalWindowReference({ element, resolveReference });
     const geometry = reference(element.attributes[geometryAttribute], `${element.name}.${geometryAttribute}`, geometryType, resolveReference);
     const style = reference(element.attributes.style, `${element.name}.style`, textFineTypes.style, resolveReference);
     const defaultMotionId = `${id}.__still-motion`;
@@ -770,10 +767,8 @@ function decodeFineTextOccurrenceSurface(form: FineTextForm): StructuredSurfaceH
           id: specId, type: content === undefined ? textFineTypes.itemSpec : textFineTypes.plainItemSpec,
           value: { kind: "inline", value: spec }, range: element.range,
         },
-        ...temporal.records,
       ],
       components: [
-        ...temporal.components,
         {
           id, fragment: fragment.id,
           inputs: {
@@ -782,12 +777,12 @@ function decodeFineTextOccurrenceSurface(form: FineTextForm): StructuredSurfaceH
             ...(pathMotion === undefined ? {} : { pathMotion }),
             spec: { kind: "record", id: specId },
             ...(content === undefined ? {} : { content: content.ref }),
-            style: style.ref, motion, window: temporal.ref,
+            style: style.ref, motion, window: window.ref,
           },
           outputs: { occurrence: `${id}.occurrence`, visual: `${id}.visual` }, range: element.range,
         },
       ],
-      fragments: [...temporal.fragments, fragment],
+      fragments: [fragment],
       exports: [`${id}.occurrence`, `${id}.visual`],
     };
   };
