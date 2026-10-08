@@ -19,7 +19,7 @@ for (const path of ['.DS_Store', '.playwright-mcp']) {
   } catch {}
 }
 
-for (const path of ['README.md', 'LICENSE', '.codex-plugin/plugin.json', '.claude-plugin/plugin.json', '.claude-plugin/marketplace.json', '.claude-plugin/mcp.json', '.github/workflows/ci.yml', '.github/workflows/release.yml', '.github/workflows/upstream-sync.yml', 'references/project-spec-v1.md', 'references/codex-contracts.md', 'references/module-map.json', 'scripts/check-update.mjs', 'scripts/validate-project.mjs', 'scripts/module-runs.mjs', 'scripts/module-map.mjs', 'scripts/preflight.mjs', 'scripts/provider-setup.mjs', 'scripts/blender-previz.py', 'scripts/previz-contract.mjs', 'scripts/previz-self-check.mjs', 'scripts/reference-video-import.mjs', 'scripts/generation/live-smoke-test.mjs', 'scripts/generation/depth-video-workflow.json', 'scripts/generation/depth-video-adapter.test.mjs', 'scripts/document-reference.mjs', 'scripts/reference-bindings.mjs', 'scripts/media-hosting/litterbox.mjs', 'scripts/media-hosting/publish.mjs', 'skills/short-drama/references/generation/generate-depth-videos.md']) {
+for (const path of ['README.md', 'LICENSE', '.codex-plugin/plugin.json', '.claude-plugin/plugin.json', '.claude-plugin/marketplace.json', '.claude-plugin/mcp.json', '.github/workflows/ci.yml', '.github/workflows/release.yml', '.github/workflows/upstream-sync.yml', 'references/project-spec-v1.md', 'references/codex-contracts.md', 'references/module-map.json', 'scripts/check-update.mjs', 'scripts/dashboard-auto-open.mjs', 'scripts/validate-project.mjs', 'scripts/module-runs.mjs', 'scripts/module-map.mjs', 'scripts/preflight.mjs', 'scripts/provider-setup.mjs', 'scripts/blender-previz.py', 'scripts/previz-contract.mjs', 'scripts/previz-self-check.mjs', 'scripts/reference-video-import.mjs', 'scripts/generation/live-smoke-test.mjs', 'scripts/generation/depth-video-workflow.json', 'scripts/generation/depth-video-adapter.test.mjs', 'scripts/document-reference.mjs', 'scripts/reference-bindings.mjs', 'scripts/media-hosting/litterbox.mjs', 'scripts/media-hosting/publish.mjs', 'skills/short-drama/references/generation/generate-depth-videos.md']) {
   try { await access(resolve(root, path)) } catch { failures.push(`缺少项目规范组件：${path}`) }
 }
 
@@ -38,6 +38,8 @@ if (claudeManifest.mcpServers !== './.claude-plugin/mcp.json') failures.push('Cl
 if (!claudeMcp.mcpServers?.['drama-generation']?.args?.[0]?.startsWith('${CLAUDE_PLUGIN_ROOT}/')) failures.push('Claude MCP 未使用 CLAUDE_PLUGIN_ROOT 定位脚本')
 const hooks = JSON.parse(await readFile(resolve(root, 'hooks/hooks.json'), 'utf8'))
 if (JSON.stringify(hooks).includes('/scripts/check-update.mjs')) failures.push('SessionStart 不得自动检查或升级插件版本')
+const dashboardHooks = hooks.hooks?.SessionStart?.filter((entry) => entry.hooks?.some((hook) => hook.command?.includes('/scripts/dashboard-auto-open.mjs'))) || []
+if (dashboardHooks.length !== 1 || dashboardHooks[0].matcher !== 'startup|resume') failures.push('SessionStart 必须仅在 startup/resume 自动打开项目 Dashboard')
 
 async function files(directory) {
   const output = []

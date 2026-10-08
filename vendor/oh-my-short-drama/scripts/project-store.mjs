@@ -12,7 +12,8 @@ import { invalidateFrom, invalidateShot } from './invalidate-workflow.mjs'
 import { invalidateShotAssets } from './asset-ledger.mjs'
 import { ANTI_GRID_CLAIM_ZH, ANTI_GRID_CLAIM_EN, NO_GENERATED_TEXT_CLAIM_ZH, NO_GENERATED_TEXT_CLAIM_EN, hasAntiGridClaim, hasNoGeneratedTextClaim } from './grid-detect.mjs'
 import { changedShotNumbers } from './shot-fingerprint.mjs'
-import { DEFAULT_WORKSPACE_ROOT, openStudio } from './studio.mjs'
+import { DEFAULT_WORKSPACE_ROOT } from './studio.mjs'
+import { autoOpenProjectDashboard } from './dashboard-auto-open.mjs'
 import { normalizeModelParameters, providerSetupCatalog, providerSupports } from './generation/providers.mjs'
 import { supportsPrevizMotionReference, validateMotionReferenceBinding } from './previz-contract.mjs'
 import { saveCustomArtStyle } from './art-styles.mjs'
@@ -937,7 +938,7 @@ async function main() {
     try {
       await writeText(resolve(root, 'AGENTS.md'), '# 本地短剧项目\n\n本目录由 `oh-my-short-drama` 管理。开始或恢复制作时，必须先读取 `.short-drama/RESUME.md`、`.short-drama/project.json` 和 `.short-drama/state.json`。`project.json` 的 `automation_mode` 默认为 `true`；开启时 agent 自主处理常规确认，关闭时等待用户确认。任何模式都不得跳过模块凭证、版本、选版、权限事实和验收门禁。\n', true)
     } catch (error) { if (error?.code !== 'EEXIST') throw error }
-    if (dirname(root) === DEFAULT_WORKSPACE_ROOT && process.env.SHORT_DRAMA_STUDIO_ACTIVE !== '1') try { await openStudio() } catch (error) { console.warn(error.message) }
+    if (process.env.SHORT_DRAMA_STUDIO_ACTIVE !== '1') try { await autoOpenProjectDashboard(root) } catch (error) { console.warn(`Dashboard 自动打开失败：${error.message}`) }
     return console.log(root)
   }
   if (command === 'project') return console.log(JSON.stringify(validateProject(await readJson(resolve(root, '.short-drama/project.json'))), null, 2))

@@ -11,6 +11,17 @@
             "statusMessage": "恢复短剧工作流状态..."
           }
         ]
+      },
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/dashboard-auto-open.mjs\"",
+            "timeout": 5,
+            "statusMessage": "打开短剧项目 Dashboard..."
+          }
+        ]
       }
     ]
   }

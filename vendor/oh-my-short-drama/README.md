@@ -204,7 +204,7 @@ node scripts/studio.mjs open-project /absolute/path/to/project
 
 需要覆盖默认位置时，仍可在命令后传入绝对工作区路径。`open-project` 会直接打开项目概览路由，并在项目内留下可校验的 Dashboard 启动凭证。
 
-通过 `project-store.mjs init project-key` 在默认根目录初始化项目后，Dashboard 会自动在本机启动并打开；从 Dashboard 页面内新建项目时不会重复打开窗口。
+通过 `project-store.mjs init project-key` 初始化默认目录或自定义绝对目录项目后，Dashboard 都会自动在本机启动并打开对应项目路由；从 Dashboard 页面内新建项目时不会重复打开窗口。从项目根目录或子目录启动、恢复 Codex 会话时也会自动打开当前项目，compact 仅恢复上下文而不重复弹窗。
 
 然后打开 `http://127.0.0.1:4173`。工作台会按 `project.key` 连接一级目录中的真实项目，支持新建项目、供应商凭据与模型配置、非付费连接测试、项目校验、分集与已选文档、任务账本、交付预览、资产导入，以及确认后选版和撤回选版；项目 JSON 和媒体仍由原有账本脚本管理。
 

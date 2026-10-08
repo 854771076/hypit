@@ -3,6 +3,6 @@
   "sourceCommit": "1ee506005db22990640a2d9011f4eaf4e5adba48",
   "capturedAt": "2026-09-29",
   "sourceHadLocalChanges": true,
-  "contentTreeSha256": "0f0375de1a8018353812df7c751e068998883b8b97fc452dbf70c9f81cefdd22",
+  "contentTreeSha256": "4be4df5a64a09331b31df49f3fd21355b986234fd1f0dca2907434f5603b3d5a",
   "integration": "Hypit exposes the project engine and dashboard through hypit short-drama; supported media models compile to native Author/Run Sources and execute through Runtime Providers."
 }

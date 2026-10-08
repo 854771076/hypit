@@ -1,6 +1,6 @@
 # 管理短剧项目
 
-先确认交付语言、画幅和目标集。用户未明确指定其他绝对路径时，新项目统一初始化到 `~/darma_project/<project-key>`；相对项目目录也按该根目录解析。新项目按 [项目规范 v1](../../../../references/project-spec-v1.md) 准备元数据，再用 `node "${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-.}}/scripts/project-store.mjs" init <project-key|绝对目录> [项目元数据.json]` 初始化；默认根目录中的项目初始化成功后会自动启动并打开 Dashboard，方便用户浏览。初始化会运行环境预检并保存 `.short-drama/environment.json`，未确认字段保持 `null`。既有项目先用 `project` 回读，不得覆盖；旧版配置显式执行 `migrate-project-config`，脚本会保留备份。项目配置统一使用 snake_case，修改用 `update-project`，完成后运行 `validate-project-config`。
+先确认交付语言、画幅和目标集。用户未明确指定其他绝对路径时，新项目统一初始化到 `~/darma_project/<project-key>`；相对项目目录也按该根目录解析。新项目按 [项目规范 v1](../../../../references/project-spec-v1.md) 准备元数据，再用 `node "${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-.}}/scripts/project-store.mjs" init <project-key|绝对目录> [项目元数据.json]` 初始化；默认根目录或用户指定绝对目录中的项目初始化成功后都会自动启动并打开该项目的 Dashboard 精确路由，方便用户浏览。Dashboard 页面内部创建项目时由现有页面接管，不重复打开窗口。初始化会运行环境预检并保存 `.short-drama/environment.json`，未确认字段保持 `null`。既有项目先用 `project` 回读，不得覆盖；旧版配置显式执行 `migrate-project-config`，脚本会保留备份。项目配置统一使用 snake_case，修改用 `update-project`，完成后运行 `validate-project-config`。
 
 初始化必须同时产生空的 `assets.json`、`tasks.json`、`shot-reviews.json` 和 `module-runs.json`；任一缺失都视为初始化失败，不能手工补文件后继续。`aspect_ratio` 必须与 `resolution` 的宽高方向一致，例如 16:9 使用 `1920x1080`；Provider 参数必须来自所选模型枚举。切换模型时通过 `update-project` 提交完整的新 `parameters`，脚本会替换旧参数，避免残留其他模型字段。
 

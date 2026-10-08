@@ -49,7 +49,7 @@
 └── delivery/ep-001/{final.mp4,final.srt,final.ass,manifest.json}
 ```
 
-用户未明确指定其他绝对路径时，新项目统一位于 `~/darma_project/<project-key>`；Dashboard 与 `project-store.mjs init <相对项目目录>` 使用同一默认根目录。新项目还会在项目根创建 `AGENTS.md` 作为 Codex 的项目级恢复入口；若目录已有用户自己的 `AGENTS.md`，初始化不会覆盖。更换会话时只要从项目根或其子目录打开任务，SessionStart hook 会向上定位 `.short-drama/project.json` 并恢复阶段；从无关目录打开时必须显式给出项目路径。不要建立跨项目全局记忆，避免旧选版、旧 Provider 或旧阶段污染当前项目。
+用户未明确指定其他绝对路径时，新项目统一位于 `~/darma_project/<project-key>`；Dashboard 与 `project-store.mjs init <相对项目目录>` 使用同一默认根目录。新项目还会在项目根创建 `AGENTS.md` 作为 Codex 的项目级恢复入口；若目录已有用户自己的 `AGENTS.md`，初始化不会覆盖。默认目录和自定义绝对目录在初始化完成后都会自动打开对应项目 Dashboard。更换会话时只要从项目根或其子目录打开任务，SessionStart hook 会向上定位 `.short-drama/project.json`、恢复阶段并在 startup/resume 打开对应项目路由；compact 只恢复上下文，不重复开窗。从无关目录打开时必须显式给出项目路径。不要建立跨项目全局记忆，避免旧选版、旧 Provider 或旧阶段污染当前项目。
 
 初始化必须原子创建 `assets.json`、`tasks.json`、`shot-reviews.json` 与 `module-runs.json` 空账本。`format.resolution` 使用“宽x高”，方向必须与 `aspect_ratio` 一致；Provider、模型和 `parameters` 必须通过已注册目录校验。更新 Provider 参数时整组替换，不能残留上一模型字段。
 
