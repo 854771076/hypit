@@ -36,7 +36,7 @@ test("Studio reads Instant lineage and author authority from executed graph edge
     }),
   ];
   const steps = [
-    step("project", "@hypit/narrative-temporal", "project-moment-instant", { timeline: "timeline", projection: "projection", moment: "moment", spec: "point-spec" }, { instant: "point" }),
+    step("project", "@hypit/narrative-temporal", "project-moment-instant", { projection: "projection", moment: "moment", spec: "point-spec" }, { instant: "point" }),
     step("append", "@hypit/depth-stack", "append-depth-stack-card", { set: "empty", spec: "card-spec", activation: "point" }, { set: "cards" }),
     step("render", "@hypit/depth-stack", "render-depth-stack", { program: "cards" }, { track: "track" }),
   ];

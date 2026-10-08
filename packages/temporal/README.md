@@ -22,10 +22,11 @@ id to match the value.
 Timeline understand media, speech, or the operation that discovered the length. A domain projector
 may map one complete finite source-local domain onto an equal-length Window at native speed through
 the pure exact-projection helper. This total one-to-one operation keeps every local boundary
-projectable and produces no durable Placement value.
+projectable and publishes only resolved absolute values.
 
 Author syntax does not live in the main contract entry. The same owner exposes
-`@hypit/hypit/temporal/markup` to construct absolute literals and compose Windows from Markup.
+`@hypit/hypit/temporal/markup`: declaration packages use its construction helpers, while component
+surfaces use its reference-only Instant and Window resolvers.
 Domain packages such as `@hypit/narrative-temporal` project their own values into these
 common types. Visual, audio, caption, typography and project components receive only the completed
 Instant or Window plus the Timeline they already consume.
