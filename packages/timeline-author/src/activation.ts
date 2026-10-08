@@ -1,11 +1,13 @@
 import { createAdmissionPackageFacet } from "@hypit/hypit/admission";
 import { createProducerPackageFacet } from "@hypit/hypit/producer";
 import { createMarkupSurfaceFacet } from "@hypit/hypit/markup";
+import { createStudioCompanionFacet } from "@hypit/studio-companion";
 import {
   decodeAbsoluteInstantSurface, decodeAbsoluteWindowSurface, decodeClockSurface, decodeTimelineAuthorSurface, timelineAuthorComponent, timelineAuthorManifest,
   timelineAuthorModuleRef,
   timelineAuthorMarkupSurfaces,
 } from "./index.js";
+import { timelineAuthorStudioTemporalDeclarations, timelineAuthorStudioTemporalRelations } from "./studio.js";
 
 export const hypitPackage = {
   format: "hypit.package@1" as const,
@@ -13,6 +15,10 @@ export const hypitPackage = {
     manifest: timelineAuthorManifest,
   }],
   facets: [
+    createStudioCompanionFacet({
+      temporalDeclarations: timelineAuthorStudioTemporalDeclarations,
+      temporalRelations: timelineAuthorStudioTemporalRelations,
+    }),
     ...[timelineAuthorComponent].flatMap((component) => [createProducerPackageFacet(component), createAdmissionPackageFacet(component)]),createMarkupSurfaceFacet({
     module: timelineAuthorModuleRef,
     declaration: timelineAuthorMarkupSurfaces.find((item) => item.name === "timeline")!, handler: decodeTimelineAuthorSurface,

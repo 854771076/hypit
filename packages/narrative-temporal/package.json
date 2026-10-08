@@ -18,6 +18,7 @@
     "@hypit/protocol": "workspace:*",
     "@hypit/temporal": "workspace:*",
     "@hypit/timeline": "workspace:*",
-    "@hypit/admission": "workspace:*"
+    "@hypit/admission": "workspace:*",
+    "@hypit/studio-companion": "workspace:*"
   }
 }
