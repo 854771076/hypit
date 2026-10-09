@@ -3,7 +3,7 @@ import type { AsyncEndpoint, EndpointCredential, EndpointOutcome } from "@hypit/
 import { defineEndpointPackage, wakeAfter } from "@hypit/endpoint-kit";
 import { canonicalize } from "@hypit/protocol";
 import type { BlobRef, CapabilityRef } from "@hypit/protocol";
-import { credentialRef } from "@hypit/runtime";
+import { credentialRef, decodeOAuth2Credential } from "@hypit/runtime";
 import type { CredentialRef, ResourceStore } from "@hypit/runtime";
 
 import { linghuStudioRouteForCapability, linghuStudioRoutes } from "./routes.js";
@@ -58,7 +58,10 @@ function object(value: unknown, subject: string): Record<string, unknown> {
 function key(credentials: Readonly<Record<string, EndpointCredential>>): string {
   const value = credentials.apiKey?.secret;
   assert(typeof value === "string" && value.length > 0, "灵狐工作室 API Key 不可用");
-  return value;
+  const oauth = decodeOAuth2Credential(value);
+  if (oauth === undefined) return value;
+  assert(oauth.expiresAt === undefined || oauth.expiresAt > Date.now(), "灵狐工作室登录已过期，请重新执行 hypit auth login");
+  return oauth.accessToken;
 }
 
 function normalizeBaseUrl(value: string): string {
@@ -310,8 +313,9 @@ function endpoint(options: {
 
 export function createLinghuStudioProvider(options: CreateLinghuStudioProviderOptions) {
   assert(options.projectId.trim().length > 0, "灵狐工作室 projectId 不能为空");
+  const baseUrl = normalizeBaseUrl(options.baseUrl ?? "https://ai-short-studio.vvicat.dev");
   const client = new LinghuStudioClient(
-    normalizeBaseUrl(options.baseUrl ?? "https://ai-short-studio.vvicat.dev"),
+    baseUrl,
     options.requestTimeoutMs ?? 300_000,
     options.fetch ?? globalThis.fetch,
   );
@@ -337,7 +341,17 @@ export function createLinghuStudioProvider(options: CreateLinghuStudioProviderOp
     pricing: { kind: "page", url: "https://ai-short-studio.vvicat.dev" },
     credentials: { apiKey: options.apiKey ?? credentialRef("os", "linghu-studio.api-key"), ...publicAssetCredentials },
     credentialInputs: {
-      apiKey: { label: "灵狐工作室 API Key" },
+      apiKey: {
+        label: "灵狐工作室账户",
+        acquisition: {
+          kind: "oauth2-pkce",
+          authorizationEndpoint: `${baseUrl}/api/v1/auth/cli/authorize`,
+          tokenEndpoint: `${baseUrl}/api/v1/auth/cli/token`,
+          clientId: "hypit-cli",
+          scopes: ["cli:access"],
+          requestTimeoutMs: options.requestTimeoutMs ?? 300_000,
+        },
+      },
       ...(options.publicAssets === undefined ? {} : {
         publicAssetAccessKeyId: { label: "公开素材存储 Access Key ID" },
         publicAssetSecretAccessKey: { label: "公开素材存储 Secret Access Key" },

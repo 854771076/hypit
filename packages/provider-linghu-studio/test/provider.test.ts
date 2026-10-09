@@ -5,6 +5,7 @@ import { EndpointRegistry, MemoryResourceStore } from "@hypit/driver-node";
 import type { AsyncEndpoint } from "@hypit/endpoint-kit";
 import { canonicalize } from "@hypit/protocol";
 import type { CanonicalValue, Need } from "@hypit/protocol";
+import { encodeOAuth2Credential } from "@hypit/runtime";
 import type { RuntimeEndpointAdapterImplementation } from "@hypit/runtime-kit";
 import { sealSeedanceRequest, seedanceEndpoints } from "@hypit/seedance";
 
@@ -107,6 +108,59 @@ test("灵狐工作室只接收显式映射到账号目录的能力", async () =>
   const registry = new EndpointRegistry();
   await createLinghuStudioProvider({ projectId: "project-1" }).install(registry);
   assert.equal(registry.resolve(request()).status, "unsupported");
+});
+
+test("灵狐工作室声明浏览器 PKCE 登录并保留手工 Key 导入能力", () => {
+  const provider = createLinghuStudioProvider({
+    baseUrl: "https://ai-short-studio.vvicat.dev",
+    projectId: "project-1",
+  });
+
+  assert.deepEqual(provider.credentials, [{
+    endpoint: "linghu-studio.default",
+    slot: "apiKey",
+    label: "灵狐工作室账户",
+    kind: "secret",
+    ref: { store: "os", key: "linghu-studio.api-key" },
+    acquisition: {
+      kind: "oauth2-pkce",
+      authorizationEndpoint: "https://ai-short-studio.vvicat.dev/api/v1/auth/cli/authorize",
+      tokenEndpoint: "https://ai-short-studio.vvicat.dev/api/v1/auth/cli/token",
+      clientId: "hypit-cli",
+      scopes: ["cli:access"],
+      requestTimeoutMs: 300_000,
+    },
+  }]);
+});
+
+test("灵狐工作室使用浏览器登录凭据中的 access token 调用模型 API", async () => {
+  const endpoint = await endpointFor(async (input, init) => {
+    const url = String(input);
+    if (url.endsWith("/api/v1/models/video")) {
+      assert.equal(new Headers(init?.headers).get("authorization"), "Bearer vvk_browser_login");
+      return Response.json({ taskId: "task-oauth", status: "queued" }, { status: 202 });
+    }
+    throw new Error(`未预期的请求：${url}`);
+  });
+  const resources = new MemoryResourceStore();
+
+  const started = await endpoint.start({
+    command: { kind: "fulfill-need", id: "command:linghu-oauth", need: request() },
+    need: request(),
+    resources,
+    credentials: {
+      apiKey: {
+        secret: encodeOAuth2Credential({
+          accessToken: "vvk_browser_login",
+          refreshToken: "vvk_browser_login",
+          expiresAt: Date.now() + 60_000,
+        }),
+      },
+    },
+    operation: "operation:linghu-oauth",
+  });
+
+  assert.equal(started.status, "pending");
 });
 
 test("灵狐工作室 Runtime 配置加载项目、API Key 引用与模型映射", async () => {
