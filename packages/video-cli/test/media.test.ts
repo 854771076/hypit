@@ -78,6 +78,27 @@ test("clean-text refuses destructive video repair", async () => {
   );
 });
 
+test("album artwork does not turn an audio cut into video", { skip: !ffmpeg && "ffmpeg is not installed" }, async () => {
+  const work = await mkdtemp(join(tmpdir(), "hypit-covered-audio-"));
+  try {
+    const audio = join(work, "plain.mp3");
+    const artwork = join(work, "cover.jpg");
+    const covered = join(work, "covered.mp3");
+    const tone = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i",
+      "sine=frequency=440:duration=1", "-c:a", "libmp3lame", audio], { encoding: "utf8" });
+    assert.equal(tone.status, 0, tone.stderr);
+    await sharp({ create: { width: 32, height: 32, channels: 3, background: "#ee3344" } }).jpeg().toFile(artwork);
+    const attach = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-i", audio, "-i", artwork,
+      "-map", "0:a:0", "-map", "1:v:0", "-c", "copy", "-id3v2_version", "3", "-disposition:v:0", "attached_pic", covered], { encoding: "utf8" });
+    assert.equal(attach.status, 0, attach.stderr);
+    const info = await probeMedia(covered);
+    assert.equal(info.hasAudio, true);
+    assert.equal(info.hasVideo, false, "album artwork is not a timed video stream");
+  } finally {
+    await rm(work, { recursive: true, force: true });
+  }
+});
+
 test("depth-source preparation requires an explicit original-reference role", async () => {
   await assert.rejects(
     runMediaCli(["media", "prepare-depth-source", "generated-shot.mp4", "--source-role", "generated-shot"], io().io),
