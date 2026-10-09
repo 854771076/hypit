@@ -56,6 +56,32 @@ test("OAuth callback reports authorization while the CLI finishes the credential
   ]);
 });
 
+test("provider-specific PKCE login can send JSON code exchange parameters", async () => {
+  const custom = {
+    ...acquisition,
+    authorizationEndpoint: "https://studio.example.test/api/sso/memhub/start",
+    authorizationParameters: { mode: "cli" },
+    tokenExchange: "json-code-verifier" as const,
+  };
+  let opened: URL | undefined;
+  const raw = await acquireOAuthCredential(custom, {
+    open: (url) => {
+      opened = new URL(url);
+      returnAuthorization(url, () => {});
+    },
+    fetch: async (_input, init) => {
+      assert.equal(new Headers(init?.headers).get("content-type"), "application/json");
+      const body = JSON.parse(String(init?.body)) as { code?: string; codeVerifier?: string };
+      assert.equal(body.code, "authorization-code");
+      assert.equal(typeof body.codeVerifier, "string");
+      return Response.json({ accessToken: "access", refreshToken: "refresh", expiresAt: Date.now() + 60_000 });
+    },
+  });
+  assert.equal(opened?.pathname, "/api/sso/memhub/start");
+  assert.equal(opened?.searchParams.get("mode"), "cli");
+  assert.equal(decodeOAuth2Credential(raw)?.accessToken, "access");
+});
+
 test("OAuth callback releases another browser connection after sending its page", async () => {
   let browserConnection: ReturnType<typeof createConnection> | undefined;
   const raw = await acquireOAuthCredential(acquisition, {

@@ -149,6 +149,9 @@ export async function acquireOAuthCredential(
   authorize.searchParams.set("state", state);
   authorize.searchParams.set("code_challenge", challenge);
   authorize.searchParams.set("code_challenge_method", "S256");
+  for (const [name, value] of Object.entries(acquisition.authorizationParameters ?? {})) {
+    authorize.searchParams.set(name, value);
+  }
   options.onProgress?.(`Opening sign-in: ${authorize}`);
   if (options.open === undefined) openAuthorizeUrl(authorize.toString());
   else options.open(authorize.toString());
@@ -158,16 +161,19 @@ export async function acquireOAuthCredential(
   let tokenResponse: Response;
   let body: string;
   try {
+    const jsonExchange = acquisition.tokenExchange === "json-code-verifier";
     tokenResponse = await (options.fetch ?? globalThis.fetch)(acquisition.tokenEndpoint, {
       method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: redirectUri,
-        client_id: acquisition.clientId,
-        code_verifier: verifier,
-      }),
+      headers: { "content-type": jsonExchange ? "application/json" : "application/x-www-form-urlencoded" },
+      body: jsonExchange
+        ? JSON.stringify({ code, codeVerifier: verifier })
+        : new URLSearchParams({
+          grant_type: "authorization_code",
+          code,
+          redirect_uri: redirectUri,
+          client_id: acquisition.clientId,
+          code_verifier: verifier,
+        }),
       signal: deadline,
     });
     body = await tokenResponse.text();
@@ -186,16 +192,24 @@ export async function acquireOAuthCredential(
     readonly refresh_token?: unknown;
     readonly expires_at?: unknown;
     readonly expires_in?: unknown;
+    readonly accessToken?: unknown;
+    readonly refreshToken?: unknown;
+    readonly expiresAt?: unknown;
   };
-  if (typeof parsed.access_token !== "string" || parsed.access_token.length === 0) {
+  const accessToken = typeof parsed.access_token === "string" ? parsed.access_token : parsed.accessToken;
+  const refreshToken = typeof parsed.refresh_token === "string" ? parsed.refresh_token : parsed.refreshToken;
+  const expiresAtValue = parsed.expires_at ?? parsed.expiresAt;
+  if (typeof accessToken !== "string" || accessToken.length === 0) {
     throw new Error("OAuth token response contained no access token");
   }
   options.onProgress?.("Token received. Saving credential…");
-  const expiresAt = tokenExpiry(parsed);
+  const expiresAt = typeof expiresAtValue === "number"
+    ? tokenExpiry({ expires_at: expiresAtValue })
+    : tokenExpiry(parsed);
   return encodeOAuth2Credential({
-    accessToken: parsed.access_token,
-    ...(typeof parsed.refresh_token === "string" && parsed.refresh_token.length > 0
-      ? { refreshToken: parsed.refresh_token }
+    accessToken,
+    ...(typeof refreshToken === "string" && refreshToken.length > 0
+      ? { refreshToken }
       : {}),
     ...(expiresAt === undefined ? {} : { expiresAt }),
   });
