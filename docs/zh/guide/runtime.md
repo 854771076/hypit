@@ -29,7 +29,7 @@ hypit runtime init
 
 `runtime init` 写入可编辑的起始 `hypit.runtime.json`，通过项目的 `.hypit/runtime`
 文件选择它。已有 Profile 会保留；此操作不安装、不登录、不执行。
-起始配置提供 HypiHub 托管生成和 WhisperX，以及本地媒体处理、渲染。先按作品需要选择服务，
+起始配置提供灵狐工作室，以及本地媒体处理、渲染。先按作品需要选择服务，
 再准备它们。本地推理、项目 Provider 可以走同一条路径，也可以与 HypiHub 混合使用。
 
 `hypit runtime use <profile>` 选择已有配置；`--runtime <profile>` 只覆盖当前命令。
