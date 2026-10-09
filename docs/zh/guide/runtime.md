@@ -29,8 +29,8 @@ hypit runtime init
 
 `runtime init` 写入可编辑的起始 `hypit.runtime.json`，通过项目的 `.hypit/runtime`
 文件选择它。已有 Profile 会保留；此操作不安装、不登录、不执行。
-起始配置提供 StarRouter，以及本地媒体处理和渲染。作品选定托管路线后，可以保留它，或替换为
-灵狐工作室、RunningHub。本地推理和项目 Provider 使用同一套配置方式。
+起始配置提供灵狐工作室，以及本地媒体处理和渲染。作品选定其他托管路线后，可以替换为
+RunningHub 或其他项目 Provider；本地推理和项目 Provider 使用同一套配置方式。
 
 `hypit runtime use <profile>` 选择已有配置；`--runtime <profile>` 只覆盖当前命令。
 命令只读取当前项目的选择，不继承其他项目的 Runtime。命令行相对路径以当前目录为基准。
