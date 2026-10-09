@@ -51,7 +51,9 @@ or the companion `shot-board`. The selector reports `companionBoardType: "shot-b
 For programmatic selection, import `@hypit/gpt-image-kits/storyboard-strategy` and call
 `selectStoryboardStrategy({ brief, forVideo, spatialRisk })`. The selector returns the recommended
 `boardType`, an optional `companionBoardType` (`shot-board` for video), whether 3D previz is needed,
-and the matched signals/reason for audit. An explicit `boardType` always wins, so a director can lock
+`requiredBoardTypes`, and the matched signals/reason for audit. `requiredBoardTypes` is the complete
+production contract; for a complex video it can be `["previz-3d", "temporal", "shot-board"]`.
+An explicit `boardType` always wins, so a director can lock
 the result after review. If no signal matches, image work defaults to `single-frame`; video work defaults
 to `temporal` plus a companion `shot-board`.
 

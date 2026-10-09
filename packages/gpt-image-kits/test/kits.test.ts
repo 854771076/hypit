@@ -81,16 +81,17 @@ test("multi-cell storyboards default to six panels and lock hard visual states f
 });
 
 test("storyboard strategy selects the smallest board for the actual scene", () => {
-  assert.deepEqual(selectStoryboardStrategy({ brief: "姜宁在拥挤食堂掉笔，陆珩弯腰捡起递给她，两人短暂对视后离开。", forVideo: true }), {
-    boardType: "narrative",
-    companionBoardType: "shot-board",
-    needsPreviz3d: false,
-    reason: "任务需要让观众读懂信息揭示、因果或情绪变化，而非先解决机位覆盖。",
-    matchedSignals: ["短暂对视"],
-  });
+  const narrative = selectStoryboardStrategy({ brief: "姜宁在拥挤食堂掉笔，陆珩弯腰捡起递给她，两人短暂对视后离开。", forVideo: true });
+  assert.equal(narrative.boardType, "narrative");
+  assert.deepEqual(narrative.requiredBoardTypes, ["narrative", "temporal", "shot-board"]);
+  assert.equal(narrative.companionBoardType, "shot-board");
+  assert.equal(narrative.needsPreviz3d, false);
+  assert.deepEqual(narrative.matchedSignals, ["短暂对视"]);
   assert.equal(selectStoryboardStrategy({ brief: "人物从冰箱走到灶台再端菜到餐桌", forVideo: true }).boardType, "blocking");
   assert.equal(selectStoryboardStrategy({ brief: "复杂连续运镜穿过人群并绕过障碍", forVideo: true, spatialRisk: true }).needsPreviz3d, true);
-  assert.equal(selectStoryboardStrategy({ brief: "复杂连续运镜", boardType: "previz-3d", forVideo: true }).companionBoardType, "shot-board");
+  const previz = selectStoryboardStrategy({ brief: "复杂连续运镜", boardType: "previz-3d", forVideo: true });
+  assert.equal(previz.companionBoardType, "shot-board");
+  assert.deepEqual(previz.requiredBoardTypes, ["previz-3d", "temporal", "shot-board"]);
   assert.equal(selectStoryboardStrategy({ brief: "普通静态人物设定" }).boardType, "single-frame");
   assert.equal(selectStoryboardStrategy({ brief: "任何内容", boardType: "shot-board", forVideo: true }).boardType, "shot-board");
 });
