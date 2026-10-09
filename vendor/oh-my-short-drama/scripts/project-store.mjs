@@ -38,6 +38,7 @@ const H3_MODES = new Set(['T2VA', 'I2VA', 'FL2VA', 'L2VA', 'Ref2VA'])
 const ASPECT_RATIOS = new Set(['9:16', '16:9', '1:1', '4:3', '3:4', '21:9'])
 const STORYBOARD_TYPES = new Set(['single', 'storyboard', 'shot-board'])
 const STORYBOARD_MEDIA = new Set(['image', 'blender'])
+const STORYBOARD_BOARD_TYPES = new Set(['single-frame', 'temporal', 'narrative', 'shot-board', 'blocking', 'action', 'choreography', 'comprehensive', 'director-track', 'previz-3d', 'scene-overview', 'scene-plan', 'scene-turnaround'])
 const ADAPTATION_MODES = new Set(['original', 'faithful_adaptation', 'authorized_adaptation'])
 const WORKFLOW_TYPES = new Set(['standard', 'viral-recreation'])
 const DOCUMENT_SOURCE_EXTENSIONS = new Set(['.txt', '.md', '.json', '.pdf', '.docx', '.epub'])
@@ -671,7 +672,6 @@ function validateDocument(kind, document, episodeKey) {
     const depthOutputs = new Set()
     const depthSources = new Set()
     document.shots.forEach((shot, index) => {
-      shot.storyboard_strategy ||= { mode: 'image' }
       for (const field of fields) if (!(field in shot)) throw new Error(`production-plan shots[${index}] 缺少 ${field}`)
       if (shot.shot_number !== index + 1 || numbers.has(shot.shot_number)) throw new Error(`production-plan shots[${index}].shot_number 必须从 1 连续递增`)
       numbers.add(shot.shot_number)
@@ -694,6 +694,13 @@ function validateDocument(kind, document, episodeKey) {
         if (typeof sound?.evidence_event_key !== 'string' || !shot.video_strategy.visible_event_keys.includes(sound.evidence_event_key)) throw new Error(`production-plan shots[${index}].audio_strategy.action_sounds[${audioIndex}] 必须引用本镜 visible_event_keys`)
       }
       if (!STORYBOARD_MEDIA.has(shot.storyboard_strategy.mode)) throw new Error(`production-plan shots[${index}].storyboard_strategy.mode 必须为 image 或 blender`)
+      for (const field of ['selection_basis', 'primary_board_type', 'required_board_types']) if (!(field in shot.storyboard_strategy)) throw new Error(`production-plan shots[${index}].storyboard_strategy 缺少 ${field}`)
+      if (typeof shot.storyboard_strategy.selection_basis !== 'string' || !shot.storyboard_strategy.selection_basis.trim()) throw new Error(`production-plan shots[${index}].storyboard_strategy.selection_basis 必须是非空字符串`)
+      if (!STORYBOARD_BOARD_TYPES.has(shot.storyboard_strategy.primary_board_type)) throw new Error(`production-plan shots[${index}].storyboard_strategy.primary_board_type 无效`)
+      const requiredBoards = shot.storyboard_strategy.required_board_types
+      if (!Array.isArray(requiredBoards) || requiredBoards.length === 0 || requiredBoards.some((type) => !STORYBOARD_BOARD_TYPES.has(type)) || new Set(requiredBoards).size !== requiredBoards.length || !requiredBoards.includes(shot.storyboard_strategy.primary_board_type)) throw new Error(`production-plan shots[${index}].storyboard_strategy.required_board_types 必须是包含主类型的无重复板型数组`)
+      if (!requiredBoards.includes('temporal') || !requiredBoards.includes('shot-board')) throw new Error(`production-plan shots[${index}].storyboard_strategy.required_board_types 必须包含 temporal 与 shot-board`)
+      if (requiredBoards.includes('previz-3d') && (shot.storyboard_strategy.mode !== 'blender' || shot.previz_strategy?.mode !== 'blender')) throw new Error(`production-plan shots[${index}] 选择 previz-3d 时必须启用 Blender 白模`)
       for (const field of ['mode', 'board_type', 'panel_grid_size', 'overflow_strategy']) if (!(field in shot.image_strategy)) throw new Error(`production-plan shots[${index}].image_strategy 缺少 ${field}`)
       if (shot.image_strategy.mode !== 'generate') throw new Error(`production-plan shots[${index}].image_strategy.mode 必须为 generate`)
       if (shot.image_strategy.board_type !== 'shot-board') throw new Error(`production-plan shots[${index}].image_strategy.board_type 必须为 shot-board；时间故事版由同一模块独立生成`)
