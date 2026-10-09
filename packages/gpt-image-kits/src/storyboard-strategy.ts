@@ -26,7 +26,7 @@ export interface StoryboardStrategyInput {
 
 export interface StoryboardStrategy {
   boardType: StoryboardBoardType;
-  /** 视频生产通常仍需要技术覆盖板；单帧和场景资产不自动追加。 */
+  /** 视频生产通常仍需要技术覆盖板；单帧和场景资产不自动追加。3D 白模也不能替代它。 */
   companionBoardType: "shot-board" | null;
   needsPreviz3d: boolean;
   reason: string;
@@ -74,7 +74,7 @@ export function selectStoryboardStrategy(input: StoryboardStrategyInput): Storyb
     ? "沿用调用方显式确认的故事版类型。"
     : selected?.rule.reason ?? (input.forVideo ? "未命中特殊场景，视频生产默认先锁定单镜头动作时序。" : "未命中特殊场景，默认只生成一个关键帧，避免无必要地制作多格故事版。");
   const needsPreviz3d = input.spatialRisk === true || boardType === "previz-3d";
-  const companionBoardType = input.forVideo && !["single-frame", "scene-overview", "scene-plan", "scene-turnaround", "previz-3d"].includes(boardType)
+  const companionBoardType = input.forVideo && !["single-frame", "scene-overview", "scene-plan", "scene-turnaround"].includes(boardType)
     ? "shot-board"
     : null;
 

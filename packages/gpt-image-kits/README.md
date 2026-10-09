@@ -45,6 +45,9 @@ Use the four types for different jobs:
 
 Choose the smallest type that resolves the current uncertainty. A narrative or action board explains what the audience must understand; a shot board explains how to cover it. Do not use a comprehensive or director-track board by default when a keyframe or single-purpose board is sufficient.
 
+For video, `previz-3d` is an additional spatial-risk reference; it never replaces the temporal storyboard
+or the companion `shot-board`. The selector reports `companionBoardType: "shot-board"` for this case.
+
 For programmatic selection, import `@hypit/gpt-image-kits/storyboard-strategy` and call
 `selectStoryboardStrategy({ brief, forVideo, spatialRisk })`. The selector returns the recommended
 `boardType`, an optional `companionBoardType` (`shot-board` for video), whether 3D previz is needed,

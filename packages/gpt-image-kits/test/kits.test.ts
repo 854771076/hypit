@@ -90,6 +90,7 @@ test("storyboard strategy selects the smallest board for the actual scene", () =
   });
   assert.equal(selectStoryboardStrategy({ brief: "人物从冰箱走到灶台再端菜到餐桌", forVideo: true }).boardType, "blocking");
   assert.equal(selectStoryboardStrategy({ brief: "复杂连续运镜穿过人群并绕过障碍", forVideo: true, spatialRisk: true }).needsPreviz3d, true);
+  assert.equal(selectStoryboardStrategy({ brief: "复杂连续运镜", boardType: "previz-3d", forVideo: true }).companionBoardType, "shot-board");
   assert.equal(selectStoryboardStrategy({ brief: "普通静态人物设定" }).boardType, "single-frame");
   assert.equal(selectStoryboardStrategy({ brief: "任何内容", boardType: "shot-board", forVideo: true }).boardType, "shot-board");
 });
