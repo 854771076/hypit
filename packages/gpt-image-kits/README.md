@@ -22,16 +22,45 @@ are optional. `visible-text` is the exact allowlist for persistent packaging, cl
 markings and does not permit sheet annotations. Every output describes one stable asset version rather
 than alternatives.
 
-Import `@hypit/gpt-image-kits/storyboard` and select `board-type: single-frame`, `temporal`, or
-`shot-board`. Supply the atomic `shot` and `continuity` contracts; `references`, `style`, and
+Import `@hypit/gpt-image-kits/storyboard` and select the `board-type` that matches the planning job below.
+Supply the atomic `shot` and `continuity` contracts; `references`, `style`, and
 `visible-text` are optional. `visible-text` is an allowlist for story text that belongs in the scene,
 not permission to add captions or labels.
 
-Temporal and shot boards default to six cells. Choose another count only when the action or beat
-structure reads more accurately that way. Put every hard-to-reproduce state—such as a countdown value,
-device change, hand contact, prop state or exact pose—in its own cell. After review, pass the board as a
-semantic image reference to the video model; the generated result must be one full-frame video and never
-show the board grid.
+Use the four types for different jobs:
+
+- `single-frame` / `KEYFRAME`: lock one decisive look, layout, first frame, last frame, or continuity checkpoint.
+- `temporal` / `TEMPORAL STORYBOARD`: explain physical motion inside one continuous shot, from onset through change to a stable tail.
+- `narrative` / `NARRATIVE STORYBOARD`: explain audience-readable causality, discovery, reveal, or emotional reaction; it is not a camera coverage plan.
+- `shot-board` / `SHOT BOARD`: specify technical coverage, framing, blocking, screen direction, and the views that must cut; it is not a substitute for motion or emotional beats.
+- `blocking`: map routes and spatial relationships for entrances, exits, crossings, handoffs, and camera paths.
+- `action` / `ACTION BREAKDOWN STORYBOARD`: stage fights, stunts, impacts, and chases as preparation → contact → reaction → recovery.
+- `choreography`: teach dance, sports, martial-arts, or other complex body mechanics one pose/transition at a time.
+- `comprehensive`: combine story, camera, blocking, action, sound, light, props, and continuity for a high-risk hero sequence.
+- `director-track`: add a review header, style/continuity locks, tension curve, and aligned camera/action rhythm tracks.
+- `previz-3d`: use neutral proxy figures and simple geometry to prove scale, contact, axis, and camera movement.
+- `scene-overview`: lock an aerial/top-down world layout, zones, paths, entrances, exits, and landmarks before shot planning.
+- `scene-plan`: create a top-down floor plan for rooms, boundaries, furniture, doors, windows, and camera marks.
+- `scene-turnaround`: show one approved location from several consistent angles without changing its geometry.
+
+Choose the smallest type that resolves the current uncertainty. A narrative or action board explains what the audience must understand; a shot board explains how to cover it. Do not use a comprehensive or director-track board by default when a keyframe or single-purpose board is sufficient.
+
+For video, `previz-3d` is an additional spatial-risk reference; it never replaces the temporal storyboard
+or the companion `shot-board`. The selector reports `companionBoardType: "shot-board"` for this case.
+
+For programmatic selection, import `@hypit/gpt-image-kits/storyboard-strategy` and call
+`selectStoryboardStrategy({ brief, forVideo, spatialRisk })`. The selector returns the recommended
+`boardType`, an optional `companionBoardType` (`shot-board` for video), whether 3D previz is needed,
+`requiredBoardTypes`, and the matched signals/reason for audit. `requiredBoardTypes` is the complete
+production contract; for a complex video it can be `["previz-3d", "temporal", "shot-board"]`.
+An explicit `boardType` always wins, so a director can lock
+the result after review. If no signal matches, image work defaults to `single-frame`; video work defaults
+to `temporal` plus a companion `shot-board`.
+
+Multi-cell boards default to six cells. Choose another count only when the action or beat structure reads
+more accurately that way. Put every hard-to-reproduce state—such as a countdown value, device change,
+hand contact, prop state or exact pose—in its own cell. After review, pass the board as a semantic image
+reference to the video model; the generated result must be one full-frame video and never show the board grid.
 
 Both Kits only produce Text. Connect every referenced image explicitly on the image Surface in the
 same order described by `references`, and inspect the original-resolution result before adopting it.

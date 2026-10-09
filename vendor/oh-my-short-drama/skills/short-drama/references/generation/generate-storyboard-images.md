@@ -1,6 +1,6 @@
 # 生成分镜图片
 
-处理制作计划中的全部镜头，包括另有 Blender 白模的镜头。每镜必须生成两张独立参考板：`board-epNNN-temporal-NNN` 使用 `panel_grid_image`，按时间顺序固定动作阶段与精确状态；`board-epNNN-shot-NNN` 使用 `panel_storyboard_image`，按叙事节拍固定景别、调度、轴线和构图。两张板均使用 `image_strategy.panel_grid_size`，默认 6 格，Codex 可按不可合并的动作或叙事节拍选择 2–16 格；不得用同一图片或同一资产版本冒充两种板。Blender 是额外的空间和运动预演，不替代双板。
+处理制作计划中的全部镜头，包括另有 Blender 白模的镜头。先读取每镜 `storyboard_strategy.primary_board_type`、`required_board_types` 和 `selection_basis`，只生成合同声明的板型；`selection_basis` 缺失、主类型不在 `required_board_types` 或证据不足时退回 production-plan，不得直接出图。视频镜头至少生成两张独立参考板：`board-epNNN-temporal-NNN` 使用 `panel_grid_image`，按时间顺序固定动作阶段与精确状态；`board-epNNN-shot-NNN` 使用 `panel_storyboard_image`，按叙事节拍固定景别、调度、轴线和构图。若 `required_board_types` 额外包含 `narrative`、`blocking`、`action`、`choreography`、`comprehensive` 或 `director-track`，使用 `@hypit/gpt-image-kits/storyboard` 的对应 `board-type` 生成独立主类型资产，并以 `board-epNNN-{type}-NNN` 登记；`previz-3d` 仍由 Blender 模块生成。两张必需视频板和所有额外板均使用 `image_strategy.panel_grid_size`，默认 6 格，Codex 可按不可合并的动作或叙事节拍选择 2–16 格；不得用同一图片或同一资产版本冒充不同板型。Blender 是额外的空间和运动预演，不替代双板。
 
 严格填充 [提示词索引](../../../../references/prompt-skill-index.md) 的变量；`style` 必须传项目当前完整 `creative.art_style` 对象，交给 `render-prompt.mjs` 编译 renderingContract，不得只传画风名或一句风格短语。多格图根据计划中的 `panel_grid_size` 选择可读布局并同时提供 `grid_layout`，不得减少、留空、重复格子或把相邻镜头剧情画进当前镜头。宫格切单格后只允许用 `panel_grid_enhance` 保真高清化，不得重构图。
 
