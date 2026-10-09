@@ -65,6 +65,14 @@ Every shot should state:
 - key-light direction, exposure, color and scene anchors that must remain continuous;
 - exact dialogue, performed duration and native sound intent.
 
+## Choose the storyboard strategy before generating any board
+
+Before generating images or selecting a Provider, have the AI classify each shot's actual uncertainty:
+single-frame, temporal, narrative, blocking, action, choreography, scene-overview, scene-plan,
+scene-turnaround, director-track, comprehensive, or spatial previz. Record the evidence and the
+smallest selected type in the production plan. Do not let the image executor's compatibility value
+`board_type=shot-board` replace this decision; it is only the technical image-rendering path.
+
 ## Produce both required storyboard views
 
 Every generated shot requires both a temporal storyboard and a shot board. The first fixes successive

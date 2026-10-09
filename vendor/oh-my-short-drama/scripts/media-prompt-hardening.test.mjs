@@ -48,6 +48,10 @@ test('制作计划和分镜模板声明完整可见人物与声音事件证据�
 
 test('制作规划只在静态双板无法证明复杂调度时启用白模', async () => {
   const prompt = await read('plan-drama-production/prompts/production_plan.zh.txt')
+  assert.match(prompt, /前置选择门/)
+  assert.match(prompt, /selection_basis/)
+  assert.match(prompt, /不得因为默认值或模型习惯直接把所有镜头标成 shot-board/)
+  assert.match(prompt, /required_board_types/)
   assert.match(prompt, /standard 默认写 `storyboard_strategy\.mode=image`/)
   assert.match(prompt, /复杂路线、多人交互、精确接触、轴线风险或连续运镜/)
   assert.match(prompt, /可选白模/)
