@@ -45,6 +45,13 @@ Use the four types for different jobs:
 
 Choose the smallest type that resolves the current uncertainty. A narrative or action board explains what the audience must understand; a shot board explains how to cover it. Do not use a comprehensive or director-track board by default when a keyframe or single-purpose board is sufficient.
 
+For programmatic selection, import `@hypit/gpt-image-kits/storyboard-strategy` and call
+`selectStoryboardStrategy({ brief, forVideo, spatialRisk })`. The selector returns the recommended
+`boardType`, an optional `companionBoardType` (`shot-board` for video), whether 3D previz is needed,
+and the matched signals/reason for audit. An explicit `boardType` always wins, so a director can lock
+the result after review. If no signal matches, image work defaults to `single-frame`; video work defaults
+to `temporal` plus a companion `shot-board`.
+
 Multi-cell boards default to six cells. Choose another count only when the action or beat structure reads
 more accurately that way. Put every hard-to-reproduce state—such as a countdown value, device change,
 hand contact, prop state or exact pose—in its own cell. After review, pass the board as a semantic image

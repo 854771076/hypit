@@ -8,9 +8,10 @@
     "./phone-ugc-v1": "./kits/phone-ugc-v1.svs",
     "./asset-sheet": "./kits/asset-sheet-v1.svs",
     "./storyboard": "./kits/storyboard-v1.svs",
-    "./story-text-frame": "./kits/story-text-frame-v1.svs"
+    "./story-text-frame": "./kits/story-text-frame-v1.svs",
+    "./storyboard-strategy": "./src/storyboard-strategy.ts"
   },
-  "files": ["kits", "README.md"],
+  "files": ["kits", "src", "README.md"],
   "devDependencies": {
     "@hypit/svs": "workspace:*",
     "@hypit/text": "workspace:*"

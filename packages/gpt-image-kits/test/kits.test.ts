@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { parseSvs } from "@hypit/svs";
 import { renderText, sealTextBindings, textTemplateFromSvsRecipes } from "@hypit/text";
+import { selectStoryboardStrategy } from "../src/storyboard-strategy.js";
 
 const cases = [
   { file: "phone-ugc-v1.svs", id: "phone-ugc-v1", bindings: { shot: "A stable medium shot." }, marker: "iPhone" },
@@ -77,4 +78,18 @@ test("multi-cell storyboards default to six panels and lock hard visual states f
   assert.match(output, /default to six clearly ordered cells/iu);
   assert.match(output, /hard-to-reproduce detail.*exact state in its own cell/iu);
   assert.match(output, /semantic reference for the video model/iu);
+});
+
+test("storyboard strategy selects the smallest board for the actual scene", () => {
+  assert.deepEqual(selectStoryboardStrategy({ brief: "姜宁在拥挤食堂掉笔，陆珩弯腰捡起递给她，两人短暂对视后离开。", forVideo: true }), {
+    boardType: "narrative",
+    companionBoardType: "shot-board",
+    needsPreviz3d: false,
+    reason: "任务需要让观众读懂信息揭示、因果或情绪变化，而非先解决机位覆盖。",
+    matchedSignals: ["短暂对视"],
+  });
+  assert.equal(selectStoryboardStrategy({ brief: "人物从冰箱走到灶台再端菜到餐桌", forVideo: true }).boardType, "blocking");
+  assert.equal(selectStoryboardStrategy({ brief: "复杂连续运镜穿过人群并绕过障碍", forVideo: true, spatialRisk: true }).needsPreviz3d, true);
+  assert.equal(selectStoryboardStrategy({ brief: "普通静态人物设定" }).boardType, "single-frame");
+  assert.equal(selectStoryboardStrategy({ brief: "任何内容", boardType: "shot-board", forVideo: true }).boardType, "shot-board");
 });
