@@ -50,6 +50,7 @@ test("灵狐工作室 Provider 以 API Key 提交、轮询并收集视频", asyn
     const url = String(input);
     calls.push({ url, ...(init === undefined ? {} : { init }) });
     if (url.endsWith("/api/v1/models/video")) {
+      if (init?.method === undefined) return Response.json({ models: [{ modelKey: "linghu::seedance-2", enabled: true }] });
       assert.equal(init?.method, "POST");
       const headers = new Headers(init?.headers);
       assert.equal(headers.get("authorization"), "Bearer vvk_test");
@@ -101,7 +102,7 @@ test("灵狐工作室 Provider 以 API Key 提交、轮询并收集视频", asyn
   assert.equal(videos.length, 1);
   assert.equal(videos[0]?.mediaType, "video/mp4");
   assert.deepEqual(await resources.get(videos[0]!.resource as `res_${string}`), new Uint8Array([1, 2, 3]));
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 4);
 });
 
 test("灵狐工作室只接收显式映射到账号目录的能力", async () => {
@@ -124,10 +125,12 @@ test("灵狐工作室声明浏览器 PKCE 登录并保留手工 Key 导入能力
     ref: { store: "os", key: "linghu-studio.api-key" },
     acquisition: {
       kind: "oauth2-pkce",
-      authorizationEndpoint: "https://ai-short-studio.vvicat.dev/api/v1/auth/cli/authorize",
+      authorizationEndpoint: "https://ai-short-studio.vvicat.dev/api/sso/memhub/start",
       tokenEndpoint: "https://ai-short-studio.vvicat.dev/api/v1/auth/cli/token",
       clientId: "hypit-cli",
       scopes: ["cli:access"],
+      authorizationParameters: { mode: "cli" },
+      tokenExchange: "json-code-verifier",
       requestTimeoutMs: 300_000,
     },
   }]);
@@ -137,6 +140,7 @@ test("灵狐工作室使用浏览器登录凭据中的 access token 调用模型
   const endpoint = await endpointFor(async (input, init) => {
     const url = String(input);
     if (url.endsWith("/api/v1/models/video")) {
+      if (init?.method === undefined) return Response.json({ models: [{ modelKey: "linghu::seedance-2", enabled: true }] });
       assert.equal(new Headers(init?.headers).get("authorization"), "Bearer vvk_browser_login");
       return Response.json({ taskId: "task-oauth", status: "queued" }, { status: 202 });
     }
@@ -161,6 +165,24 @@ test("灵狐工作室使用浏览器登录凭据中的 access token 调用模型
   });
 
   assert.equal(started.status, "pending");
+});
+
+test("灵狐工作室提交前以目录接口限制未启用或不存在的远端模型", async () => {
+  const endpoint = await endpointFor(async (input, init) => {
+    if (String(input).endsWith("/api/v1/models/video") && init?.method === undefined) {
+      return Response.json({ models: [{ modelKey: "linghu::other-model", enabled: true }] });
+    }
+    throw new Error("不应提交不在目录中的模型");
+  });
+  const started = await endpoint.start({
+    command: { kind: "fulfill-need", id: "command:linghu-catalog", need: request() },
+    need: request(),
+    resources: new MemoryResourceStore(),
+    credentials: { apiKey: { secret: "vvk_test" } },
+    operation: "operation:linghu-catalog",
+  });
+  assert.equal(started.status, "failed");
+  if (started.status === "failed") assert.match(started.failure.message, /目录中不存在/u);
 });
 
 test("灵狐工作室 Runtime 配置加载项目、API Key 引用与模型映射", async () => {

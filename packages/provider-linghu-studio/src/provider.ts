@@ -7,6 +7,7 @@ import { credentialRef, decodeOAuth2Credential } from "@hypit/runtime";
 import type { CredentialRef, ResourceStore } from "@hypit/runtime";
 
 import { linghuStudioRouteForCapability, linghuStudioRoutes } from "./routes.js";
+import type { LinghuStudioCapability } from "./routes.js";
 import { createLinghuStudioPublicAssetPublisher } from "./public-assets.js";
 import type { LinghuStudioPublicAssets } from "./public-assets.js";
 
@@ -137,6 +138,17 @@ class LinghuStudioClient {
     }
   }
 
+  async catalog(capability: LinghuStudioCapability, apiKey: string): Promise<ReadonlySet<string>> {
+    const response = await this.json(`/api/v1/models/${capability}`, apiKey);
+    const models = Array.isArray(response.models) ? response.models : [];
+    return new Set(models.flatMap((item) => {
+      if (item === null || typeof item !== "object" || Array.isArray(item)) return [];
+      const record = item as Record<string, unknown>;
+      return record.enabled !== false && typeof record.modelKey === "string" && record.modelKey.trim().length > 0
+        ? [record.modelKey.trim()] : [];
+    }));
+  }
+
   async download(url: string): Promise<{ readonly bytes: Uint8Array; readonly mediaType: string }> {
     const deadline = requestDeadline(this.timeoutMs);
     try {
@@ -212,6 +224,8 @@ function endpoint(options: {
           resolve,
           options.models[capabilityKey(context.need.capability)],
         );
+        const catalog = await options.client.catalog(prepared.capability, key(context.credentials));
+        assert(catalog.has(prepared.model), `灵狐工作室目录中不存在或未启用模型 ${prepared.model}`);
         const requestBody = object(prepared.body, "灵狐工作室请求");
         submitting = true;
         const response = await options.client.json(`/api/v1/models/${prepared.capability}`, key(context.credentials), {
@@ -345,10 +359,12 @@ export function createLinghuStudioProvider(options: CreateLinghuStudioProviderOp
         label: "灵狐工作室账户",
         acquisition: {
           kind: "oauth2-pkce",
-          authorizationEndpoint: `${baseUrl}/api/v1/auth/cli/authorize`,
+          authorizationEndpoint: `${baseUrl}/api/sso/memhub/start`,
           tokenEndpoint: `${baseUrl}/api/v1/auth/cli/token`,
           clientId: "hypit-cli",
           scopes: ["cli:access"],
+          authorizationParameters: { mode: "cli" },
+          tokenExchange: "json-code-verifier",
           requestTimeoutMs: options.requestTimeoutMs ?? 300_000,
         },
       },

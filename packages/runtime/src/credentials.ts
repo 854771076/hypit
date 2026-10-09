@@ -46,6 +46,10 @@ export type CredentialAcquisition = {
   readonly tokenEndpoint: string;
   readonly clientId: string;
   readonly scopes: readonly string[];
+  /** Additional provider-owned query parameters required by the authorization endpoint. */
+  readonly authorizationParameters?: Readonly<Record<string, string>>;
+  /** Use a provider-specific JSON exchange when the endpoint is not a standard OAuth token endpoint. */
+  readonly tokenExchange?: "oauth2-form" | "json-code-verifier";
   /** Maximum duration of the service-owned token exchange after browser authorization returns. */
   readonly requestTimeoutMs: number;
 };
