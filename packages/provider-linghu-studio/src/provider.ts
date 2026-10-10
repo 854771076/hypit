@@ -2,7 +2,7 @@ import { requestDeadline } from "@hypit/runtime-kit";
 import type { AsyncEndpoint, EndpointCredential, EndpointOutcome } from "@hypit/endpoint-kit";
 import { defineEndpointPackage, wakeAfter } from "@hypit/endpoint-kit";
 import { canonicalize } from "@hypit/protocol";
-import type { BlobRef, CapabilityRef } from "@hypit/protocol";
+import type { BlobRef, CanonicalValue, CapabilityRef } from "@hypit/protocol";
 import { credentialRef, decodeOAuth2Credential } from "@hypit/runtime";
 import type { CredentialRef, ResourceStore } from "@hypit/runtime";
 
@@ -40,6 +40,18 @@ type Handle = {
   readonly startedAt: number;
   readonly urls?: readonly string[];
 };
+
+// 目录模型条目：除模型 key 外，保留目录接口声明的能力元数据（如 referenceOnly、
+// 分辨率/时长枚举），供提交前做本地约束校验，避免把必然失败的请求发到付费接口。
+export type LinghuStudioCatalogModel = {
+  readonly modelKey: string;
+  /** capabilities 下与当前能力对应的一段元数据；字段由远端目录决定，按需读取。 */
+  readonly capabilities: Readonly<Record<string, unknown>>;
+};
+
+function optionalRecord(value: unknown): Record<string, unknown> | undefined {
+  return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
+}
 
 class LinghuStudioHttpError extends Error {
   constructor(readonly status: number, message: string) {
@@ -138,15 +150,21 @@ class LinghuStudioClient {
     }
   }
 
-  async catalog(capability: LinghuStudioCapability, apiKey: string): Promise<ReadonlySet<string>> {
+  async catalog(capability: LinghuStudioCapability, apiKey: string): Promise<ReadonlyMap<string, LinghuStudioCatalogModel>> {
     const response = await this.json(`/api/v1/models/${capability}`, apiKey);
     const models = Array.isArray(response.models) ? response.models : [];
-    return new Set(models.flatMap((item) => {
-      if (item === null || typeof item !== "object" || Array.isArray(item)) return [];
-      const record = item as Record<string, unknown>;
-      return record.enabled !== false && typeof record.modelKey === "string" && record.modelKey.trim().length > 0
-        ? [record.modelKey.trim()] : [];
-    }));
+    const entries = new Map<string, LinghuStudioCatalogModel>();
+    for (const item of models) {
+      const model = optionalRecord(item);
+      const modelKey = typeof model?.modelKey === "string" ? model.modelKey.trim() : "";
+      // 只登记目录明确启用且带 modelKey 的模型；其余（含 disabled）视为不可用。
+      if (model === undefined || model.enabled === false || modelKey.length === 0) continue;
+      entries.set(modelKey, {
+        modelKey,
+        capabilities: optionalRecord(optionalRecord(model.capabilities)?.[capability]) ?? {},
+      });
+    }
+    return entries;
   }
 
   async download(url: string): Promise<{ readonly bytes: Uint8Array; readonly mediaType: string }> {
@@ -174,6 +192,18 @@ function resultUrls(result: Record<string, unknown>, capability: "image" | "vide
   return [...new Set([...singular, ...plural])];
 }
 
+// 判定请求是否携带任何参考素材端口（参考图/视频/音频、首尾帧）。
+// support() 的公开素材检查与 start() 的 referenceOnly 约束必须共用同一判定口径。
+function hasReferenceAssets(
+  route: (typeof linghuStudioRoutes)[number],
+  constraints: CanonicalValue,
+): boolean {
+  const ports = (constraints as unknown as { readonly ports?: Readonly<Record<string, readonly unknown[]>> }).ports ?? {};
+  return Object.entries(route.fields).some(([port, field]) => (
+    (field.as === "url" || field.as === "urlArray" || field.as === "itemObject") && (ports[port]?.length ?? 0) > 0
+  ));
+}
+
 function support(route: (typeof linghuStudioRoutes)[number], options: {
   readonly model?: string;
   readonly hasPublisher: boolean;
@@ -183,11 +213,7 @@ function support(route: (typeof linghuStudioRoutes)[number], options: {
   }
   const base = route.supports(request);
   if (base.status === "unsupported" || options.hasPublisher) return base;
-  const ports = (request.constraints as unknown as { readonly ports?: Readonly<Record<string, readonly unknown[]>> }).ports ?? {};
-  const hasReferences = Object.entries(route.fields).some(([port, field]) => (
-    (field.as === "url" || field.as === "urlArray" || field.as === "itemObject") && (ports[port]?.length ?? 0) > 0
-  ));
-  return hasReferences
+  return hasReferenceAssets(route, request.constraints)
     ? { status: "unsupported", reason: "灵狐工作室参考素材需要配置 publicAssets 公开素材发布器" }
     : base;
 }
@@ -225,7 +251,13 @@ function endpoint(options: {
           options.models[capabilityKey(context.need.capability)],
         );
         const catalog = await options.client.catalog(prepared.capability, key(context.credentials));
-        assert(catalog.has(prepared.model), `灵狐工作室目录中不存在或未启用模型 ${prepared.model}`);
+        const catalogModel = catalog.get(prepared.model);
+        assert(catalogModel !== undefined, `灵狐工作室目录中不存在或未启用模型 ${prepared.model}`);
+        // 目录声明 referenceOnly 的模型只能做参考素材生成；这里在付费提交前拦下纯文本请求。
+        assert(
+          catalogModel.capabilities.referenceOnly !== true || hasReferenceAssets(route, context.need.constraints),
+          `灵狐工作室模型 ${prepared.model} 仅支持参考素材生成（referenceOnly），当前请求没有参考图/视频/音频或首尾帧`,
+        );
         const requestBody = object(prepared.body, "灵狐工作室请求");
         submitting = true;
         const response = await options.client.json(`/api/v1/models/${prepared.capability}`, key(context.credentials), {
