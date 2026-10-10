@@ -10,6 +10,7 @@ import type { RuntimeEndpointAdapterImplementation } from "@hypit/runtime-kit";
 import { sealSeedanceRequest, seedanceEndpoints } from "@hypit/seedance";
 
 import { createLinghuStudioProvider } from "../src/provider.js";
+import type { CreateLinghuStudioProviderOptions } from "../src/provider.js";
 import { hypitPackage } from "../src/activation.js";
 
 function request(): Need {
@@ -29,7 +30,30 @@ function request(): Need {
   };
 }
 
-async function endpointFor(fetcher: typeof globalThis.fetch): Promise<AsyncEndpoint> {
+function referenceRequest(): Need {
+  const portrait = { kind: "blob" as const, resource: "res_person" as const, size: 3, mediaType: "image/png" };
+  return {
+    id: "need:linghu-reference",
+    capability: seedanceEndpoints.standard!.capability,
+    returns: seedanceEndpoints.standard!.returns,
+    constraints: sealSeedanceRequest("seedance-2", {
+      prompt: ["@图片1 中的人物自然地转身看向镜头。"],
+      resolution: ["720p"],
+      aspectRatio: ["9:16"],
+      duration: [5],
+      generateAudio: [false],
+      webSearch: [false],
+      referenceImage: [{ role: "image", artifact: portrait, fields: { personReference: true } }],
+    }) as unknown as CanonicalValue,
+    result: "record:linghu-reference",
+  };
+}
+
+async function endpointFor(fetcher: typeof globalThis.fetch, options: {
+  readonly request?: Need;
+  readonly publicAssetUrl?: CreateLinghuStudioProviderOptions["publicAssetUrl"];
+} = {}): Promise<AsyncEndpoint> {
+  const need = options.request ?? request();
   const registry = new EndpointRegistry();
   await createLinghuStudioProvider({
     projectId: "project-1",
@@ -37,8 +61,9 @@ async function endpointFor(fetcher: typeof globalThis.fetch): Promise<AsyncEndpo
     fetch: fetcher,
     pollIntervalMs: 0,
     requestTimeoutMs: 1_000,
+    ...(options.publicAssetUrl === undefined ? {} : { publicAssetUrl: options.publicAssetUrl }),
   }).install(registry);
-  const resolved = registry.resolve(request());
+  const resolved = registry.resolve(need);
   assert.equal(resolved.status, "resolved");
   assert.equal(resolved.registration.kind, "asynchronous");
   return resolved.registration.endpoint;
@@ -183,6 +208,51 @@ test("灵狐工作室提交前以目录接口限制未启用或不存在的远�
   });
   assert.equal(started.status, "failed");
   if (started.status === "failed") assert.match(started.failure.message, /目录中不存在/u);
+});
+
+test("灵狐工作室在提交前拦截目录标记 referenceOnly 的纯文本请求", async () => {
+  let submissions = 0;
+  const endpoint = await endpointFor(async (input, init) => {
+    const url = String(input);
+    if (url.endsWith("/api/v1/models/video") && init?.method === undefined) {
+      return Response.json({ models: [{ modelKey: "linghu::seedance-2", enabled: true, capabilities: { video: { referenceOnly: true } } }] });
+    }
+    submissions += 1;
+    throw new Error(`referenceOnly 模型的纯文本请求不应提交到付费接口：${url}`);
+  });
+  const started = await endpoint.start({
+    command: { kind: "fulfill-need", id: "command:linghu-reference-only", need: request() },
+    need: request(),
+    resources: new MemoryResourceStore(),
+    credentials: { apiKey: { secret: "vvk_test" } },
+    operation: "operation:linghu-reference-only",
+  });
+  assert.equal(submissions, 0);
+  assert.equal(started.status, "failed");
+  if (started.status === "failed") assert.match(started.failure.message, /referenceOnly/u);
+});
+
+test("灵狐工作室允许 referenceOnly 模型携带参考素材提交", async () => {
+  const endpoint = await endpointFor(async (input, init) => {
+    const url = String(input);
+    if (url.endsWith("/api/v1/models/video")) {
+      if (init?.method === undefined) {
+        return Response.json({ models: [{ modelKey: "linghu::seedance-2", enabled: true, capabilities: { video: { referenceOnly: true, referenceImageMaxCount: 9 } } }] });
+      }
+      const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      assert.equal(body.imageUrl, "https://media.test/person.png");
+      return Response.json({ taskId: "task-reference", status: "queued" }, { status: 202 });
+    }
+    throw new Error(`未预期的请求：${url}`);
+  }, { request: referenceRequest(), publicAssetUrl: async () => "https://media.test/person.png" });
+  const started = await endpoint.start({
+    command: { kind: "fulfill-need", id: "command:linghu-reference", need: referenceRequest() },
+    need: referenceRequest(),
+    resources: new MemoryResourceStore(),
+    credentials: { apiKey: { secret: "vvk_test" } },
+    operation: "operation:linghu-reference",
+  });
+  assert.equal(started.status, "pending");
 });
 
 test("灵狐工作室 Runtime 配置加载项目、API Key 引用与模型映射", async () => {
