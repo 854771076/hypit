@@ -14,6 +14,8 @@ const root = await mkdtemp(join(tmpdir(), "hypit-distribution-"));
 const project = join(root, "project");
 await mkdir(project);
 const env = { ...process.env, HYPIT_STATE_HOME: join(root, "state") };
+// 发行自检只验证短剧 CLI，不应留下自动打开的 Dashboard 后台进程。
+env.SHORT_DRAMA_STUDIO_ACTIVE = "1";
 // 旧 Shell 提示不能把已安装的启动器、Worker 或采集子进程重定向回源码目录。
 env.HYPIT_DISTRIBUTION_ROOT = join(root, "stale-distribution");
 env.HYPIT_CLI_LAUNCHER = join(root, "stale-distribution", "bin", "hypit.mjs");
