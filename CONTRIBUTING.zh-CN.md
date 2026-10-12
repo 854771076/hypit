@@ -58,6 +58,9 @@ pnpm test          # 包与服务适配器测试
 保留两个 GIF，并将完整视频示例改为链接。仓库的两份 README 保持原样。
 `dist/release/README.md` 可用于检查打包后的文案。
 
+运行 `npm run install:local`，用当前仓库替换机器上的全局 CLI。该命令会重新生成发行 tarball，
+按绝对路径安装这个文件并验证已安装的启动器；它不会从 registry 解析 `@hypit/hypit`。
+
 准备好 FFmpeg 和 FFprobe 后，运行
 `npm run check:distribution -- dist/release/hypit-hypit-<version>.tgz`。它在仓库外安装该包，
 编译包内的聊天示例组件，准备字体和本地渲染器，渲染、导出并解码视频。检查使用独立的

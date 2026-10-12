@@ -64,6 +64,10 @@ Run `npm run pack:distribution` to build public types and write the release tarb
 README for the npm page: public image URLs, both GIFs, and a link to the full video examples.
 The repository READMEs remain unchanged. `dist/release/README.md` shows the packaged text.
 
+Run `npm run install:local` to replace the machine-wide CLI with this checkout. It rebuilds the
+release tarball, installs that exact file by absolute path, and verifies the installed launcher;
+it never resolves `@hypit/hypit` from a registry.
+
 With FFmpeg and FFprobe available, run
 `npm run check:distribution -- dist/release/hypit-hypit-<version>.tgz` to install that tarball outside
 the checkout, build its chat example component, prepare its font and local renderer, render and export
