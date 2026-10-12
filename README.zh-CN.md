@@ -65,6 +65,16 @@ npx skills add hypit-ai/hypit -g
 这条命令安装 Skill。首次使用时，Agent 会检查 Hypit 可执行程序，并按需协助安装。
 视频项目可以放在任意位置。
 
+从当前仓库开发时，使用下面的命令安装或更新机器上的全局 CLI：
+
+```bash
+npm run install:local
+```
+
+该命令会构建并安装当前检出代码对应的 tarball，然后验证全局启动器。此场景不要运行
+`npm install --global @hypit/hypit`，否则会安装 registry 中已发布的官方版本。若本地缓存
+缺少依赖，npm 仍可能从当前配置的 registry 下载依赖。
+
 Hypit 本身免费使用；Coding Agent 和模型服务各有自己的账号与费用。
 HypiHub 是我们推荐的托管模型服务，也可以使用你自己的 API 或本地模型。
 把服务名称和 API 文档告诉 Agent，它会据此配置合适的连接。

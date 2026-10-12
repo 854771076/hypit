@@ -65,6 +65,16 @@ npx skills add hypit-ai/hypit -g
 This installs the Skill. On first use, your agent checks for the Hypit executable and helps prepare
 it if needed. Your video project can live anywhere.
 
+When developing from this repository, install or update the machine-wide CLI with:
+
+```bash
+npm run install:local
+```
+
+This command builds and installs the exact checkout tarball, then verifies the global launcher. Do
+not use `npm install --global @hypit/hypit` for this workflow: that resolves the published registry
+release instead. Missing dependencies may still be downloaded from your configured npm registry.
+
 Hypit is free to use; your Coding Agent and model services have their own accounts and charges.
 HypiHub is our recommended hosted model service. You can also use your own API or local models;
 tell your agent the service name and API documentation so it can set up the appropriate connection.
