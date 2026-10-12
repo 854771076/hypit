@@ -32,17 +32,11 @@ export const videoCliDistribution: CliDistribution = {
       platform: { use: "@hypit/credential-store-platform" },
     },
     endpoints: {
-      "linghu-studio.default": {
-        use: "@hypit/provider-linghu-studio",
+      "hypihub.default": {
+        use: "@hypit/provider-hypihub",
         config: {
-          apiKey: { store: "platform", key: "linghu-studio.api-key" },
-          // 启动模板使用当前公开目录示例；项目 ID 仍需替换为用户自己的项目。
-          projectId: "replace-with-linghu-project-id",
-          models: {
-            "@hypit/seedance@1#seedance-2": "starrouter::dreamina-seedance-2-0-260128",
-            "@hypit/minimax-h3@1#minimax-h3": "comfly::minimax-h3",
-            "@hypit/gpt-image@1#gpt-image-2": "starrouter::gpt-image-2",
-          },
+          baseUrl: "https://hypit.ai",
+          apiKey: { store: "platform", key: "hypihub.oauth" },
         },
       },
       "media.local": {
