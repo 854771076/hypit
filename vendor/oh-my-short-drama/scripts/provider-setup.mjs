@@ -3,9 +3,9 @@ import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { dirname, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { providerSetupCatalog, testProviderConnection } from './generation/providers.mjs'
+import { isH3Model, providerSetupCatalog, testProviderConnection } from './generation/providers.mjs'
 
-const requiredModalities = ['image', 'video', 'audio']
+const requiredModalities = ['image', 'video']
 
 export async function verifyProjectProviders(projectRootArg, options = {}) {
   const root = resolve(projectRootArg)
@@ -14,7 +14,9 @@ export async function verifyProjectProviders(projectRootArg, options = {}) {
   const catalog = new Map((options.catalog || providerSetupCatalog()).map((item) => [item.key, item]))
   const selections = {}
 
-  for (const modality of requiredModalities) {
+  const videoSelection = project.providers?.video
+  const requiresIndependentAudio = !isH3Model(videoSelection?.provider, videoSelection?.model_or_workflow)
+  for (const modality of [...requiredModalities, ...(requiresIndependentAudio ? ['audio'] : [])]) {
     const selected = project.providers?.[modality]
     if (!selected?.provider || !selected?.model_or_workflow) throw new Error(`请先在 Dashboard 选择并保存 ${modality} Provider 与模型`)
     const provider = catalog.get(selected.provider)

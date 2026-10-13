@@ -60,3 +60,20 @@ test('Skill 门禁拒绝与当前模型选择不一致的旧探测凭证', async
   expanded[0].models.video.push({ id: 'video-v2' })
   await assert.rejects(validateProviderSetup(root, ['.short-drama/provider-setup.json'], expanded), /video 配置已过期/)
 })
+
+test('RunningHub H3 原生音频不要求独立 audio Provider', async (t) => {
+  const root = await fixture()
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const projectPath = resolve(root, '.short-drama/project.json')
+  const project = JSON.parse(await readFile(projectPath, 'utf8'))
+  project.providers.video = { provider: 'runninghub', model_or_workflow: 'minimax-h3-reference-to-video' }
+  project.providers.audio = { provider: null, model_or_workflow: null }
+  await writeFile(projectPath, `${JSON.stringify(project)}\n`)
+  const h3Catalog = [
+    { key: 'runninghub', configured: true, models: { image: [{ id: 'image-v1' }], video: [{ id: 'minimax-h3-reference-to-video' }], audio: [] } },
+  ]
+  project.providers.image.provider = 'runninghub'
+  await writeFile(projectPath, `${JSON.stringify(project)}\n`)
+  const result = await verifyProjectProviders(root, { catalog: h3Catalog, testConnection: async () => {} })
+  assert.deepEqual(Object.keys(result.selections).sort(), ['image', 'video'])
+})

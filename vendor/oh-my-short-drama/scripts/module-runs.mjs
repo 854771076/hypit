@@ -122,7 +122,8 @@ export async function validateProviderSetup(root, evidence, catalogItems = provi
   ])
   const catalog = new Map(catalogItems.map((item) => [item.key, item]))
   if (receipt.version !== 1 || !Number.isFinite(Date.parse(receipt.checked_at)) || receipt.project_key !== project.key || receipt.workflow_type !== project.workflow?.type) throw new Error('Provider 探测凭证未绑定当前项目或工作流')
-  for (const modality of ['image', 'video', 'audio']) {
+  const nativeH3Video = isH3Model(project.providers?.video?.provider, project.providers?.video?.model_or_workflow)
+  for (const modality of ['image', 'video', ...(nativeH3Video ? [] : ['audio'])]) {
     const selected = project.providers?.[modality]
     if (!selected?.provider || !selected?.model_or_workflow) throw new Error(`复刻启动前必须在 Dashboard 选择并保存 ${modality} Provider 与模型`)
     const provider = catalog.get(selected.provider)
@@ -130,7 +131,7 @@ export async function validateProviderSetup(root, evidence, catalogItems = provi
     if (!provider.models?.[modality]?.some((model) => model.id === selected.model_or_workflow)) throw new Error(`${modality} Provider 模型不在当前可用目录`)
     if (receipt.selections?.[modality]?.provider !== selected.provider || receipt.selections?.[modality]?.model_or_workflow !== selected.model_or_workflow) throw new Error(`Provider 探测凭证中的 ${modality} 配置已过期`)
   }
-  const expectedProviders = new Set(['image', 'video', 'audio'].map((modality) => project.providers[modality].provider))
+  const expectedProviders = new Set(['image', 'video', ...(nativeH3Video ? [] : ['audio'])].map((modality) => project.providers[modality].provider))
   const successfulProviders = new Set((receipt.providers || []).filter((item) => item?.ok === true).map((item) => item.provider))
   for (const provider of expectedProviders) if (!successfulProviders.has(provider)) throw new Error(`${provider} 缺少成功的连接探测结果`)
 }

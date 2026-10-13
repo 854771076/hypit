@@ -222,6 +222,13 @@ export async function inspectStage(root, stage) {
       const brief = await json(resolve(root, '.short-drama', 'brief.json'))
       const bible = await json(resolve(root, '.short-drama', 'bible.json'))
       const outline = await json(resolve(root, '.short-drama', 'outline.json'))
+      const episodeDirs = await episodeDirectories(root)
+      const currentEpisodeNumber = episodeDirs.reduce((max, key) => Math.max(max, Number(key.slice(3))), 0)
+      const outlineEpisodes = new Set((outline.episodes || []).map((episode) => episode.key))
+      for (let number = 1; number <= currentEpisodeNumber; number++) {
+        const key = `ep-${String(number).padStart(3, '0')}`
+        if (!outlineEpisodes.has(key)) missing.push(`outline 缺少连续分集：${key}`)
+      }
       if (!viral) {
         const sourceAnalysis = await json(resolve(root, '.short-drama', 'source-analysis.json'))
         if (sourceAnalysis.coverage?.complete !== true) missing.push('来源分析覆盖不完整')
@@ -286,8 +293,12 @@ export async function inspectStage(root, stage) {
         if (!plan) { missing.push(`${episode} selected 资产计划`); continue }
         for (const item of [...(plan?.characters || []), ...(plan?.scenes || []), ...(plan?.props || [])]) {
           const asset = ledger.assets?.[item.key]
+          if (asset && asset.type !== item.type) missing.push(`${item.key} 资产类型与资产计划不一致`)
+          // asset-generation 的职责是产生并登记这些目标；未完成的目标允许保持未选版。
+          // selected、本地文件和审核证据由后续 production/media 门禁统一检查。
+          if (!asset) continue
           const version = asset?.versions?.find((entry) => entry.id === asset.selectedVersionId)
-          if (!version?.localPath || asset.staleVersionIds?.includes(version.id) || !await exists(resolve(root, version.localPath))) missing.push(`${item.key} selected 且未失效的本地版本`)
+          if (asset.selectedVersionId && (!version?.localPath || asset.staleVersionIds?.includes(version.id) || !await exists(resolve(root, version.localPath)))) missing.push(`${item.key} selected 版本无效`)
         }
       }
     }

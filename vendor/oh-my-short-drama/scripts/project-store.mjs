@@ -14,7 +14,7 @@ import { ANTI_GRID_CLAIM_ZH, ANTI_GRID_CLAIM_EN, NO_GENERATED_TEXT_CLAIM_ZH, NO_
 import { changedShotNumbers } from './shot-fingerprint.mjs'
 import { DEFAULT_WORKSPACE_ROOT } from './studio.mjs'
 import { autoOpenProjectDashboard } from './dashboard-auto-open.mjs'
-import { normalizeModelParameters, providerSetupCatalog, providerSupports } from './generation/providers.mjs'
+import { isH3Model, normalizeModelParameters, providerSetupCatalog, providerSupports } from './generation/providers.mjs'
 import { supportsPrevizMotionReference, validateMotionReferenceBinding } from './previz-contract.mjs'
 import { saveCustomArtStyle } from './art-styles.mjs'
 import { validateContinuityPlan } from './continuity-plan.mjs'
@@ -193,6 +193,7 @@ export function validateProject(project) {
     if (config.parameters !== undefined && (!config.parameters || typeof config.parameters !== 'object' || Array.isArray(config.parameters))) throw new Error(`providers.${modality}.parameters 必须是对象`)
     if (config.model_or_workflow !== null && config.provider === null) throw new Error(`providers.${modality}.model_or_workflow 需要 provider`)
     if (config.provider !== null) {
+      if (config.provider === 'runninghub' && config.model_or_workflow === 'MiniMax-H3') throw new Error('RunningHub H3 必须使用 minimax-h3-reference-to-video，不能使用 MiniMax-H3')
       const registered = providerSetupCatalog().find((item) => item.key === config.provider)
       if (!registered) throw new Error(`providers.${modality}.provider 未注册：${config.provider}`)
       if (config.model_or_workflow !== null && !(registered.models?.[modality] || []).some((item) => item.id === config.model_or_workflow)) throw new Error(`providers.${modality}.model_or_workflow 不受 ${config.provider} 支持`)
@@ -202,6 +203,10 @@ export function validateProject(project) {
       if (config.prompt_profile !== null && !PROMPT_PROFILES.has(config.prompt_profile)) throw new Error('providers.video.prompt_profile 无效')
     } else if (config.prompt_profile !== null) throw new Error(`providers.${modality}.prompt_profile 必须为 null`)
   }
+  const video = project.providers.video
+  const nativeH3Video = video.provider !== null && isH3Model(video.provider, video.model_or_workflow)
+  const audio = project.providers.audio
+  if (nativeH3Video && ((audio.provider === null) !== (audio.model_or_workflow === null))) throw new Error('H3 原生音频无需独立 audio Provider；请同时留空 provider 和 model_or_workflow')
   for (const field of ['createdAt', 'updatedAt']) if (typeof project[field] !== 'string' || !Number.isFinite(Date.parse(project[field]))) throw new Error(`project.${field} 必须是 ISO 时间`)
   rejectSecrets(project)
   return project
