@@ -1,5 +1,6 @@
 ---
 name: short-drama
+version: 1.0.0
 description: 短剧全流程唯一入口。用于创建、恢复、分析、编剧、导演、资产、分镜、打斗与 Blender 白模、图片/视频/声音生成、审核、剪辑、交付、市场研究和 Hypit 参考视频复刻；根据项目状态渐进读取 references 模块，不暴露或猜选子 Skill。
 ---
 

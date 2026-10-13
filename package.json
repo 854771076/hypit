@@ -186,6 +186,8 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "test": "node test/run.mjs",
+    "test:short-drama": "npm run check:short-drama",
+    "check:short-drama": "cd vendor/oh-my-short-drama && node scripts/audit-plugin.mjs --self-check && node scripts/integration-self-check.mjs --self-check && node --test $(find scripts studio -name '*.test.mjs' -print | sort)",
     "test:runtime-scale": "node test/run.mjs runtime-scale",
     "test:whisperx-service": "uv run --project services/whisperx --frozen python -m unittest discover -s services/whisperx/tests -p \"test_*.py\"",
     "test:image-opencv": "node test/run.mjs image-opencv",

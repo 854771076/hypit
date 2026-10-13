@@ -1,5 +1,6 @@
 ---
 name: hypit
+version: 1.0.0
 description: Direct and produce videos with Hypit, primarily through generated media and authored components while incorporating briefs, references or supplied material; includes SVML/SVS/SVRun authoring and Runtime or credential setup.
 ---
 
